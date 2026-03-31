@@ -1,0 +1,153 @@
+[
+    
+{"data":"500MB","service_day":"1 day","traffic_type":"Daily Type","price_cny":4.00,"network_type":"5G/4G","description":"500MB Daily with high speed + FUP 128Kbps","product_code":"eSIM-BD500M-01","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"500MB","service_day":"3 days","traffic_type":"Daily Type","price_cny":9.00,"network_type":"5G/4G","description":"500MB Daily with high speed + FUP 128Kbps","product_code":"eSIM-BD500M-03","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"500MB","service_day":"5 days","traffic_type":"Daily Type","price_cny":14.00,"network_type":"5G/4G","description":"500MB Daily with high speed + FUP 128Kbps","product_code":"eSIM-BD500M-05","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"500MB","service_day":"7 days","traffic_type":"Daily Type","price_cny":19.00,"network_type":"5G/4G","description":"500MB Daily with high speed + FUP 128Kbps","product_code":"eSIM-BD500M-07","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"500MB","service_day":"10 days","traffic_type":"Daily Type","price_cny":27.00,"network_type":"5G/4G","description":"500MB Daily with high speed + FUP 128Kbps","product_code":"eSIM-BD500M-10","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"500MB","service_day":"15 days","traffic_type":"Daily Type","price_cny":39.00,"network_type":"5G/4G","description":"500MB Daily with high speed + FUP 128Kbps","product_code":"eSIM-BD500M-15","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"500MB","service_day":"20 days","traffic_type":"Daily Type","price_cny":51.00,"network_type":"5G/4G","description":"500MB Daily with high speed + FUP 128Kbps","product_code":"eSIM-BD500M-20","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"500MB","service_day":"30 days","traffic_type":"Daily Type","price_cny":76.00,"network_type":"5G/4G","description":"500MB Daily with high speed + FUP 128Kbps","product_code":"eSIM-BD500M-30","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"1GB","service_day":"1 day","traffic_type":"Daily Type","price_cny":18.00,"network_type":"5G/4G","description":"1GB Daily with high speed + FUP 10Mbps","product_code":"eSIM-BD1GB-01","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"1GB","service_day":"3 days","traffic_type":"Daily Type","price_cny":51.00,"network_type":"5G/4G","description":"1GB Daily with high speed + FUP 10Mbps","product_code":"eSIM-BD1GB-03","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"1GB","service_day":"5 days","traffic_type":"Daily Type","price_cny":84.00,"network_type":"5G/4G","description":"1GB Daily with high speed + FUP 10Mbps","product_code":"eSIM-BD1GB-05","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"1GB","service_day":"7 days","traffic_type":"Daily Type","price_cny":116.00,"network_type":"5G/4G","description":"1GB Daily with high speed + FUP 10Mbps","product_code":"eSIM-BD1GB-07","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"1GB","service_day":"10 days","traffic_type":"Daily Type","price_cny":166.00,"network_type":"5G/4G","description":"1GB Daily with high speed + FUP 10Mbps","product_code":"eSIM-BD1GB-10","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"1GB","service_day":"15 days","traffic_type":"Daily Type","price_cny":247.00,"network_type":"5G/4G","description":"1GB Daily with high speed + FUP 10Mbps","product_code":"eSIM-BD1GB-15","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"1GB","service_day":"20 days","traffic_type":"Daily Type","price_cny":329.00,"network_type":"5G/4G","description":"1GB Daily with high speed + FUP 10Mbps","product_code":"eSIM-BD1GB-20","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"1GB","service_day":"30 days","traffic_type":"Daily Type","price_cny":493.00,"network_type":"5G/4G","description":"1GB Daily with high speed + FUP 10Mbps","product_code":"eSIM-BD1GB-30","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"2GB","service_day":"1 day","traffic_type":"Daily Type","price_cny":5.00,"network_type":"5G/4G","description":"2GB Daily with high speed + FUP 128Kbps","product_code":"eSIM-BD2GB-01","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"2GB","service_day":"3 days","traffic_type":"Daily Type","price_cny":12.00,"network_type":"5G/4G","description":"2GB Daily with high speed + FUP 128Kbps","product_code":"eSIM-BD2GB-03","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"2GB","service_day":"5 days","traffic_type":"Daily Type","price_cny":18.00,"network_type":"5G/4G","description":"2GB Daily with high speed + FUP 128Kbps","product_code":"eSIM-BD2GB-05","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"2GB","service_day":"7 days","traffic_type":"Daily Type","price_cny":25.00,"network_type":"5G/4G","description":"2GB Daily with high speed + FUP 128Kbps","product_code":"eSIM-BD2GB-07","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"2GB","service_day":"10 days","traffic_type":"Daily Type","price_cny":35.00,"network_type":"5G/4G","description":"2GB Daily with high speed + FUP 128Kbps","product_code":"eSIM-BD2GB-10","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"2GB","service_day":"15 days","traffic_type":"Daily Type","price_cny":51.00,"network_type":"5G/4G","description":"2GB Daily with high speed + FUP 128Kbps","product_code":"eSIM-BD2GB-15","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"2GB","service_day":"20 days","traffic_type":"Daily Type","price_cny":67.00,"network_type":"5G/4G","description":"2GB Daily with high speed + FUP 128Kbps","product_code":"eSIM-BD2GB-20","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"2GB","service_day":"30 days","traffic_type":"Daily Type","price_cny":100.00,"network_type":"5G/4G","description":"2GB Daily with high speed + FUP 128Kbps","product_code":"eSIM-BD2GB-30","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"3GB","service_day":"1 day","traffic_type":"Daily Type","price_cny":22.00,"network_type":"5G/4G","description":"3GB Daily with high speed + FUP 128Kbps","product_code":"eSIM-BD3GB-01","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"3GB","service_day":"3 days","traffic_type":"Daily Type","price_cny":60.00,"network_type":"5G/4G","description":"3GB Daily with high speed + FUP 128Kbps","product_code":"eSIM-BD3GB-03","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"3GB","service_day":"5 days","traffic_type":"Daily Type","price_cny":99.00,"network_type":"5G/4G","description":"3GB Daily with high speed + FUP 128Kbps","product_code":"eSIM-BD3GB-05","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"3GB","service_day":"7 days","traffic_type":"Daily Type","price_cny":137.00,"network_type":"5G/4G","description":"3GB Daily with high speed + FUP 128Kbps","product_code":"eSIM-BD3GB-07","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"3GB","service_day":"10 days","traffic_type":"Daily Type","price_cny":195.00,"network_type":"5G/4G","description":"3GB Daily with high speed + FUP 128Kbps","product_code":"eSIM-BD3GB-10","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"3GB","service_day":"15 days","traffic_type":"Daily Type","price_cny":291.00,"network_type":"5G/4G","description":"3GB Daily with high speed + FUP 128Kbps","product_code":"eSIM-BD3GB-15","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"3GB","service_day":"20 days","traffic_type":"Daily Type","price_cny":387.00,"network_type":"5G/4G","description":"3GB Daily with high speed + FUP 128Kbps","product_code":"eSIM-BD3GB-20","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"3GB","service_day":"30 days","traffic_type":"Daily Type","price_cny":579.00,"network_type":"5G/4G","description":"3GB Daily with high speed + FUP 128Kbps","product_code":"eSIM-BD3GB-30","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"MAX","service_day":"1 day","traffic_type":"Daily Type","price_cny":35.00,"network_type":"5G/4G","description":"1GB Daily with high speed + FUP 5Mbps","product_code":"eSIM-BDMAX-01","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"MAX","service_day":"3 days","traffic_type":"Daily Type","price_cny":99.00,"network_type":"5G/4G","description":"1GB Daily with high speed + FUP 5Mbps","product_code":"eSIM-BDMAX-03","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"MAX","service_day":"5 days","traffic_type":"Daily Type","price_cny":163.00,"network_type":"5G/4G","description":"1GB Daily with high speed + FUP 5Mbps","product_code":"eSIM-BDMAX-05","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"MAX","service_day":"7 days","traffic_type":"Daily Type","price_cny":227.00,"network_type":"5G/4G","description":"1GB Daily with high speed + FUP 5Mbps","product_code":"eSIM-BDMAX-07","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"MAX","service_day":"10 days","traffic_type":"Daily Type","price_cny":323.00,"network_type":"5G/4G","description":"1GB Daily with high speed + FUP 5Mbps","product_code":"eSIM-BDMAX-10","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"MAX","service_day":"15 days","traffic_type":"Daily Type","price_cny":483.00,"network_type":"5G/4G","description":"1GB Daily with high speed + FUP 5Mbps","product_code":"eSIM-BDMAX-15","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"MAX","service_day":"20 days","traffic_type":"Daily Type","price_cny":643.00,"network_type":"5G/4G","description":"1GB Daily with high speed + FUP 5Mbps","product_code":"eSIM-BDMAX-20","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"MAX","service_day":"30 days","traffic_type":"Daily Type","price_cny":963.00,"network_type":"5G/4G","description":"1GB Daily with high speed + FUP 5Mbps","product_code":"eSIM-BDMAX-30","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"3GB","service_day":"3 days","traffic_type":"Total Type","price_cny":32.00,"network_type":"5G/4G","description":"Total 3GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT3GB-03","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"3GB","service_day":"5 days","traffic_type":"Total Type","price_cny":33.00,"network_type":"5G/4G","description":"Total 3GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT3GB-05","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"3GB","service_day":"7 days","traffic_type":"Total Type","price_cny":35.00,"network_type":"5G/4G","description":"Total 3GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT3GB-07","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"3GB","service_day":"10 days","traffic_type":"Total Type","price_cny":37.00,"network_type":"5G/4G","description":"Total 3GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT3GB-10","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"3GB","service_day":"15 days","traffic_type":"Total Type","price_cny":39.00,"network_type":"5G/4G","description":"Total 3GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT3GB-15","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"3GB","service_day":"30 days","traffic_type":"Total Type","price_cny":41.00,"network_type":"5G/4G","description":"Total 3GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT3GB-30","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"5GB","service_day":"3 days","traffic_type":"Total Type","price_cny":51.00,"network_type":"5G/4G","description":"Total 3GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT5G-03","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"5GB","service_day":"5 days","traffic_type":"Total Type","price_cny":54.00,"network_type":"5G/4G","description":"Total 3GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT5G-05","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"5GB","service_day":"7 days","traffic_type":"Total Type","price_cny":57.00,"network_type":"5G/4G","description":"Total 3GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT5G-07","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"5GB","service_day":"10 days","traffic_type":"Total Type","price_cny":60.00,"network_type":"5G/4G","description":"Total 3GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT5G-10","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"5GB","service_day":"15 days","traffic_type":"Total Type","price_cny":63.00,"network_type":"5G/4G","description":"Total 3GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT5G-15","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"5GB","service_day":"30 days","traffic_type":"Total Type","price_cny":66.00,"network_type":"5G/4G","description":"Total 3GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT5G-30","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"10GB","service_day":"3 days","traffic_type":"Total Type","price_cny":80.00,"network_type":"5G/4G","description":"Total 10GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT10G-03","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"10GB","service_day":"5 days","traffic_type":"Total Type","price_cny":85.00,"network_type":"5G/4G","description":"Total 10GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT10G-05","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"10GB","service_day":"7 days","traffic_type":"Total Type","price_cny":90.00,"network_type":"5G/4G","description":"Total 10GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT10G-07","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"10GB","service_day":"10 days","traffic_type":"Total Type","price_cny":95.00,"network_type":"5G/4G","description":"Total 10GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT10G-10","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"10GB","service_day":"15 days","traffic_type":"Total Type","price_cny":100.00,"network_type":"5G/4G","description":"Total 10GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT10G-15","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"10GB","service_day":"30 days","traffic_type":"Total Type","price_cny":105.00,"network_type":"5G/4G","description":"Total 10GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT10G-30","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"20GB","service_day":"3 days","traffic_type":"Total Type","price_cny":150.00,"network_type":"5G/4G","description":"Total 20GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT20G-03","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"20GB","service_day":"5 days","traffic_type":"Total Type","price_cny":159.00,"network_type":"5G/4G","description":"Total 20GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT20G-05","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"20GB","service_day":"7 days","traffic_type":"Total Type","price_cny":168.00,"network_type":"5G/4G","description":"Total 20GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT20G-07","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"20GB","service_day":"10 days","traffic_type":"Total Type","price_cny":177.00,"network_type":"5G/4G","description":"Total 20GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT20G-10","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"20GB","service_day":"15 days","traffic_type":"Total Type","price_cny":186.00,"network_type":"5G/4G","description":"Total 20GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT20G-15","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"20GB","service_day":"30 days","traffic_type":"Total Type","price_cny":195.00,"network_type":"5G/4G","description":"Total 20GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT20G-30","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"30GB","service_day":"3 days","traffic_type":"Total Type","price_cny":215.00,"network_type":"5G/4G","description":"Total 30GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT30G-03","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"30GB","service_day":"5 days","traffic_type":"Total Type","price_cny":226.00,"network_type":"5G/4G","description":"Total 30GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT30G-05","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"30GB","service_day":"7 days","traffic_type":"Total Type","price_cny":237.00,"network_type":"5G/4G","description":"Total 30GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT30G-07","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"30GB","service_day":"10 days","traffic_type":"Total Type","price_cny":248.00,"network_type":"5G/4G","description":"Total 30GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT30G-10","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"30GB","service_day":"15 days","traffic_type":"Total Type","price_cny":259.00,"network_type":"5G/4G","description":"Total 30GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT30G-15","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"30GB","service_day":"30 days","traffic_type":"Total Type","price_cny":270.00,"network_type":"5G/4G","description":"Total 30GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT30G-30","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"50GB","service_day":"3 days","traffic_type":"Total Type","price_cny":350.00,"network_type":"5G/4G","description":"Total 50GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT50G-03","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"50GB","service_day":"5 days","traffic_type":"Total Type","price_cny":365.00,"network_type":"5G/4G","description":"Total 50GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT50G-05","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"50GB","service_day":"7 days","traffic_type":"Total Type","price_cny":380.00,"network_type":"5G/4G","description":"Total 50GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT50G-07","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"50GB","service_day":"10 days","traffic_type":"Total Type","price_cny":395.00,"network_type":"5G/4G","description":"Total 50GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT50G-10","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"50GB","service_day":"15 days","traffic_type":"Total Type","price_cny":410.00,"network_type":"5G/4G","description":"Total 50GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT50G-15","remark":"","expiration_date":"2026-12-31"},
+
+{"data":"50GB","service_day":"30 days","traffic_type":"Total Type","price_cny":425.00,"network_type":"5G/4G","description":"Total 50GB with high speed + FUP 128 kbps","product_code":"eSIM-BDT50G-30","remark":"","expiration_date":"2026-12-31"}]
