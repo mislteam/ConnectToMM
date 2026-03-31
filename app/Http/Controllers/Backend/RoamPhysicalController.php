@@ -162,7 +162,10 @@ class RoamPhysicalController extends Controller
 
                 $pkgSign = $this->createSign($pkgParams, $roamapi->client_key);
 
-                $pkgResponse = Http::timeout(40)->asForm()->post(
+                $pkgResponse = Http::timeout(120)
+                    ->retry(3, 2000)
+                    ->asForm()
+                    ->post(
                     $roamapi->api_url . '/api_esim/getDpSkuSupportPackageInfo',
                     array_merge($pkgParams, ['sign' => $pkgSign])
                 );
