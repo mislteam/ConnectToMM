@@ -8,7 +8,6 @@ use App\Http\Controllers\Backend\AdminController;
 use App\Http\Controllers\Backend\BlogCategoryController;
 use App\Http\Controllers\Backend\BlogController;
 use App\Http\Controllers\Backend\ContactUsController;
-use App\Http\Controllers\Backend\CurrencyController;
 use App\Http\Controllers\Backend\CustomerController;
 use App\Http\Controllers\Backend\FooterPageController;
 use App\Http\Controllers\Backend\GeneralSettingController;
