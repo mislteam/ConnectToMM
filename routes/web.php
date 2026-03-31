@@ -94,17 +94,6 @@ Route::middleware(['auth'])->group(function () {
     // order
     Route::get('/all-orders', [OrderController::class, 'index'])->name('order.index');
 
-    // currency index
-    Route::get('/currency', [CurrencyController::class, 'index'])->name('currency.index');
-    Route::get('/currency/edit/{currency}', [CurrencyController::class, 'edit'])->name('currency.edit');
-    Route::patch('/currency/update/{currency}', [CurrencyController::class, 'update'])->name('currency.update');
-
-    // usd currency
-    Route::get('/add-usd-currency', [CurrencyController::class, 'addUsd'])->name('currency.addusd');
-    Route::post('/add-usd-currency', [CurrencyController::class, 'storeUsdCurrency'])->name('usdcurrency.store');
-    Route::get('/edit-usd-currency/{usdCurrency}', [CurrencyController::class, 'editUsdCurrency'])->name('usdcurrency.edit');
-    Route::put('/edit-usd-currency/{usdCurrency}', [CurrencyController::class, 'updateUsdCurrency'])->name('usdcurrency.update');
-
     // All Admin Users
     Route::get('/show', [AdminController::class, 'index'])->name('show.admin');
     Route::get('/create', [AdminController::class, 'create'])->name('create.admin');
@@ -153,7 +142,7 @@ Route::middleware(['auth'])->group(function () {
 
 
         //Api Credentials
-        Route::post('/roam-api/store', [JoytelController::class, 'store'])->name('roam-api.store');
+        Route::post('/roam-api/store', [RoamController::class, 'store'])->name('roam-api.store');
 
 
         //manage status
