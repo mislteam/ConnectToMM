@@ -166,9 +166,9 @@ class RoamPhysicalController extends Controller
                     ->retry(3, 2000)
                     ->asForm()
                     ->post(
-                    $roamapi->api_url . '/api_esim/getDpSkuSupportPackageInfo',
-                    array_merge($pkgParams, ['sign' => $pkgSign])
-                );
+                        $roamapi->api_url . '/api_esim/getDpSkuSupportPackageInfo',
+                        array_merge($pkgParams, ['sign' => $pkgSign])
+                    );
 
                 $pkgData = $pkgResponse->json();
                 // dd($pkgData);
@@ -375,42 +375,42 @@ class RoamPhysicalController extends Controller
 
             foreach ($request->plans as $plan) {
                 $priceid = $plan['priceid'] ?? null;
-            $rate = $plan['exchange_rate'] ?? null;
-            $dpName = $plan['dp_name'] ?? null;
+                $rate = $plan['exchange_rate'] ?? null;
+                $dpName = $plan['dp_name'] ?? null;
 
 
-            $skuId = $plan['sku_id'] ?? null;
+                $skuId = $plan['sku_id'] ?? null;
 
-            if (!$priceid) continue;
-            if ($rate === null || $rate == 0) continue;
+                if (!$priceid) continue;
+                if ($rate === null || $rate == 0) continue;
 
-            // default
-            $dpStatus = 0;
-            $dpInfo = null;
+                // default
+                $dpStatus = 0;
+                $dpInfo = null;
 
-            // map dp_name
-            if ($dpName === 'FiROAM GLOBAL') {
-                $dpStatus = 1;
-                $dpInfo = 9;
-            } elseif ($dpName === 'FiROAM ASIA') {
-                $dpStatus = 1;
-                $dpInfo = 21;
-            }
+                // map dp_name
+                if ($dpName === 'FiROAM GLOBAL') {
+                    $dpStatus = 1;
+                    $dpInfo = 9;
+                } elseif ($dpName === 'FiROAM ASIA') {
+                    $dpStatus = 1;
+                    $dpInfo = 21;
+                }
 
-            PriceList::updateOrCreate(
-                [
-                    'product_code' => $priceid,
-                    'dp_status' => $dpStatus,
-                    'dp_info' => $dpInfo,
-                    'plan' => $skuId
-                ],
-                [
-                    'exchange_rate' => $rate
-                ]
-            );
+                PriceList::updateOrCreate(
+                    [
+                        'product_code' => $priceid,
+                        'dp_status' => $dpStatus,
+                        'dp_info' => $dpInfo,
+                        'plan' => $skuId
+                    ],
+                    [
+                        'exchange_rate' => $rate
+                    ]
+                );
             }
         }
-        return back()->with('success','Exchange rates saved successfully!');
+        return back()->with('success', 'Exchange rates saved successfully!');
     }
 
     public function UpdateData()
