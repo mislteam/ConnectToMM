@@ -193,8 +193,8 @@
                                                             <input type="number" class="form-control data-input"
                                                                 data-field="price_cny"
                                                                 name="rows[{{ $loop->iteration }}][price_cny]"
-                                                                placeholder="Enter Amount" step="0.01" min="0" readonly
-                                                                value="{{ (float) $plan['price_cny'] }}">
+                                                                placeholder="Enter Amount" step="0.01" min="0"
+                                                                readonly value="{{ (float) $plan['price_cny'] }}">
                                                             @error('price_cny')
                                                                 <small class="text-danger">{{ $message }}</small>
                                                             @enderror
