@@ -38,7 +38,7 @@ class FrontendJoytelController extends Controller
 
     // show each package
     public function packageView(Joytel $joytel)
-    {   
+    {
         // Determine SIM type
         $type = $joytel->product_type;
 
@@ -104,17 +104,23 @@ class FrontendJoytelController extends Controller
         $routeName = request()->route()->getName();
         $section = Section::where('section_key', 'need_more_help')->first();
 
-        $packages = collect();
-
+        // Start query
         if (str_contains($routeName, 'esim')) {
-            $packages = Joytel::where('product_type', 'LIKE', '%esim%')
-                ->take(3)
-                ->get();
+            $query = Joytel::where('product_type', 'LIKE', '%esim%');
         } else {
-            $packages = Joytel::where('product_type', 'LIKE', '%recharge%')
-                ->take(3)
-                ->get();
+            $query = Joytel::where('product_type', 'LIKE', '%recharge%');
         }
+
+        // NEW FILTER
+        $query->whereIn('product_name', function ($subquery) {
+            $subquery->select('plan')
+                ->from('price_lists')
+                ->whereNotNull('plan');
+        });
+
+        $packages = $query->where('status', 1)
+            ->take(3)
+            ->get();
 
         return view($route, compact('usage_locations', 'packages', 'section'));
     }
@@ -132,16 +138,16 @@ class FrontendJoytelController extends Controller
         }
 
         /** * NEW FILTER: Only show packages where the product_name exists 
-            * in the price_lists table under the 'plan' column.
-        */
-        $query->whereIn('product_name', function($subquery) {
+         * in the price_lists table under the 'plan' column.
+         */
+        $query->whereIn('product_name', function ($subquery) {
             $subquery->select('plan')
-                    ->from('price_lists')
-                    ->whereNotNull('plan');
+                ->from('price_lists')
+                ->whereNotNull('plan');
         });
 
         $packages = $query->where('status', 1)->get();
-        
+
         return view($route, compact('packages'));
     }
 }

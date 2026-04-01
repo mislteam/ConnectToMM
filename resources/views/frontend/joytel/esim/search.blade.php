@@ -111,8 +111,9 @@
                                         $priceList = \App\Models\PriceList::where('plan', $package->product_name)
                                             ->where('product_code', $package->plan[0]['product_code'])
                                             ->first();
-                                        $lowest_price = $priceList 
-                                            ? round($package->plan[0]['price_cny'] * $priceList->exchange_rate) : 0;
+                                        $lowest_price = $priceList
+                                            ? round($package->plan[0]['price_cny'] * $priceList->exchange_rate)
+                                            : 0;
                                     @endphp
                                     <p class="text-size-16">From
                                         {{ number_format($lowest_price) }}
