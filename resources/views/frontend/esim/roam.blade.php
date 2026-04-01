@@ -65,40 +65,40 @@
                                     </div>
                                 </form>
                                 <!-- <form method="POST">
-                                                                                                                                                                                    <div class="row">
-                                                                                                                                                                                        <div class="col-12">
-                                                                                                                                                                                            <div class="form-group mb-0">
-                                                                                                                                                                                                <h4>Shop for the best eSIM offers:</h4>
-                                                                                                                                                                                                <select class="select2_design form-control" multiple="multiple">
-                                                                                                                                                                                                    <option value="Mayotte">Mayotte</option>
-                                                                                                                                                                                                    <option value="Mexico">Mexico</option>
-                                                                                                                                                                                                    <option value="Micronesia, Federated States of">Micronesia, Federated
-                                                                                                                                                                                                        States of</option>
-                                                                                                                                                                                                    <option value="Moldova, Republic of">Moldova, Republic of</option>
-                                                                                                                                                                                                    <option value="Monaco">Monaco</option>
-                                                                                                                                                                                                    <option value="Mongolia">Mongolia</option>
-                                                                                                                                                                                                    <option value="Montenegro">Montenegro</option>
-                                                                                                                                                                                                    <option value="Montserrat">Montserrat</option>
-                                                                                                                                                                                                    <option value="Morocco">Morocco</option>
-                                                                                                                                                                                                    <option value="Mozambique">Mozambique</option>
-                                                                                                                                                                                                    <option value="Myanmar">Myanmar</option>
-                                                                                                                                                                                                    <option value="Namibia">Namibia</option>
-                                                                                                                                                                                                    <option value="Nauru">Nauru</option>
-                                                                                                                                                                                                    <option value="Nepal">Nepal</option>
-                                                                                                                                                                                                    <option value="Netherlands">Netherlands</option>
-                                                                                                                                                                                                    <option value="New Caledonia">New Caledonia</option>
-                                                                                                                                                                                                    <option value="New Zealand">New Zealand</option>
-                                                                                                                                                                                                    <option value="Nicaragua">Nicaragua</option>
-                                                                                                                                                                                                </select>
-                                                                                                                                                                                            </div>
-                                                                                                                                                                                        </div>
-                                                                                                                                                                                        <div class="col-12">
-                                                                                                                                                                                            <div class="mt-4 text-center">
-                                                                                                                                                                                                <a href="{{ route('esim.roamsearch') }}" class="button_text">Continue Search</a>
-                                                                                                                                                                                            </div>
-                                                                                                                                                                                        </div>
-                                                                                                                                                                                    </div>
-                                                                                                                                                                                </form> -->
+                                                                                                                                                                                                                                                        <div class="row">
+                                                                                                                                                                                                                                                            <div class="col-12">
+                                                                                                                                                                                                                                                                <div class="form-group mb-0">
+                                                                                                                                                                                                                                                                    <h4>Shop for the best eSIM offers:</h4>
+                                                                                                                                                                                                                                                                    <select class="select2_design form-control" multiple="multiple">
+                                                                                                                                                                                                                                                                        <option value="Mayotte">Mayotte</option>
+                                                                                                                                                                                                                                                                        <option value="Mexico">Mexico</option>
+                                                                                                                                                                                                                                                                        <option value="Micronesia, Federated States of">Micronesia, Federated
+                                                                                                                                                                                                                                                                            States of</option>
+                                                                                                                                                                                                                                                                        <option value="Moldova, Republic of">Moldova, Republic of</option>
+                                                                                                                                                                                                                                                                        <option value="Monaco">Monaco</option>
+                                                                                                                                                                                                                                                                        <option value="Mongolia">Mongolia</option>
+                                                                                                                                                                                                                                                                        <option value="Montenegro">Montenegro</option>
+                                                                                                                                                                                                                                                                        <option value="Montserrat">Montserrat</option>
+                                                                                                                                                                                                                                                                        <option value="Morocco">Morocco</option>
+                                                                                                                                                                                                                                                                        <option value="Mozambique">Mozambique</option>
+                                                                                                                                                                                                                                                                        <option value="Myanmar">Myanmar</option>
+                                                                                                                                                                                                                                                                        <option value="Namibia">Namibia</option>
+                                                                                                                                                                                                                                                                        <option value="Nauru">Nauru</option>
+                                                                                                                                                                                                                                                                        <option value="Nepal">Nepal</option>
+                                                                                                                                                                                                                                                                        <option value="Netherlands">Netherlands</option>
+                                                                                                                                                                                                                                                                        <option value="New Caledonia">New Caledonia</option>
+                                                                                                                                                                                                                                                                        <option value="New Zealand">New Zealand</option>
+                                                                                                                                                                                                                                                                        <option value="Nicaragua">Nicaragua</option>
+                                                                                                                                                                                                                                                                    </select>
+                                                                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                            <div class="col-12">
+                                                                                                                                                                                                                                                                <div class="mt-4 text-center">
+                                                                                                                                                                                                                                                                    <a href="{{ route('esim.roamsearch') }}" class="button_text">Continue Search</a>
+                                                                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                    </form> -->
                             </div>
                         </div>
                     </div>
@@ -174,13 +174,16 @@
             <div class="services-data mt-4">
                 <div class="form-design tabs-container">
                     <!-- <ul class="nav" role="tablist">
-                                                                                                                                                                        <li><a class="nav-link active" data-toggle="tab" href="#roam-new-esim-package"> New eSIM</a></li>
-                                                                                                                                                                        <li><a class="nav-link" data-toggle="tab" href="#roam-recharge-package">Recharge</a></li>
-                                                                                                                                                                    </ul> -->
+                                                                                                                                                                                                                                            <li><a class="nav-link active" data-toggle="tab" href="#roam-new-esim-package"> New eSIM</a></li>
+                                                                                                                                                                                                                                            <li><a class="nav-link" data-toggle="tab" href="#roam-recharge-package">Recharge</a></li>
+                                                                                                                                                                                                                                        </ul> -->
                     <div class="tab-content mt-4 shadow-none p-0">
                         <div role="tabpanel" id="roam-new-esim-package" class="tab-pane active">
                             <div class="panel-body">
                                 <div class="row" id="package-list">
+                                    @php
+                                        $validCount = 0;
+                                    @endphp
                                     @foreach ($skupackages as $package)
                                         @php
                                             $pkg = App\Models\Roam::where('sku_id', $package->sku_id)->first();
@@ -205,6 +208,7 @@
                                             }
                                         @endphp
                                         @if ($pkg && $lowestPrice)
+                                            @php $validCount++; @endphp
                                             <div class="col-lg-4  col-md-4 col-sm-12 col-12">
                                                 <div class="service-box">
                                                     <figure class="img img2 mb-3">
@@ -227,9 +231,11 @@
                                         @endif
                                     @endforeach
                                 </div>
-                                <div class="text-center mt-4">
-                                    <button id="showMoreBtn" class="btn btn-primary px-4 py-2">Show More</button>
-                                </div>
+                                @if ($validCount > 6)
+                                    <div class="text-center mt-4">
+                                        <button id="showMoreBtn" class="btn btn-primary px-4 py-2">Show More</button>
+                                    </div>
+                                @endif
                             </div>
                         </div>
 
@@ -304,16 +310,29 @@
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             const items = document.querySelectorAll('#package-list .col-lg-4');
-            let visibleCount = 6; // show first 6 (2 rows)
+            const showMoreBtn = document.getElementById('showMoreBtn');
+            let visibleCount = 6;
 
-            // Hide items after the 6th
+            // If no button or no items, exit
+            if (!showMoreBtn || items.length === 0) {
+                if (showMoreBtn) showMoreBtn.style.display = 'none';
+                return;
+            }
+
+            // Hide items after first 6
             items.forEach((item, index) => {
                 if (index >= visibleCount) {
                     item.style.display = 'none';
                 }
             });
 
-            document.getElementById('showMoreBtn').addEventListener('click', function() {
+            // Hide button if total items <= 6
+            if (items.length <= visibleCount) {
+                showMoreBtn.style.display = 'none';
+            }
+
+            // Show more button click event
+            showMoreBtn.addEventListener('click', function() {
                 let revealed = 0;
 
                 items.forEach((item, index) => {
@@ -325,13 +344,11 @@
 
                 visibleCount += 6;
 
-
-                // If no more items, hide button
+                // Hide button if all items are shown
                 if (visibleCount >= items.length) {
                     this.style.display = 'none';
                 }
             });
         });
     </script>
-
 @endsection
