@@ -19,14 +19,43 @@ class ESimController extends Controller
             ->sort()
             ->values();
 
-        $skupackages = RoamSku::all();
-        $priceList = PriceList::all();
+        $priceList = PriceList::where('dp_status', 0)->get();
+
+        $skupackages = RoamSku::where('status', 1)
+            ->get()
+            ->filter(function ($sku) use ($priceList) {
+
+                $roam = Roam::where('sku_id', $sku->sku_id)->first();
+                if (!$roam || empty($roam->packages)) return false;
+
+                // price list codes for this sku
+                $priceCodes = $priceList
+                    ->where('plan', $sku->sku_id)
+                    ->pluck('product_code')
+                    ->toArray();
+
+                // check valid package
+                $validPackage = collect($roam->packages)
+                    ->where('status', 1)
+                    ->first(function ($pkg) use ($priceCodes) {
+                        return in_array($pkg['priceid'], $priceCodes);
+                    });
+
+                return !empty($validPackage);
+            })
+            ->values();
+
         $logo = GeneralSetting::where('type', 'file')->first();
         $title = GeneralSetting::where('type', 'string')->first();
 
-        return view('frontend.esim.roam', compact('logo', 'title', 'countrys', 'skupackages', 'priceList'));
+        return view('frontend.esim.roam', compact(
+            'logo',
+            'title',
+            'countrys',
+            'skupackages',
+            'priceList'
+        ));
     }
-
 
     //for roam
     public function roamSearch(Request $request)
@@ -51,12 +80,12 @@ class ESimController extends Controller
 
         $packages = RoamSku::whereIn('sku_id', $skus)
             ->where('status', 1)
-            ->whereIn('sku_id', function($subquery) {
+            ->whereIn('sku_id', function ($subquery) {
                 $subquery->select('plan')
                     ->from('price_lists')
                     ->whereNotNull('plan');
-        })
-        ->get();
+            })
+            ->get();
 
         // dd($packages);
         $priceList = PriceList::all();
@@ -113,17 +142,17 @@ class ESimController extends Controller
 
         //$pricelists = PriceList::where('dp_status', 0)->get();
         $pricelists = PriceList::where('dp_status', 0)
-                    ->where('plan', $skuid)
-                    ->get();
+            ->where('plan', $skuid)
+            ->get();
 
         $priceListCodes = $pricelists->pluck('product_code')->toArray();
-        
+
         $activePackages = collect($packages)
             ->where('status', 1)
             ->filter(function ($pkg) use ($priceListCodes) {
-            return in_array($pkg['priceid'], $priceListCodes);
-        })
-        ->values();
+                return in_array($pkg['priceid'], $priceListCodes);
+            })
+            ->values();
 
         $validPackages = $activePackages;
 
@@ -134,9 +163,9 @@ class ESimController extends Controller
         $randomSkus = RoamSku::where('status', 1)
             ->where('sku_id', '!=', $skuid)
             ->whereIn('sku_id', function ($query) {
-            $query->select('plan')
-                ->from('price_lists')
-                ->where('dp_status', 0);
+                $query->select('plan')
+                    ->from('price_lists')
+                    ->where('dp_status', 0);
             })
             ->inRandomOrder()
             ->take(3)

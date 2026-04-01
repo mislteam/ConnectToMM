@@ -19,12 +19,36 @@ class PhysicalSimController extends Controller
             ->sort()
             ->values();
 
-        $skupackages = RoamPhysicalSku::all();
-        $priceList = PriceList::all();
+        $priceList = PriceList::where('dp_status', 1)->get();
+
+        $skupackages = RoamPhysicalSku::where('status', 1)
+            ->get()
+            ->filter(function ($sku) use ($priceList) {
+
+                $roam = RoamPhysical::where('sku_id', $sku->sku_id)->first();
+                if (!$roam || empty($roam->packages)) return false;
+
+                // price list codes for this sku
+                $priceCodes = $priceList
+                    ->where('plan', $sku->sku_id)
+                    ->pluck('product_code')
+                    ->toArray();
+
+                // check valid package
+                $validPackage = collect($roam->packages)
+                    ->where('status', 1)
+                    ->first(function ($pkg) use ($priceCodes) {
+                        return in_array($pkg['priceid'], $priceCodes);
+                    });
+
+                return !empty($validPackage);
+            })
+            ->values();
+
         $logo = GeneralSetting::where('type', 'file')->first();
         $title = GeneralSetting::where('type', 'string')->first();
 
-        return view('frontend.physical.roam-physical',compact('logo', 'title', 'countrys', 'skupackages', 'priceList'));
+        return view('frontend.physical.roam-physical', compact('logo', 'title', 'countrys', 'skupackages', 'priceList'));
     }
 
     public function roamPhysicalSearch(Request $request)
@@ -43,7 +67,7 @@ class PhysicalSimController extends Controller
 
         $packages = RoamPhysicalSku::whereIn('sku_id', $skus)
             ->where('status', 1)
-            ->whereIn('sku_id', function($subquery) {
+            ->whereIn('sku_id', function ($subquery) {
                 $subquery->select('plan')
                     ->from('price_lists')
                     ->whereNotNull('plan');
@@ -54,7 +78,7 @@ class PhysicalSimController extends Controller
         $logo = GeneralSetting::where('type', 'file')->first();
         $title = GeneralSetting::where('type', 'string')->first();
 
-    
+
         return view('frontend.physical.roam-physical-package', compact('logo', 'title', 'packages', 'skus', 'priceList'));
     }
 
@@ -68,9 +92,9 @@ class PhysicalSimController extends Controller
         $sku = RoamPhysicalSku::where('sku_id', $skuid)->first();
 
         $pricelists = PriceList::where('dp_status', 1)
-                    ->whereNotNull('dp_info')
-                    ->where('plan', $skuid)
-                    ->get();
+            ->whereNotNull('dp_info')
+            ->where('plan', $skuid)
+            ->get();
 
         $priceListCodes = $pricelists->pluck('product_code')->toArray();
 
@@ -90,9 +114,9 @@ class PhysicalSimController extends Controller
         $randomSkus = RoamPhysicalSku::where('status', 1)
             ->where('sku_id', '!=', $skuid)
             ->whereIn('sku_id', function ($query) {
-            $query->select('plan')
-                ->from('price_lists')
-                ->where('dp_status', 1);
+                $query->select('plan')
+                    ->from('price_lists')
+                    ->where('dp_status', 1);
             })
             ->inRandomOrder()
             ->take(3)
@@ -110,5 +134,4 @@ class PhysicalSimController extends Controller
             'randomSkus'
         ));
     }
- 
 }
