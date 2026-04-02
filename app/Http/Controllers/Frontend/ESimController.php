@@ -162,7 +162,6 @@ class ESimController extends Controller
         $logo = GeneralSetting::where('type', 'file')->first();
         $title = GeneralSetting::where('type', 'string')->first();
         $randomSkus = RoamSku::where('status', 1)
-            ->where('sku_id', '!=', $skuid)
             ->whereIn('sku_id', function ($query) {
                 $query->select('plan')
                     ->from('price_lists')
