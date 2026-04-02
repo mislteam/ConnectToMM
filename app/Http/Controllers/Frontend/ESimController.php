@@ -83,6 +83,7 @@ class ESimController extends Controller
             ->whereIn('sku_id', function ($subquery) {
                 $subquery->select('plan')
                     ->from('price_lists')
+                    ->where('dp_status', 1)
                     ->whereNotNull('plan');
             })
             ->get();
