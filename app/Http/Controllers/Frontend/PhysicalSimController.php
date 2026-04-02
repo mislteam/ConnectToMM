@@ -108,6 +108,8 @@ class PhysicalSimController extends Controller
             })
             ->values();
 
+        $validPackages = $activePackages;
+
         $hasValidPlans = $activePackages->isNotEmpty();
 
         $logo = GeneralSetting::where('type', 'file')->first();
@@ -130,6 +132,7 @@ class PhysicalSimController extends Controller
             'sku',
             'roam',
             'activePackages',
+            'validPackages',
             'pricelists',
             'hasValidPlans',
             'randomSkus'
