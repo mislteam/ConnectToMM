@@ -19,7 +19,8 @@ class ESimController extends Controller
             ->sort()
             ->values();
 
-        $priceList = PriceList::where('dp_status', 0)->get();
+        $priceList = PriceList::where('dp_status', 0)
+            ->whereNull('dp_info')->get();
 
         $skupackages = RoamSku::where('status', 1)
             ->get()
@@ -83,7 +84,7 @@ class ESimController extends Controller
             ->whereIn('sku_id', function ($subquery) {
                 $subquery->select('plan')
                     ->from('price_lists')
-                    ->where('dp_status', 1)
+                    ->where('dp_status', 0)
                     ->whereNotNull('plan');
             })
             ->get();
@@ -143,6 +144,7 @@ class ESimController extends Controller
 
         //$pricelists = PriceList::where('dp_status', 0)->get();
         $pricelists = PriceList::where('dp_status', 0)
+            ->whereNull('dp_info')
             ->where('plan', $skuid)
             ->get();
 
@@ -162,10 +164,12 @@ class ESimController extends Controller
         $logo = GeneralSetting::where('type', 'file')->first();
         $title = GeneralSetting::where('type', 'string')->first();
         $randomSkus = RoamSku::where('status', 1)
+            ->where('sku_id', '!=', $skuid)
             ->whereIn('sku_id', function ($query) {
                 $query->select('plan')
                     ->from('price_lists')
-                    ->where('dp_status', 0);
+                    ->where('dp_status', 0)
+                    ->whereNull('dp_info');
             })
             ->inRandomOrder()
             ->take(3)
