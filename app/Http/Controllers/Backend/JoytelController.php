@@ -5,7 +5,8 @@ namespace App\Http\Controllers\Backend;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\JoyCreateFormRequest;
 use App\Http\Requests\JoyUpdateFormRequest;
-use App\Imports\JoytelImport;
+use App\Imports\JoytelEsimImport;
+use App\Imports\JoytelRechargeImport;
 use App\Models\GeneralSetting;
 use App\Models\Joytel;
 use App\Models\JoyUsageLocation;
@@ -109,59 +110,75 @@ class JoytelController extends Controller
         return $this->updateJoytel($recharge, $request, 'physical.index');
     }
 
-    // import Excel
-    public function importExcel(Request $request)
+    public function importEsim(Request $request)
     {
         $request->validate([
             'file' => 'required|mimes:xlsx,xls',
         ]);
 
         try {
-            $import = new JoytelImport();
+            $import = new JoytelEsimImport();
             Excel::import($import, $request->file('file'));
 
-            $inserted = $import->inserted;
-            $updated  = $import->updated;
-            $skipped  = $import->skipped;
-
-            // Case 1: nothing new, nothing updated
-            if ($inserted === 0 && $updated === 0 && $skipped > 0) {
-                return redirect()->back()->with(
-                    'error',
-                    'Already imported. No new data added.'
-                );
-            }
-
-            // Case 2: only inserted, no updates
-            if ($inserted > 0 && $updated === 0) {
-                return redirect()->back()->with(
-                    'success',
-                    "Excel Import Successfully! {$inserted} new row(s) added."
-                );
-            }
-
-            // Case 3: only updated, no new rows
-            if ($inserted === 0 && $updated > 0) {
-                return redirect()->back()->with(
-                    'success',
-                    "Excel Import Successfully! {$updated} existing row(s) updated."
-                );
-            }
-
-            // Case 4: mix of inserted and updated
-            if ($inserted > 0 && $updated > 0) {
-                return redirect()->back()->with(
-                    'success',
-                    "Excel Import Successfully! {$inserted} new row(s) added, {$updated} existing row(s) updated."
-                );
-            }
-
-            // Optional
+            return $this->handleImportExcel($import);
         } catch (\Exception $e) {
-            return redirect()->back()->with('error', $e->getMessage());
+            return back()->with('error', $e->getMessage());
         }
     }
 
+    public function importRecharge(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls',
+        ]);
+
+        try {
+            $import = new JoytelRechargeImport();
+            Excel::import($import, $request->file('file'));
+
+            return $this->handleImportExcel($import);
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
+
+    // import Excel
+    private function handleImportExcel($import)
+    {
+        $inserted = $import->inserted;
+        $updated  = $import->updated;
+        $skipped  = $import->skipped;
+
+        // Case 1: nothing new, nothing updated
+        if ($inserted === 0 && $updated === 0 && $skipped > 0) {
+            return redirect()->back()->with(
+                'error',
+                'Already imported. No new data added.'
+            );
+        }
+
+        // Case 2: only inserted, no updates
+        if ($inserted > 0 && $updated === 0) {
+            return redirect()->back()->with(
+                'success',
+                "Excel Import Successfully! {$inserted} new row(s) added."
+            );
+        }
+
+        // Case 3: only updated, no new rows
+        if ($inserted === 0 && $updated > 0) {
+            return redirect()->back()->with(
+                'success',
+                "Excel Import Successfully! {$updated} existing row(s) updated."
+            );
+        }
+
+
+        return redirect()->back()->with(
+            'success',
+            "Excel Import Successfully! {$inserted} new row(s) added, {$updated} existing row(s) updated."
+        );
+    }
 
     // update code status
     public function updateCodeStatus(Request $request)
@@ -248,9 +265,9 @@ class JoytelController extends Controller
             $productName = $joytelProduct->product_name ?? '';
 
             $priceList = PriceList::firstOrNew(['product_code' => $productCode]);
-            
+
             if ($priceList->exchange_rate != $newRate) {
-                
+
                 $priceList->exchange_rate = $newRate;
                 $priceList->plan = $productName;
 
@@ -266,7 +283,6 @@ class JoytelController extends Controller
             'success' => true,
             'message' => 'Exchange rates updated successfully'
         ]);
-        
     }
 
     public function destroy($id)

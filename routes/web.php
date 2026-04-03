@@ -65,7 +65,7 @@ Route::get('/roam-package/view/{id}', [ESimController::class, 'roamView'])->name
 Route::get('/physical-sim/roam', [PhysicalSimController::class, 'roamPhysical'])->name('physical.roam');
 
 //physical sim roam search
-Route::get('/search/physical-roam', [PhysicalSimController::class,'roamPhysicalSearch'])->name('physical.roamsearch');
+Route::get('/search/physical-roam', [PhysicalSimController::class, 'roamPhysicalSearch'])->name('physical.roamsearch');
 Route::get('/roamphysical-package/view/{id}', [PhysicalSimController::class, 'roamPhysicalView'])->name('physical.roampackageview');
 
 
@@ -166,7 +166,7 @@ Route::middleware(['auth'])->group(function () {
         // status + manage price
         Route::post('/update-code-status', [JoytelController::class, 'updateCodeStatus'])->name('update.code.status');
         Route::post('/update-price', [JoytelController::class, 'updateExchangeRate'])->name('update.price');
-        
+
         // delete sim
         Route::delete('/delete-esim/{id}', [JoytelController::class, 'destroy']);
 
@@ -177,8 +177,13 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/physical-edit/{recharge}', [JoytelController::class, 'editPhysical'])->name('physical.edit');
         Route::patch('/physical-update/{recharge}', [JoytelController::class, 'updatePhysical'])->name('physical.update');
 
-        // import
-        Route::post('/import-excel', [JoytelController::class, 'importExcel'])->name('joytel.import');
+        // eSIM import
+        Route::post('/import-esim', [JoytelController::class, 'importEsim'])
+            ->name('joytel.import.esim');
+
+        // Recharge import
+        Route::post('/import-recharge', [JoytelController::class, 'importRecharge'])
+            ->name('joytel.import.recharge');
     });
 
     // region
