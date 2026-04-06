@@ -27,7 +27,10 @@
     <!-- Latest compiled and minified CSS -->
     {{-- <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}"> --}}
 
-    <link href="{{ asset('assets/bootstrap/bootstrap.min.css') }}" rel="stylesheet">
+    <link rel="stylesheet"
+        href="{{ asset('assets/bootstrap/bootstrap.min.css') }}?v={{ filemtime(public_path('assets/bootstrap/bootstrap.min.css')) }}">
+
+    {{-- <link href="{{ asset('assets/bootstrap/bootstrap.min.css') }}" rel="stylesheet"> --}}
 
     <!-- Font Awesome link -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
