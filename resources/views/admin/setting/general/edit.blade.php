@@ -31,23 +31,29 @@
                             <div class="row">
 
                                 @if ($data->type === 'file')
-                                <fieldset class="border rounded-2 px-3 py-2 mb-4">
-                                    <legend class="float-none w-auto px-2 col-form-label text-black fw-semibold" style="min-width: 80px; max-width: 100%; width: fit-content;">Upload logo image</legend>
-                                      <div class="row">
-                                         <div class="col-lg-3">
-                                              <div class="mb-3">
-                                                  <label class="col-form-label">Logo<span class="text-danger">*</span></label>
-                                              </div>
-                                          </div>
-                                          <div class="col-lg-9">
-                                              <div class="mb-3">
-                                                  <div class="filepond-uploader">
-                                                      <input type="file" class="filepond filepond-input-multiple" multiple name="file" data-allow-reorder="true" data-max-file-size="3MB" data-max-files="5" accept="application/pdf">
-                                                  </div>
-                                              </div>
-                                          </div>
-                                      </div>
-                                  </fieldset>
+                                    <fieldset class="border rounded-2 px-3 py-2 mb-4">
+                                        <legend class="float-none w-auto px-2 col-form-label text-black fw-semibold"
+                                            style="min-width: 80px; max-width: 100%; width: fit-content;">Upload logo image
+                                        </legend>
+                                        <div class="row">
+                                            <div class="col-lg-3">
+                                                <div class="mb-3">
+                                                    <label class="col-form-label">Logo<span
+                                                            class="text-danger">*</span></label>
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-9">
+                                                <div class="mb-3">
+                                                    <div class="filepond-uploader">
+                                                        <input type="file" class="filepond filepond-input-multiple"
+                                                            multiple name="file" data-allow-reorder="true"
+                                                            data-max-file-size="3MB" data-max-files="5"
+                                                            accept="image/png,image/jpg,image/jpeg">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </fieldset>
                                 @elseif($data->type === 'string')
                                     <div class="col-lg-3">
                                         <div class="mb-3">
