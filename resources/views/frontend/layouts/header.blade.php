@@ -1,3 +1,6 @@
+ @php
+     $logo = \App\Models\GeneralSetting::where('type', 'file')->first();
+ @endphp
  <div class="fixed-top">
      <div class="topbar">
          <div class="container">
@@ -38,8 +41,8 @@
          <div class="container">
              <nav class="navbar position-relative navbar-expand-lg navbar-light">
                  <a class="navbar-brand" href="{{ route('Index') }}">
-                     <figure class="mb-0"><img src="{{ asset('assets/images/connect-logo-01.png') }}" alt=""
-                             class="img-fluid"></figure>
+                     <figure class="mb-0"><img src="{{ asset('general/logo/' . $logo->value) }}"
+                             class="img-fluid w-75" alt="logo"></figure>
                  </a>
                  <button class="navbar-toggler collapsed" type="button" data-toggle="collapse"
                      data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"

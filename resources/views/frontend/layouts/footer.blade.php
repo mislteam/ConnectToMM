@@ -2,6 +2,7 @@
     $contactInfo = \App\Models\ContactInfo::first();
     $importantLinks = \App\Models\Link::where('type', 'important')->get();
     $supports = \App\Models\Link::where('type', 'support')->get();
+    $logo = \App\Models\GeneralSetting::where('type', 'file')->first();
 @endphp
 <section class="footer-section">
     <div class="partner-section">
@@ -32,7 +33,7 @@
                 <div class="col-lg-4 col-md-5 col-sm-6 col-12">
                     <a href="./index.html">
                         <figure class="footer-logo">
-                            <img src="{{ asset('assets/images/connect-logo-01.png') }}" class="img-fluid"
+                            <img src="{{ asset('general/logo/' . $logo->value) }}" class="img-fluid w-75"
                                 alt="">
                         </figure>
                     </a>
