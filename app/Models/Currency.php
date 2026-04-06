@@ -5,15 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class PriceList extends Model
+class Currency extends Model
 {
     use HasFactory;
+
     protected $fillable = [
-        'product_code',
-        'plan',
-        'dp_status',
-        'dp_info',
-        'exchange_rate',
-        'profit'
+        "name",
+        "value"
     ];
 }
