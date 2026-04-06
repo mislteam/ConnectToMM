@@ -179,6 +179,12 @@
                             </a>
                         </li>
 
+                        <li class="side-nav-item">
+                            <a href="{{ route('currency.index') }}" class="side-nav-link">
+                                <span class="menu-text">Currency</span>
+                            </a>
+                        </li>
+
                     </ul>
                 </div>
             </li>
