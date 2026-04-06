@@ -42,7 +42,7 @@
              <nav class="navbar position-relative navbar-expand-lg navbar-light">
                  <a class="navbar-brand" href="{{ route('Index') }}">
                      <figure class="mb-0"><img src="{{ asset('general/logo/' . $logo->value) }}"
-                             class="img-fluid w-75" alt="logo"></figure>
+                             class="img-fluid w-75" alt=""></figure>
                  </a>
                  <button class="navbar-toggler collapsed" type="button" data-toggle="collapse"
                      data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
