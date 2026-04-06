@@ -17,7 +17,6 @@ use App\Http\Controllers\Backend\JoyUsageLocationController;
 use App\Http\Controllers\Backend\OrderController;
 use App\Http\Controllers\Backend\PageController;
 use App\Http\Controllers\Backend\RoamController;
-use App\Http\Controllers\Backend\CurrencyController;
 use App\Http\Controllers\Backend\RoamPhysicalController;
 use App\Http\Controllers\Backend\SubCategoryController;
 use App\Http\Controllers\Frontend\ESimController;
@@ -195,10 +194,10 @@ Route::middleware(['auth'])->group(function () {
             ->name('joytel.import.recharge');
     });
 
-       // currency index
+    // currency index
     Route::get('/currency', [CurrencyController::class, 'index'])->name('currency.index');
-    Route::get('/currency/edit/{currency}',[CurrencyController::class, 'edit'])->name('currency.edit');
-    Route::patch('/currency/update/{currency}',[CurrencyController::class, 'update'])->name('currency.update');
+    Route::get('/currency/edit/{currency}', [CurrencyController::class, 'edit'])->name('currency.edit');
+    Route::patch('/currency/update/{currency}', [CurrencyController::class, 'update'])->name('currency.update');
 
     // region
     Route::prefix('region')->group(function () {
