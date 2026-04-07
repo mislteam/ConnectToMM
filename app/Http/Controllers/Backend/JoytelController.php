@@ -252,6 +252,7 @@ class JoytelController extends Controller
             'updates' => 'required|array',
             'updates.*.product_code' => 'required|string',
             'updates.*.exchange_rate' => 'nullable|numeric|min:0',
+            'updates.*.profit' => 'nullable|numeric',
             'updates.*.joytel_id' => 'required'
         ]);
 
@@ -260,6 +261,7 @@ class JoytelController extends Controller
         foreach ($validated['updates'] as $row) {
             $productCode = trim($row['product_code']);
             $newRate = $row['exchange_rate'] ?? 0;
+            $profit = $row['profit'] ?? 0;
             $joytelId = $row['joytel_id'];
             $joytelProduct = \App\Models\Joytel::find($joytelId);
             $productName = $joytelProduct->product_name ?? '';
@@ -269,6 +271,7 @@ class JoytelController extends Controller
             if ($priceList->exchange_rate != $newRate) {
 
                 $priceList->exchange_rate = $newRate;
+                $priceList->profit = $profit;
                 $priceList->plan = $productName;
 
                 $priceList->dp_status = 0;

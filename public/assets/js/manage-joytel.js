@@ -104,31 +104,65 @@ managePriceModal.addEventListener("show.bs.modal", function (event) {
         let portalPrice = Number(item.price_cny) || 0;
         let productCode = item.product_code ?? "";
         let trafficType = item.traffic_type ?? "";
-        let exchangeRate = parseFloat(existingRates[productCode]) || 0;
-        let total = Math.round(portalPrice * exchangeRate);
+
+        let cnyRate = parseFloat(window.cnyRate) || 0;
+
+        // auto exchange rate
+        let exchangeRateAuto = Math.round(portalPrice * cnyRate);
+
+        // selling rate (manual input from DB)
+        let sellingRate = parseFloat(existingRates[productCode]) || 0;
+
+        // Logic for Total and Profit displays
+        let totalDisplay = "-";
+        let profitDisplay = "-";
+
+        if (sellingRate > 0) {
+            let totalVal = Math.round(portalPrice * sellingRate);
+            let profitVal = Math.round(totalVal - exchangeRateAuto);
+            totalDisplay = totalVal.toLocaleString();
+            profitDisplay = profitVal.toLocaleString();
+        }
 
         let row = document.createElement("tr");
         row.innerHTML = `
             <td>${index + 1}</td>
             <td class="text-start">${productCode}</td>
             <td>${trafficType}</td>
+            <td class="exchange-auto">${exchangeRateAuto.toLocaleString()}</td>
             <td class="portal-price">${portalPrice}</td>
             <td>
-                <input type="number" class="form-control exchange-rate" step="0.01"
-                    value="${exchangeRate}" data-product-code="${productCode}">
+            <input type="number" class="form-control selling-rate"
+                value="${sellingRate}" step="0.01"
+                data-product-code="${productCode}">
             </td>
-            <td><span class="total-label">${total.toLocaleString()}</span></td>
+            <td class="profit-label">${profitDisplay}</td>
+            <td><span class="total-label">${totalDisplay}</span></td>
         `;
         tbody.appendChild(row);
     });
 
     // Dynamic total calculation
-    tbody.querySelectorAll(".exchange-rate").forEach((input) => {
+    tbody.querySelectorAll(".selling-rate").forEach((input) => {
         input.addEventListener("input", function () {
             let row = this.closest("tr");
             let portalPrice = parseFloat(row.querySelector(".portal-price").innerText) || 0;
-            let rate = parseFloat(this.value) || 0;
-            row.querySelector(".total-label").innerText = Math.round(portalPrice * rate).toLocaleString();
+            let sellingRate = parseFloat(this.value) || 0;
+            
+            let cnyRate = parseFloat(window.cnyRate) || 0;
+            let exchangeRateAuto = portalPrice * cnyRate;
+
+            if (sellingRate <= 0) {
+                row.querySelector(".total-label").innerText = "-";
+                row.querySelector(".profit-label").innerText = "-";
+            
+            }else {
+                let totalVal = Math.round(portalPrice * sellingRate);
+                let profitVal = Math.round(totalVal - exchangeRateAuto);
+                
+                row.querySelector(".total-label").innerText = totalVal.toLocaleString();
+                row.querySelector(".profit-label").innerText = profitVal.toLocaleString();
+            }
         });
     });
 });
@@ -139,10 +173,21 @@ updateBtn.addEventListener("click", function () {
     var joytelId = managePriceModal.getAttribute("data-current-joytel-id");
     var updates = [];
 
-    tbody.querySelectorAll(".exchange-rate").forEach((input) => {
+    tbody.querySelectorAll(".selling-rate").forEach((input) => {
+        let row = input.closest("tr");
+
+        let portalPrice = parseFloat(row.querySelector(".portal-price").innerText) || 0;
+        let sellingRate = parseFloat(input.value) || 0;
+        let cnyRate = parseFloat(window.cnyRate) || 0;
+
+        let exchangeRateAuto = portalPrice * cnyRate;
+        let totalVal = portalPrice * sellingRate;
+        let profitVal = totalVal - exchangeRateAuto;
+
         updates.push({
             product_code: input.getAttribute("data-product-code"),
-            exchange_rate: parseFloat(input.value) || 0,
+            exchange_rate: sellingRate,
+            profit: sellingRate > 0 ? Math.round(profitVal) : 0,
             joytel_id: joytelId
         });
     });
@@ -158,17 +203,6 @@ updateBtn.addEventListener("click", function () {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            // update totals visually
-            updates.forEach(u => {
-                let row = Array.from(tbody.rows).find(r =>
-                    r.querySelector(".exchange-rate").getAttribute("data-product-code") === u.product_code
-                );
-                if (row) {
-                    let portalPrice = parseFloat(row.querySelector(".portal-price").innerText) || 0;
-                    row.querySelector(".total-label").innerText = Math.round(portalPrice * u.exchange_rate).toLocaleString();
-                }
-            });
-
             Swal.fire({
                 icon: 'success',
                 title: 'Updated!',
