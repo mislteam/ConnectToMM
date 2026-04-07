@@ -624,38 +624,72 @@ class RoamController extends Controller
     //     return back()->with('success', 'Prices saved successfully!');
     // }
 
+    // public function updateExchangeRate(Request $request)
+    // {
+    //     //dd($request->all());
+    //     if ($request->has('plans')) {
+    //         foreach ($request->plans as $plan) {
+    //             $priceid = $plan['priceid'] ?? null;
+    //             $rate = $plan['exchange_rate'] ?? null;
+                
+    //             $skuId = $plan['sku_id'] ?? null;
+
+    //             if (!$priceid) {
+    //                 continue;
+    //             }
+
+    //             if ($rate === null || $rate == 0) {
+    //                 continue;
+    //             }
+
+    //             PriceList::updateOrCreate(
+    //                 [
+    //                     'product_code' => $priceid,
+    //                     'dp_status' => 0,  // set dp_status = 0 for roam esim
+    //                     'dp_info' => null,
+    //                     'plan' => $skuId
+    //                 ],
+    //                 [
+    //                     'exchange_rate' => $rate
+    //                 ]
+    //             );
+    //         }
+    //     }
+    //     return back()->with('success','Exchange rates saved successfully!');
+    // }
+
     public function updateExchangeRate(Request $request)
     {
-        //dd($request->all());
+        
         if ($request->has('plans')) {
+
             foreach ($request->plans as $plan) {
-                $priceid = $plan['priceid'] ?? null;
-                $rate = $plan['exchange_rate'] ?? null;
-                
-                $skuId = $plan['sku_id'] ?? null;
 
-                if (!$priceid) {
-                    continue;
-                }
+                $priceid     = $plan['priceid'] ?? null;
+                $sellingRate = $plan['selling_rate'] ?? null;
+                $profit      = $plan['profit'] ?? 0;
+                $skuId       = $plan['sku_id'] ?? null;
 
-                if ($rate === null || $rate == 0) {
+                // skip invalid
+                if (!$priceid || !$sellingRate || $sellingRate == 0) {
                     continue;
                 }
 
                 PriceList::updateOrCreate(
                     [
                         'product_code' => $priceid,
-                        'dp_status' => 0,  // set dp_status = 0 for roam esim
-                        'dp_info' => null,
-                        'plan' => $skuId
+                        'plan'         => $skuId,
+                        'dp_status'    => 0,
                     ],
                     [
-                        'exchange_rate' => $rate
+                        'exchange_rate' => $sellingRate, // selling rate save
+                        'profit'        => $profit,      // profit save
                     ]
                 );
             }
         }
-        return back()->with('success','Exchange rates saved successfully!');
+
+        return back()->with('success', 'Saved successfully!');
     }
 
     public function UpdateData()

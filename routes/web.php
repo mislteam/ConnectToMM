@@ -8,6 +8,7 @@ use App\Http\Controllers\Backend\AdminController;
 use App\Http\Controllers\Backend\BlogCategoryController;
 use App\Http\Controllers\Backend\BlogController;
 use App\Http\Controllers\Backend\ContactUsController;
+use App\Http\Controllers\Backend\CurrencyController;
 use App\Http\Controllers\Backend\CustomerController;
 use App\Http\Controllers\Backend\FooterPageController;
 use App\Http\Controllers\Backend\GeneralSettingController;
@@ -16,7 +17,6 @@ use App\Http\Controllers\Backend\JoyUsageLocationController;
 use App\Http\Controllers\Backend\OrderController;
 use App\Http\Controllers\Backend\PageController;
 use App\Http\Controllers\Backend\RoamController;
-use App\Http\Controllers\Backend\CurrencyController;
 use App\Http\Controllers\Backend\RoamPhysicalController;
 use App\Http\Controllers\Backend\SubCategoryController;
 use App\Http\Controllers\Frontend\ESimController;
@@ -107,6 +107,13 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/admin/change-password', [AdminController::class, 'changePassword'])->name('admin.change-password');
 
+    // currency index
+    Route::get('/currency', [CurrencyController::class, 'index'])->name('currency.index');
+    Route::get('/currency/edit/{currency}', [CurrencyController::class, 'edit'])->name('currency.edit');
+    Route::patch('/currency/update/{currency}', [CurrencyController::class, 'update'])->name('currency.update');
+
+    Route::get('/edit-usd-currency/{usdCurrency}', [CurrencyController::class, 'editUsdCurrency'])->name('usdcurrency.edit');
+    Route::put('/edit-usd-currency/{usdCurrency}', [CurrencyController::class, 'updateUsdCurrency'])->name('usdcurrency.update');
     Route::prefix('setting')->group(function () {
 
         // General Setting 
@@ -187,10 +194,10 @@ Route::middleware(['auth'])->group(function () {
             ->name('joytel.import.recharge');
     });
 
-       // currency index
+    // currency index
     Route::get('/currency', [CurrencyController::class, 'index'])->name('currency.index');
-    Route::get('/currency/edit/{currency}',[CurrencyController::class, 'edit'])->name('currency.edit');
-    Route::patch('/currency/update/{currency}',[CurrencyController::class, 'update'])->name('currency.update');
+    Route::get('/currency/edit/{currency}', [CurrencyController::class, 'edit'])->name('currency.edit');
+    Route::patch('/currency/update/{currency}', [CurrencyController::class, 'update'])->name('currency.update');
 
     // region
     Route::prefix('region')->group(function () {

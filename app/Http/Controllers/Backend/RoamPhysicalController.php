@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Storage;
 use App\Models\RoamPhysicalSku;
 use App\Models\RoamApi;
+use App\Models\Currency;
 use App\Models\RoamPhysical;
 use App\Models\GeneralSetting;
 use App\Models\PriceList;
@@ -24,9 +25,10 @@ class RoamPhysicalController extends Controller
             ->get();
         $packages = RoamPhysicalSku::where('status', 1)->get();
 
+        $usd_exchange_rate = Currency::where('name', 'usd')->value('value');
         $logo = GeneralSetting::where('type', 'file')->first();
         $title = GeneralSetting::where('type', 'string')->first();
-        return view('admin.roamphysical.packages.physicalsim', compact('logo', 'title', 'packages', 'globalPackages', 'asiaPackages'));
+        return view('admin.roamphysical.packages.physicalsim', compact('logo', 'title', 'packages', 'globalPackages', 'asiaPackages','usd_exchange_rate'));
     }
 
     public function RoamphysicalEdit($skuid)
@@ -375,14 +377,17 @@ class RoamPhysicalController extends Controller
 
             foreach ($request->plans as $plan) {
                 $priceid = $plan['priceid'] ?? null;
-                $rate = $plan['exchange_rate'] ?? null;
+                $sellingRate = $plan['selling_rate'] ?? null;
+                $profit      = $plan['profit'] ?? 0;
                 $dpName = $plan['dp_name'] ?? null;
 
 
                 $skuId = $plan['sku_id'] ?? null;
 
-                if (!$priceid) continue;
-                if ($rate === null || $rate == 0) continue;
+                // skip invalid
+                if (!$priceid || !$sellingRate || $sellingRate == 0) {
+                    continue;
+                }
 
                 // default
                 $dpStatus = 0;
@@ -405,7 +410,8 @@ class RoamPhysicalController extends Controller
                         'plan' => $skuId
                     ],
                     [
-                        'exchange_rate' => $rate
+                         'exchange_rate' => $sellingRate,
+                         'profit'        => $profit,
                     ]
                 );
             }
