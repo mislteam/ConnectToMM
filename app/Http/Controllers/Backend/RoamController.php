@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\RoamSku;
 use App\Models\RoamApi;
 use App\Models\Roam;
+use App\Models\Currency;
 use App\Models\PriceList;
 use App\Models\GeneralSetting;
 use App\Models\RoamPhysicalSku;
@@ -18,10 +19,13 @@ class RoamController extends Controller
     public function Esimindex()
     {
         $packages = RoamPhysicalSku::where('status', 1)->get();
+        // dd($packages);
+        $usd_exchange_rate = Currency::where('name', 'usd')->value('value');
+        // dd($usd_exchange_rate);
 
         $logo = GeneralSetting::where('type', 'file')->first();
         $title = GeneralSetting::where('type', 'string')->first();
-        return view('admin.roamsim.packages.esim', compact('logo', 'title', 'packages'));
+        return view('admin.roamsim.packages.esim', compact('logo', 'title', 'packages','usd_exchange_rate'));
     }
 
 

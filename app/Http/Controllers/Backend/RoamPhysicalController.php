@@ -66,7 +66,7 @@ class RoamPhysicalController extends Controller
 
         $loginParams['sign'] = $this->createSign($loginParams, $roamapi->client_key);
 
-        $loginResponse = Http::timeout(40)->asForm()->post(
+        $loginResponse = Http::timeout(160)->asForm()->post(
             $roamapi->api_url . '/api_order/login',
             $loginParams
         );
@@ -84,7 +84,7 @@ class RoamPhysicalController extends Controller
 
         $dpSign = $this->createTokenSign($token, $roamapi->client_key);
 
-        $dpResponse = Http::timeout(40)->asForm()->post(
+        $dpResponse = Http::timeout(160)->asForm()->post(
             $roamapi->api_url . '/api_esim/getPhysicalSIMDpInfo',
             [
                 'token' => $token,
@@ -118,7 +118,7 @@ class RoamPhysicalController extends Controller
 
             $skuSign = $this->createSign($skuParams, $roamapi->client_key);
 
-            $skuResponse = Http::timeout(40)->asForm()->post(
+            $skuResponse = Http::timeout(160)->asForm()->post(
                 $roamapi->api_url . '/api_esim/getDpSupportSkuInfo',
                 array_merge($skuParams, ['sign' => $skuSign])
             );
