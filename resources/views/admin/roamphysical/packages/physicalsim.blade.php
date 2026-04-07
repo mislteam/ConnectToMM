@@ -368,7 +368,7 @@
                                                                         2,
                                                                     );
 
-                                                                    $selling_rate = $savedRate->exchange_rate ?? null;
+                                                                    $selling_rate = $savedRate->exchange_rate ?? 0;
 
                                                                     $total = round($portal_price * $selling_rate);
 
@@ -532,9 +532,9 @@
                                                                         </div>
                                                                     </form>
                                                                     <!-- <div class="form-check form-switch form-check-secondary fs-xxl mb-2">
-                                                                                                                                                                            <input type="checkbox" class="form-check-input mt-1" id="checkboxSize20" checked="">
-                                                                                                                                                                            <label class="form-check-label fs-base" for="checkboxSize20">Enable</label>
-                                                                                                                                                                        </div> -->
+                                                                                                                                                                                    <input type="checkbox" class="form-check-input mt-1" id="checkboxSize20" checked="">
+                                                                                                                                                                                    <label class="form-check-label fs-base" for="checkboxSize20">Enable</label>
+                                                                                                                                                                                </div> -->
                                                                 </td>
                                                             </tr>
 
@@ -550,8 +550,8 @@
 
                                             </table>
                                             <!-- <div class="mt-2 mb-4 d-flex gap-2 justify-content-end">
-                                                                                                                                                    <button type="button" class="btn btn-primary text-end">Update</button>
-                                                                                                                                                </div> -->
+                                                                                                                                                            <button type="button" class="btn btn-primary text-end">Update</button>
+                                                                                                                                                        </div> -->
                                         </div>
                                     </div>
                                 </div><!-- /.modal-content -->
