@@ -368,7 +368,7 @@
                                                                         2,
                                                                     );
 
-                                                                    $selling_rate = $savedRate->exchange_rate ?? null;
+                                                                    $selling_rate = $savedRate->exchange_rate ?? 0;
 
                                                                     $total = round($portal_price * $selling_rate);
 
