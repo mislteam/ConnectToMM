@@ -321,7 +321,7 @@
                                             <form action="{{ route('physicalpricelist.store') }}" method="POST">
                                                 @csrf
                                                 <table class="table table-bordered table-nowrap text-center align-middle"
-                                                    style="white-space: nowrap; min-width: 1000px;">
+                                                    style="white-space: nowrap; min-width: 800px;">
                                                     <thead class="bg-light align-middle bg-opacity-25 thead-sm">
                                                         <tr class="text-uppercase fs-xxs">
                                                             <th>#</th>
@@ -532,9 +532,9 @@
                                                                         </div>
                                                                     </form>
                                                                     <!-- <div class="form-check form-switch form-check-secondary fs-xxl mb-2">
-                                                                                                                                                                            <input type="checkbox" class="form-check-input mt-1" id="checkboxSize20" checked="">
-                                                                                                                                                                            <label class="form-check-label fs-base" for="checkboxSize20">Enable</label>
-                                                                                                                                                                        </div> -->
+                                                                                                                                                                                    <input type="checkbox" class="form-check-input mt-1" id="checkboxSize20" checked="">
+                                                                                                                                                                                    <label class="form-check-label fs-base" for="checkboxSize20">Enable</label>
+                                                                                                                                                                                </div> -->
                                                                 </td>
                                                             </tr>
 
@@ -550,8 +550,8 @@
 
                                             </table>
                                             <!-- <div class="mt-2 mb-4 d-flex gap-2 justify-content-end">
-                                                                                                                                                    <button type="button" class="btn btn-primary text-end">Update</button>
-                                                                                                                                                </div> -->
+                                                                                                                                                            <button type="button" class="btn btn-primary text-end">Update</button>
+                                                                                                                                                        </div> -->
                                         </div>
                                     </div>
                                 </div><!-- /.modal-content -->
