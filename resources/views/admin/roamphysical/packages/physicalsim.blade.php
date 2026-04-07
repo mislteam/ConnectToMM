@@ -321,7 +321,7 @@
                                             <form action="{{ route('physicalpricelist.store') }}" method="POST">
                                                 @csrf
                                                 <table class="table table-bordered table-nowrap text-center align-middle"
-                                                    style="white-space: nowrap; min-width: 1000px;">
+                                                    style="white-space: nowrap; min-width: 800px;">
                                                     <thead class="bg-light align-middle bg-opacity-25 thead-sm">
                                                         <tr class="text-uppercase fs-xxs">
                                                             <th>#</th>
