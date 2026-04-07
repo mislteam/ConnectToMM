@@ -309,7 +309,7 @@
                     @foreach ($packages as $index => $pkg)
                         <div class="modal fade" id="manage-price-{{ $pkg->sku_id }}" tabindex="-1" role="dialog"
                             aria-labelledby="managePrice{{ $index }}" aria-hidden="true">
-                            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                            <div class="modal-dialog modal-xl modal-dialog-scrollable">
                                 <div class="modal-content">
                                     <div class="modal-header">
                                         <h4 class="modal-title" id="managePrice">Manage Price</h4>
@@ -320,15 +320,17 @@
                                         <div class="table-responsive mt-2">
                                             <form action="{{ route('physicalpricelist.store') }}" method="POST">
                                                 @csrf
-                                                <table class="table table-bordered table-nowrap text-center align-middle">
+                                                <table class="table table-bordered table-nowrap text-center align-middle"
+                                                    style="white-space: nowrap; min-width: 1000px;">
                                                     <thead class="bg-light align-middle bg-opacity-25 thead-sm">
                                                         <tr class="text-uppercase fs-xxs">
                                                             <th>#</th>
                                                             <th class="text-start">Plan Name</th>
-                                                            <th>Portal Price</th>
                                                             <th>Exchange Rate</th>
+                                                            <th>Portal Price</th>
+                                                            <th style="width: 150px;">Selling Rate</th>
+                                                            <th>Profit</th>
                                                             <th>Total(MMK)</th>
-                                                            <!-- <th>Total</th> -->
                                                         </tr>
                                                     </thead>
                                                     @php
@@ -361,10 +363,16 @@
                                                                         ->where('dp_status', $dpStatus)
                                                                         ->where('dp_info', $dpInfo)
                                                                         ->first();
-                                                                    $exchange_rate = $savedRate->exchange_rate ?? 0;
-                                                                    $total = number_format(
-                                                                        round($portal_price * $exchange_rate),
+                                                                    $exchange_rate = round(
+                                                                        $portal_price * $usd_exchange_rate,
+                                                                        2,
                                                                     );
+
+                                                                    $selling_rate = $savedRate->exchange_rate ?? null;
+
+                                                                    $total = round($portal_price * $selling_rate);
+
+                                                                    $profit = round($total - $exchange_rate);
 
                                                                 @endphp
                                                                 <tr>
@@ -387,16 +395,26 @@
                                                                         @endif
                                                                     </td>
                                                                     <td><label
+                                                                            class="form-label">{{ $exchange_rate }}</label>
+                                                                    </td>
+                                                                    <td><label
                                                                             class="form-label">{{ $portal_price }}</label>
                                                                     </td>
-                                                                    <td><input type="number"
+                                                                    <td>
+                                                                        <input type="number"
                                                                             class="form-control exchange-input"
-                                                                            name="plans[{{ $innerIndex }}][exchange_rate]"
-                                                                            value="{{ $exchange_rate }}" step="0.01">
+                                                                            name="plans[{{ $innerIndex }}][selling_rate]"
+                                                                            value="{{ $selling_rate }}" step="0.01">
+                                                                    </td>
+                                                                    <td><label
+                                                                            class="form-label profit-label">{{ $profit }}</label>
                                                                     </td>
                                                                     <td><label
                                                                             class="form-label total-label">{{ $total }}</label>
                                                                     </td>
+                                                                    <input type="hidden"
+                                                                        name="plans[{{ $innerIndex }}][profit]"
+                                                                        class="profit-input" value="{{ $profit }}">
                                                                     <input type="hidden"
                                                                         name="plans[{{ $innerIndex }}][priceid]"
                                                                         value="{{ $plan['priceid'] }}">
@@ -408,6 +426,8 @@
                                                                     <input type="hidden"
                                                                         name="plans[{{ $innerIndex }}][dp_name]"
                                                                         value="{{ $plan['dp_name'] ?? '' }}">
+                                                                    <input type="hidden" class="base-exchange-rate"
+                                                                        value="{{ $exchange_rate }}">
                                                                 </tr>
                                                             @endforeach
                                                         </tbody>
@@ -512,9 +532,9 @@
                                                                         </div>
                                                                     </form>
                                                                     <!-- <div class="form-check form-switch form-check-secondary fs-xxl mb-2">
-                                                                                                                                <input type="checkbox" class="form-check-input mt-1" id="checkboxSize20" checked="">
-                                                                                                                                <label class="form-check-label fs-base" for="checkboxSize20">Enable</label>
-                                                                                                                            </div> -->
+                                                                                                                                                                            <input type="checkbox" class="form-check-input mt-1" id="checkboxSize20" checked="">
+                                                                                                                                                                            <label class="form-check-label fs-base" for="checkboxSize20">Enable</label>
+                                                                                                                                                                        </div> -->
                                                                 </td>
                                                             </tr>
 
@@ -530,8 +550,8 @@
 
                                             </table>
                                             <!-- <div class="mt-2 mb-4 d-flex gap-2 justify-content-end">
-                                                                                                        <button type="button" class="btn btn-primary text-end">Update</button>
-                                                                                                    </div> -->
+                                                                                                                                                    <button type="button" class="btn btn-primary text-end">Update</button>
+                                                                                                                                                </div> -->
                                         </div>
                                     </div>
                                 </div><!-- /.modal-content -->
@@ -545,7 +565,7 @@
 
     </div>
 
-    <script>
+    {{-- <script>
         document.addEventListener("input", function(e) {
 
             if (!e.target.classList.contains("exchange-input")) return;
@@ -564,6 +584,62 @@
 
             row.querySelector(".total-label").innerText = formattedTotal;
 
+        });
+    </script> --}}
+
+
+    <script>
+        function updateRowCalculation(row) {
+
+            let sellingRate = parseFloat(row.querySelector(".exchange-input")?.value) || 0;
+            let portalPrice = parseFloat(row.querySelector(".portal-price")?.value) || 0;
+            let exchangeRate = parseFloat(row.querySelector(".base-exchange-rate")?.value) || 0;
+
+            let total = 0;
+            let profit = 0;
+
+            // calculate total
+            if (sellingRate) {
+                total = sellingRate * portalPrice;
+            }
+
+            // update total label
+            let totalLabel = row.querySelector(".total-label");
+            if (totalLabel) {
+                totalLabel.textContent = sellingRate ? total : "-";
+            }
+
+            // calculate profit
+            if (sellingRate) {
+                profit = total - exchangeRate;
+            }
+
+            // update profit label
+            let profitLabel = row.querySelector(".profit-label");
+            if (profitLabel) {
+                profitLabel.textContent = sellingRate ? profit : "-";
+            }
+
+            // 👉 IMPORTANT: update hidden input (THIS WAS MISSING)
+            let profitInput = row.querySelector(".profit-input");
+            if (profitInput) {
+                profitInput.value = profit;
+            }
+        }
+
+        document.addEventListener("input", function(e) {
+            if (e.target.classList.contains("exchange-input")) {
+                let row = e.target.closest("tr");
+                if (row) {
+                    updateRowCalculation(row);
+                }
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", function() {
+            document.querySelectorAll("#invoice-items tr").forEach(function(row) {
+                updateRowCalculation(row);
+            });
         });
     </script>
 @endsection
