@@ -27,7 +27,8 @@
     <!-- Filepond Plugin CSS -->
     <link rel="stylesheet" href="{{ asset('assets/plugins/filepond/filepond.min.css') }}" type="text/css">
     <link rel="stylesheet" href="{{ asset('assets/plugins/filepond/filepond-plugin-image-preview.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/app.css') }}">
+    <link rel="stylesheet"
+        href="{{ asset('assets/css/app.css') }}?v={{ filemtime(public_path('assets/css/app.css')) }}">
 
     <link rel="stylesheet" href="{{ asset('assets/plugins/dropzone/dropzone.css') }}">
 
