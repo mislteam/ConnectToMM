@@ -317,11 +317,11 @@
                                             aria-label="Close"></button>
                                     </div>
                                     <div class="modal-body">
-                                        <div class="table-responsive mt-2">
+                                        <div class="mt-2">
                                             <form action="{{ route('physicalpricelist.store') }}" method="POST">
                                                 @csrf
-                                                <table class="table table-bordered table-nowrap text-center align-middle"
-                                                    style="white-space: nowrap; min-width: 800px;">
+
+                                                <table class="table table-bordered table-nowrap text-center align-middle">
                                                     <thead class="bg-light align-middle bg-opacity-25 thead-sm">
                                                         <tr class="text-uppercase fs-xxs">
                                                             <th>#</th>
@@ -395,7 +395,7 @@
                                                                         @endif
                                                                     </td>
                                                                     <td><label
-                                                                            class="form-label">{{ number_format($exchange_rate) }}</label>
+                                                                            class="form-label">{{ $exchange_rate }}</label>
                                                                     </td>
                                                                     <td><label
                                                                             class="form-label">{{ $portal_price }}</label>
@@ -407,10 +407,10 @@
                                                                             value="{{ $selling_rate }}" step="0.01">
                                                                     </td>
                                                                     <td><label
-                                                                            class="form-label profit-label">{{ number_format($profit) }}</label>
+                                                                            class="form-label profit-label">{{ $profit }}</label>
                                                                     </td>
                                                                     <td><label
-                                                                            class="form-label total-label">{{ number_format($total) }}</label>
+                                                                            class="form-label total-label">{{ $total }}</label>
                                                                     </td>
                                                                     <input type="hidden"
                                                                         name="plans[{{ $innerIndex }}][profit]"
@@ -434,7 +434,8 @@
                                                     @else
                                                         <tbody>
                                                             <tr>
-                                                                <td colspan="3" class="text-center">No plans available
+                                                                <td colspan="3" class="text-center">No plans
+                                                                    available
                                                                 </td>
                                                             </tr>
                                                         </tbody>
@@ -531,10 +532,7 @@
                                                                             </label>
                                                                         </div>
                                                                     </form>
-                                                                    <!-- <div class="form-check form-switch form-check-secondary fs-xxl mb-2">
-                                                                                                                                                                                                                                    <input type="checkbox" class="form-check-input mt-1" id="checkboxSize20" checked="">
-                                                                                                                                                                                                                                    <label class="form-check-label fs-base" for="checkboxSize20">Enable</label>
-                                                                                                                                                                                                                                </div> -->
+
                                                                 </td>
                                                             </tr>
 
@@ -549,9 +547,7 @@
                                                 @endif
 
                                             </table>
-                                            <!-- <div class="mt-2 mb-4 d-flex gap-2 justify-content-end">
-                                                                                                                                                                                                            <button type="button" class="btn btn-primary text-end">Update</button>
-                                                                                                                                                                                                        </div> -->
+
                                         </div>
                                     </div>
                                 </div><!-- /.modal-content -->
@@ -589,47 +585,41 @@
 
 
     <script>
-        function formatNumber(num) {
-            return new Intl.NumberFormat().format(num);
-        }
-
         function updateRowCalculation(row) {
 
-            let rawValue = row.querySelector(".exchange-input")?.value;
-            let sellingRate = rawValue !== "" ? parseFloat(rawValue) : null;
-
+            let sellingRate = parseFloat(row.querySelector(".exchange-input")?.value) || 0;
             let portalPrice = parseFloat(row.querySelector(".portal-price")?.value) || 0;
             let exchangeRate = parseFloat(row.querySelector(".base-exchange-rate")?.value) || 0;
 
             let total = 0;
             let profit = 0;
 
-            // TOTAL
+            // calculate total
+            if (sellingRate) {
+                total = sellingRate * portalPrice;
+            }
+
+            // update total label
             let totalLabel = row.querySelector(".total-label");
             if (totalLabel) {
-                if (sellingRate !== null && sellingRate > 0) {
-                    total = sellingRate * portalPrice;
-                    totalLabel.textContent = formatNumber(Math.round(total));
-                } else {
-                    totalLabel.textContent = "-";
-                }
+                totalLabel.textContent = sellingRate ? total : "-";
             }
 
-            // PROFIT
+            // calculate profit
+            if (sellingRate) {
+                profit = total - exchangeRate;
+            }
+
+            // update profit label
             let profitLabel = row.querySelector(".profit-label");
             if (profitLabel) {
-                if (sellingRate !== null && sellingRate > 0 && exchangeRate > 0) {
-                    profit = total - exchangeRate;
-                    profitLabel.textContent = formatNumber(Math.round(profit));
-                } else {
-                    profitLabel.textContent = "-";
-                }
+                profitLabel.textContent = sellingRate ? profit : "-";
             }
 
-            // hidden input
+            // 👉 IMPORTANT: update hidden input (THIS WAS MISSING)
             let profitInput = row.querySelector(".profit-input");
             if (profitInput) {
-                profitInput.value = profit > 0 ? profit : '';
+                profitInput.value = profit;
             }
         }
 

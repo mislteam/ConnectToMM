@@ -148,9 +148,10 @@
                                             aria-label="Close"></button>
                                     </div>
                                     <div class="modal-body">
-                                        <div class=" mt-2">
+                                        <div class="mt-2">
                                             <form action="{{ route('pricelist.store') }}" method="POST">
                                                 @csrf
+
                                                 <table class="table table-bordered table-nowrap text-center align-middle">
                                                     <thead class="bg-light align-middle bg-opacity-25 thead-sm">
                                                         <tr class="text-uppercase fs-xxs">
@@ -253,7 +254,8 @@
                                                     @else
                                                         <tbody>
                                                             <tr>
-                                                                <td colspan="3" class="text-center">No plans available
+                                                                <td colspan="3" class="text-center">No plans
+                                                                    available
                                                                 </td>
                                                             </tr>
                                                         </tbody>
@@ -351,50 +353,32 @@
                                                                             </label>
                                                                         </div>
                                                                     </form>
-                                                                    <!-- <div class="form-check form-switch form-check-secondary fs-xxl mb-2">
-                                                                    <<<<<<< HEAD
-                                                                                                                                                                                                                                                                                                                                                                                                                            <input type="checkbox" class="form-check-input mt-1" id="checkboxSize20" checked="">
-                                                                                                                                                                                                                                                                                                                                                                                                                            <label class="form-check-label fs-base" for="checkboxSize20">Enable</label>
-                                                                                                                                                                                                                                                                                                                                                                                                                        </div> -->
-                                                                    =======
-                                                                    <input type="checkbox" class="form-check-input mt-1"
-                                                                        id="checkboxSize20" checked="">
-                                                                    <label class="form-check-label fs-base"
-                                                                        for="checkboxSize20">Enable</label>
-                                        </div> -->
-                                        >>>>>>> 2e2936eaa6e77866c0fee4178047eef67c9595fa
-                                        </td>
-                                        </tr>
 
-                                        </tbody>
+                                                                </td>
+                                                            </tr>
+
+                                                        </tbody>
+                                                    @endforeach
+                                                @else
+                                                    <tbody>
+                                                        <tr>
+                                                            <td colspan="3" class="text-center">No plans available</td>
+                                                        </tr>
+                                                    </tbody>
+                                                @endif
+
+                                            </table>
+
+                                        </div>
+                                    </div>
+                                </div><!-- /.modal-content -->
+                            </div><!-- /.modal-dialog -->
+                        </div><!-- /.modal -->
                     @endforeach
-                @else
-                    <tbody>
-                        <tr>
-                            <td colspan="3" class="text-center">No plans available</td>
-                        </tr>
-                    </tbody>
-                    @endif
+                </div>
 
-                    </table>
-                    <!-- <div class="mt-2 mb-4 d-flex gap-2 justify-content-end">
-                                                                    <<<<<<< HEAD
-                                                                                                                                                                                                                                                                                                                                                                                                    <button type="button" class="btn btn-primary text-end">Update</button>
-                                                                                                                                                                                                                                                                                                                                                                                                </div> -->
-                    =======
-                    <button type="button" class="btn btn-primary text-end">Update</button>
-                </div> -->
-                >>>>>>> 2e2936eaa6e77866c0fee4178047eef67c9595fa
-            </div>
-        </div>
-    </div><!-- /.modal-content -->
-    </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->
-    @endforeach
-    </div>
-
-    </div><!-- end col -->
-    </div><!-- end row -->
+            </div><!-- end col -->
+        </div><!-- end row -->
 
     </div>
     <!-- <script>
@@ -459,7 +443,6 @@
 
         });
     </script> --}}
-
 
     <script>
         function formatNumber(num) {
