@@ -585,41 +585,47 @@
 
 
     <script>
+        function formatNumber(num) {
+            return new Intl.NumberFormat().format(num);
+        }
+
         function updateRowCalculation(row) {
 
-            let sellingRate = parseFloat(row.querySelector(".exchange-input")?.value) || 0;
+            let rawValue = row.querySelector(".exchange-input")?.value;
+            let sellingRate = rawValue !== "" ? parseFloat(rawValue) : null;
+
             let portalPrice = parseFloat(row.querySelector(".portal-price")?.value) || 0;
             let exchangeRate = parseFloat(row.querySelector(".base-exchange-rate")?.value) || 0;
 
             let total = 0;
             let profit = 0;
 
-            // calculate total
-            if (sellingRate) {
-                total = sellingRate * portalPrice;
-            }
-
-            // update total label
+            // TOTAL
             let totalLabel = row.querySelector(".total-label");
             if (totalLabel) {
-                totalLabel.textContent = sellingRate ? total : "-";
+                if (sellingRate !== null && sellingRate > 0) {
+                    total = sellingRate * portalPrice;
+                    totalLabel.textContent = formatNumber(Math.round(total));
+                } else {
+                    totalLabel.textContent = "-";
+                }
             }
 
-            // calculate profit
-            if (sellingRate) {
-                profit = total - exchangeRate;
-            }
-
-            // update profit label
+            // PROFIT
             let profitLabel = row.querySelector(".profit-label");
             if (profitLabel) {
-                profitLabel.textContent = sellingRate ? profit : "-";
+                if (sellingRate !== null && sellingRate > 0 && exchangeRate > 0) {
+                    profit = total - exchangeRate;
+                    profitLabel.textContent = formatNumber(Math.round(profit));
+                } else {
+                    profitLabel.textContent = "-";
+                }
             }
 
-            // 👉 IMPORTANT: update hidden input (THIS WAS MISSING)
+            // hidden input
             let profitInput = row.querySelector(".profit-input");
             if (profitInput) {
-                profitInput.value = profit;
+                profitInput.value = profit > 0 ? profit : '';
             }
         }
 
