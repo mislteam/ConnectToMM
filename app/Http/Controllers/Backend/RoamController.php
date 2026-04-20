@@ -426,7 +426,7 @@ class RoamController extends Controller
 
                 // Step 3: Fetch package data for this SKU
                 $packageSign = $this->createSign(['token' => $token, 'skuid' => $skuId], $roamapi->client_key);
-                $packageResponse = Http::timeout(25)
+                $packageResponse = Http::timeout(40)
                     ->retry(2, 1000)
                     ->asForm()
                     ->post($roamapi->api_url . '/api_esim/getPackages', [

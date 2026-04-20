@@ -205,7 +205,7 @@ class RoamPhysicalController extends Controller
                         'skuid' => $skuId,
                     ];
                     $pkgSign = $this->createSign($pkgParams, $roamapi->client_key);
-                    $pkgResponse = Http::timeout(25)
+                    $pkgResponse = Http::timeout(40)
                         ->retry(2, 1000)
                         ->asForm()
                         ->post(
