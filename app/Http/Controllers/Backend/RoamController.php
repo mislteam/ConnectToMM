@@ -13,6 +13,8 @@ use App\Models\GeneralSetting;
 use App\Models\RoamPhysicalSku;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class RoamController extends Controller
 {
@@ -25,7 +27,7 @@ class RoamController extends Controller
 
         $logo = GeneralSetting::where('type', 'file')->first();
         $title = GeneralSetting::where('type', 'string')->first();
-        return view('admin.roamsim.packages.esim', compact('logo', 'title', 'packages','usd_exchange_rate'));
+        return view('admin.roamsim.packages.esim', compact('logo', 'title', 'packages', 'usd_exchange_rate'));
     }
 
 
@@ -325,120 +327,282 @@ class RoamController extends Controller
 
     public function syncSkusAndPackages()
     {
-        $roamapi = RoamApi::first();
-        if (!$roamapi) {
-            return response()->json(['error' => 'Missing API credentials'], 400);
-        }
+        try {
+            // Avoid PHP max execution timeout when syncing many SKUs/packages.
+            @set_time_limit(0);
 
-        // Step 1: Login
-        $loginParams = [
-            'phonenumber' => $roamapi->client_id,
-            'password'    => $roamapi->secret_key,
-        ];
-        $loginParams['sign'] = $this->createSign($loginParams, $roamapi->client_key);
+            $roamapi = RoamApi::first();
+            if (!$roamapi) {
+                return redirect()->route('updateData')->with('error', 'Missing API credentials.');
+            }
 
-        $loginResponse = Http::timeout(40)->asForm()->post($roamapi->api_url . '/api_order/login', $loginParams);
-        $loginData = $loginResponse->json();
+            // Step 1: Login
+            $loginParams = [
+                'phonenumber' => $roamapi->client_id,
+                'password'    => $roamapi->secret_key,
+            ];
+            $loginParams['sign'] = $this->createSign($loginParams, $roamapi->client_key);
 
-        if (!isset($loginData['data']['token'])) {
-            return response()->json(['error' => 'Failed to login or get token'], 400);
-        }
+            $loginResponse = Http::timeout(40)
+                ->retry(2, 1200)
+                ->asForm()
+                ->post($roamapi->api_url . '/api_order/login', $loginParams);
 
-        $token = $loginData['data']['token'];
+            $loginData = $loginResponse->json();
+            Log::debug('Roam eSIM login response payload', [
+                'status' => $loginResponse->status(),
+                'payload' => $loginData,
+            ]);
+            if (!isset($loginData['data']['token'])) {
+                return redirect()->route('updateData')->with('error', 'Failed to login or get token.');
+            }
 
-        // Step 2: Fetch SKUs
-        $sign = $this->createTokenSign($token, $roamapi->client_key);
-        $skuResponse = Http::timeout(40)->asForm()->post($roamapi->api_url . '/api_esim/getSkus', [
-            'token' => $token,
-            'sign'  => $sign,
-        ]);
-        $skuData = $skuResponse->json();
+            $token = $loginData['data']['token'];
 
-        if (!isset($skuData['data']) || !is_array($skuData['data'])) {
-            return response()->json(['error' => 'No SKUs found'], 400);
-        }
+            // Step 2: Fetch SKUs
+            $sign = $this->createTokenSign($token, $roamapi->client_key);
+            $skuResponse = Http::timeout(40)
+                ->retry(2, 1200)
+                ->asForm()
+                ->post($roamapi->api_url . '/api_esim/getSkus', [
+                    'token' => $token,
+                    'sign'  => $sign,
+                ]);
 
-        // Step 3: Store SKUs and fetch packages
-        $newSkus = [];
-        $newPackages = []; // track new packages
+            $skuData = $skuResponse->json();
+            Log::debug('Roam eSIM sku response payload', [
+                'status' => $skuResponse->status(),
+                'payload' => $skuData,
+            ]);
+            if (!isset($skuData['data']) || !is_array($skuData['data'])) {
+                return redirect()->route('updateData')->with('error', 'No SKUs found.');
+            }
 
-        foreach ($skuData['data'] as $sku) {
-            $existing = RoamSku::where('sku_id', $sku['skuid'])->first();
+            $newSkus = [];
+            $updatedSkus = [];
+            $newPackages = [];
+            $updatedPackages = [];
 
-            $record = RoamSku::updateOrCreate(
-                ['sku_id' => $sku['skuid']],
-                [
+            foreach ($skuData['data'] as $sku) {
+                $skuId = $sku['skuid'] ?? null;
+                if (!$skuId) {
+                    continue;
+                }
+
+                $existing = RoamSku::where('sku_id', $skuId)->first();
+                $beforeSku = $existing ? [
+                    'country_name' => $existing->country_name,
+                    'country_code' => $existing->country_code,
+                    'status'       => $existing->status,
+                ] : null;
+
+                $afterSku = [
                     'country_name' => $sku['display'] ?? 'N/A',
                     'country_code' => $sku['countryCode'] ?? 'N/A',
                     'status'       => $existing ? $existing->status : '1',
-                ]
-            );
+                ];
+                $skuChangedKeys = [];
+                foreach (['country_name', 'country_code', 'status'] as $field) {
+                    if (($beforeSku[$field] ?? null) !== ($afterSku[$field] ?? null)) {
+                        $skuChangedKeys[] = $field;
+                    }
+                }
 
-            // collect only newly inserted SKUs
-            if (!$existing) {
-                $newSkus[] = $record;
-            }
+                $record = RoamSku::updateOrCreate(
+                    ['sku_id' => $skuId],
+                    $afterSku
+                );
 
-            // Step 4: Fetch Packages for each SKU
-            $packageSign = $this->createSign(['token' => $token, 'skuid' => $sku['skuid']], $roamapi->client_key);
-            $packageResponse = Http::timeout(40)->asForm()->post($roamapi->api_url . '/api_esim/getPackages', [
-                'token' => $token,
-                'skuid' => $sku['skuid'],
-                'sign'  => $packageSign,
-            ]);
+                if (!$existing) {
+                    $newSkus[] = $record;
+                } elseif (!empty($skuChangedKeys)) {
+                    $updatedSkus[] = [
+                        'sku_id'       => $skuId,
+                        'before'       => $beforeSku,
+                        'after'        => $afterSku,
+                        'changed_keys' => $skuChangedKeys,
+                    ];
+                }
 
-            $packageData = $packageResponse->json();
-            $data = $packageData['data'] ?? null;
+                // Step 3: Fetch package data for this SKU
+                $packageSign = $this->createSign(['token' => $token, 'skuid' => $skuId], $roamapi->client_key);
+                $packageResponse = Http::timeout(25)
+                    ->retry(2, 1000)
+                    ->asForm()
+                    ->post($roamapi->api_url . '/api_esim/getPackages', [
+                        'token' => $token,
+                        'skuid' => $skuId,
+                        'sign'  => $packageSign,
+                    ]);
 
-            if ($data) {
-                $packages = $data['esimPackageDtoList'] ?? [];
+                Log::debug('Roam eSIM package response payload', [
+                    'sku_id' => $skuId,
+                    'status' => $packageResponse->status(),
+                    'payload' => $packageResponse->json(),
+                ]);
+                if (!$packageResponse->successful()) {
+                    Log::warning('Roam eSIM package sync request failed', ['sku_id' => $skuId]);
+                    continue;
+                }
 
-                // keep old package statuses
-                $old = Roam::where('sku_id', $data['skuid'])->first();
-                $oldPackages = $old ? $old->packages : [];
+                $packagePayload = $packageResponse->json('data');
+                if (!is_array($packagePayload)) {
+                    continue;
+                }
 
-                $existingPids = collect($oldPackages)->pluck('pid')->all();
+                $packages = $packagePayload['esimPackageDtoList'] ?? [];
+                if (!is_array($packages) || empty($packages)) {
+                    continue;
+                }
 
-                $finalPackages = $oldPackages;
-                foreach ($packages as $package) {
-                    if (in_array($package['pid'], $existingPids)) {
-                        continue; // skip duplicates
+                // Preserve old status by a stable key, but refresh package details from API.
+                $old = Roam::where('sku_id', $skuId)->first();
+                $oldPackages = is_array($old?->packages) ? $old->packages : [];
+
+                $buildPackageKey = static function (array $package): string {
+                    foreach (['pid', 'priceid', 'id'] as $field) {
+                        if (isset($package[$field]) && $package[$field] !== '') {
+                            return $field . ':' . (string) $package[$field];
+                        }
                     }
 
-                    // mark as new
-                    $package['status'] = 1;
-                    $package['is_new'] = true;
+                    return 'hash:' . md5(json_encode([
+                        $package['showName'] ?? '',
+                        $package['days'] ?? null,
+                        $package['flows'] ?? null,
+                        $package['unit'] ?? null,
+                        $package['price'] ?? null,
+                    ]));
+                };
+
+                $statusByKey = [];
+                $oldPackagesByKey = [];
+                foreach ($oldPackages as $oldPackage) {
+                    if (!is_array($oldPackage)) {
+                        continue;
+                    }
+
+                    $packageKey = $buildPackageKey($oldPackage);
+                    $statusByKey[$packageKey] = $oldPackage['status'] ?? 1;
+                    $oldPackagesByKey[$packageKey] = $oldPackage;
+                }
+
+                $finalPackages = [];
+                $seenKeys = [];
+                foreach ($packages as $package) {
+                    if (!is_array($package)) {
+                        continue;
+                    }
+
+                    $packageKey = $buildPackageKey($package);
+                    if (isset($seenKeys[$packageKey])) {
+                        continue;
+                    }
+                    $seenKeys[$packageKey] = true;
+
+                    $isNew = !array_key_exists($packageKey, $statusByKey);
+                    $beforePackage = $oldPackagesByKey[$packageKey] ?? null;
+                    $package['status'] = $statusByKey[$packageKey] ?? 1;
+                    $packageChangedKeys = [];
+                    if ($beforePackage) {
+                        $fieldsToCompare = ['pid', 'priceid', 'showName', 'days', 'flows', 'unit', 'price', 'status'];
+
+                        foreach ($fieldsToCompare as $field) {
+                            $beforeVal = $beforePackage[$field] ?? null;
+                            $afterVal = $package[$field] ?? null;
+
+                            $different = false;
+
+                            switch ($field) {
+                                case 'price':
+                                    // compare numerically with rounding to avoid string/float formatting differences
+                                    $beforeNum = is_null($beforeVal) ? null : round((float) $beforeVal, 4);
+                                    $afterNum = is_null($afterVal) ? null : round((float) $afterVal, 4);
+                                    if ($beforeNum !== $afterNum) $different = true;
+                                    break;
+
+                                case 'days':
+                                case 'flows':
+                                case 'status':
+                                    $beforeInt = is_null($beforeVal) ? null : (int) $beforeVal;
+                                    $afterInt = is_null($afterVal) ? null : (int) $afterVal;
+                                    if ($beforeInt !== $afterInt) $different = true;
+                                    break;
+
+                                case 'showName':
+                                    $b = is_null($beforeVal) ? '' : trim((string) $beforeVal);
+                                    $a = is_null($afterVal) ? '' : trim((string) $afterVal);
+                                    if ($b !== $a) $different = true;
+                                    break;
+
+                                default:
+                                    // fallback: compare as strings
+                                    if ((string) ($beforeVal ?? '') !== (string) ($afterVal ?? '')) $different = true;
+                            }
+
+                            if ($different) {
+                                $packageChangedKeys[] = $field;
+                            }
+                        }
+                    }
+
+                    if ($isNew) {
+                        $package['is_new'] = true;
+                        $newPackages[] = $package;
+                    } elseif (!empty($packageChangedKeys)) {
+                        $updatedPackages[] = [
+                            'sku_id'       => $skuId,
+                            'pid'          => $package['pid'] ?? ($package['priceid'] ?? '-'),
+                            'before'       => $beforePackage,
+                            'after'        => $package,
+                            'changed_keys' => $packageChangedKeys,
+                        ];
+                    } else {
+                        unset($package['is_new']);
+                    }
 
                     $finalPackages[] = $package;
-                    $newPackages[] = $package;
                 }
 
-                // If no packages exist → do not save anything
                 if (empty($finalPackages)) {
-                    return redirect()
-                        ->route('updateData')
-                        ->with('success', 'SKUs and packages synced successfully.')
-                        ->with('newSkus', $newSkus)
-                        ->with('newPackages', $newPackages);
+                    continue;
                 }
 
-                // Save merged packages
                 Roam::updateOrCreate(
-                    ['sku_id' => $data['skuid']],
+                    ['sku_id' => $skuId],
                     [
                         'packages'        => $finalPackages,
-                        'support_country' => $data['supportCountry'] ?? [],
-                        'image'           => $data['imageUrl'] ?? null,
+                        'support_country' => $packagePayload['supportCountry'] ?? [],
+                        'image'           => $packagePayload['imageUrl'] ?? null,
                     ]
                 );
             }
-        }
 
-        return redirect()
-            ->route('updateData')
-            ->with('success', 'SKUs and packages synced successfully.')
-            ->with('newSkus', $newSkus)
-            ->with('newPackages', $newPackages);
+            return redirect()
+                ->route('updateData')
+                ->with('success', 'SKUs and packages synced successfully.')
+                ->with('newSkus', $newSkus)
+                ->with('updatedSkus', $updatedSkus)
+                ->with('newPackages', $newPackages)
+                ->with('updatedPackages', $updatedPackages)
+                ->with('syncReport', [
+                    'synced_at'        => now()->format('Y-m-d H:i:s'),
+                    'new_skus'         => count($newSkus),
+                    'updated_skus'     => count($updatedSkus),
+                    'new_packages'     => count($newPackages),
+                    'updated_packages' => count($updatedPackages),
+                ]);
+        } catch (Throwable $e) {
+            Log::error('Roam eSIM sync failed', [
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
+            ]);
+
+            return redirect()
+                ->route('updateData')
+                ->with('error', 'Sync failed. Please try again.');
+        }
     }
 
 
@@ -631,7 +795,7 @@ class RoamController extends Controller
     //         foreach ($request->plans as $plan) {
     //             $priceid = $plan['priceid'] ?? null;
     //             $rate = $plan['exchange_rate'] ?? null;
-                
+
     //             $skuId = $plan['sku_id'] ?? null;
 
     //             if (!$priceid) {
@@ -660,7 +824,7 @@ class RoamController extends Controller
 
     public function updateExchangeRate(Request $request)
     {
-        
+
         if ($request->has('plans')) {
 
             foreach ($request->plans as $plan) {
@@ -694,11 +858,13 @@ class RoamController extends Controller
 
     public function UpdateData()
     {
-
         $newSkus = session('newSkus', []);
+        $updatedSkus = session('updatedSkus', []);
         $newPackages = session('newPackages', []);
+        $updatedPackages = session('updatedPackages', []);
+        $syncReport = session('syncReport', []);
         $logo = GeneralSetting::where('type', 'file')->first();
         $title = GeneralSetting::where('type', 'string')->first();
-        return view('admin.roamsim.update-data', compact('logo', 'title', 'newSkus', 'newPackages'));
+        return view('admin.roamsim.update-data', compact('logo', 'title', 'newSkus', 'updatedSkus', 'newPackages', 'updatedPackages', 'syncReport'));
     }
 }
