@@ -1,3 +1,9 @@
+@php
+    $newSkus = $newSkus ?? [];
+    $updatedSkus = $updatedSkus ?? [];
+    $newPackages = $newPackages ?? [];
+    $updatedPackages = $updatedPackages ?? [];
+@endphp
 @extends('admin.layouts.index')
 @section('title', 'Update Data')
 @section('content')

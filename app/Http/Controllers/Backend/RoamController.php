@@ -328,8 +328,13 @@ class RoamController extends Controller
     public function syncSkusAndPackages()
     {
         try {
-            // Avoid PHP max execution timeout when syncing many SKUs/packages.
             @set_time_limit(0);
+            ini_set('memory_limit', '512M');
+
+            $startTime = time();
+            $maxExecutionSeconds = 120;
+            $maxSkusToProcess = 100;
+            $processedSkuCount = 0;
 
             $roamapi = RoamApi::first();
             if (!$roamapi) {
@@ -343,16 +348,20 @@ class RoamController extends Controller
             ];
             $loginParams['sign'] = $this->createSign($loginParams, $roamapi->client_key);
 
-            $loginResponse = Http::timeout(40)
-                ->retry(2, 1200)
+            $loginResponse = Http::timeout(15)
+                ->retry(1, 300)
                 ->asForm()
                 ->post($roamapi->api_url . '/api_order/login', $loginParams);
 
+            if (!$loginResponse->successful()) {
+                Log::warning('Roam eSIM login request failed', [
+                    'status' => $loginResponse->status(),
+                    'body' => $loginResponse->body(),
+                ]);
+                return redirect()->route('updateData')->with('error', 'Failed to login or get token.');
+            }
+
             $loginData = $loginResponse->json();
-            Log::debug('Roam eSIM login response payload', [
-                'status' => $loginResponse->status(),
-                'payload' => $loginData,
-            ]);
             if (!isset($loginData['data']['token'])) {
                 return redirect()->route('updateData')->with('error', 'Failed to login or get token.');
             }
@@ -361,19 +370,23 @@ class RoamController extends Controller
 
             // Step 2: Fetch SKUs
             $sign = $this->createTokenSign($token, $roamapi->client_key);
-            $skuResponse = Http::timeout(40)
-                ->retry(2, 1200)
+            $skuResponse = Http::timeout(15)
+                ->retry(1, 300)
                 ->asForm()
                 ->post($roamapi->api_url . '/api_esim/getSkus', [
                     'token' => $token,
                     'sign'  => $sign,
                 ]);
 
+            if (!$skuResponse->successful()) {
+                Log::warning('Roam eSIM SKU request failed', [
+                    'status' => $skuResponse->status(),
+                    'body' => $skuResponse->body(),
+                ]);
+                return redirect()->route('updateData')->with('error', 'No SKUs found.');
+            }
+
             $skuData = $skuResponse->json();
-            Log::debug('Roam eSIM sku response payload', [
-                'status' => $skuResponse->status(),
-                'payload' => $skuData,
-            ]);
             if (!isset($skuData['data']) || !is_array($skuData['data'])) {
                 return redirect()->route('updateData')->with('error', 'No SKUs found.');
             }
@@ -384,10 +397,15 @@ class RoamController extends Controller
             $updatedPackages = [];
 
             foreach ($skuData['data'] as $sku) {
+                if ((time() - $startTime) > $maxExecutionSeconds) break;
+
                 $skuId = $sku['skuid'] ?? null;
                 if (!$skuId) {
                     continue;
                 }
+
+                if ($processedSkuCount >= $maxSkusToProcess) break;
+                $processedSkuCount++;
 
                 $existing = RoamSku::where('sku_id', $skuId)->first();
                 $beforeSku = $existing ? [
@@ -426,8 +444,8 @@ class RoamController extends Controller
 
                 // Step 3: Fetch package data for this SKU
                 $packageSign = $this->createSign(['token' => $token, 'skuid' => $skuId], $roamapi->client_key);
-                $packageResponse = Http::timeout(40)
-                    ->retry(2, 1000)
+                $packageResponse = Http::timeout(15)
+                    ->retry(1, 300)
                     ->asForm()
                     ->post($roamapi->api_url . '/api_esim/getPackages', [
                         'token' => $token,
@@ -435,13 +453,12 @@ class RoamController extends Controller
                         'sign'  => $packageSign,
                     ]);
 
-                Log::debug('Roam eSIM package response payload', [
-                    'sku_id' => $skuId,
-                    'status' => $packageResponse->status(),
-                    'payload' => $packageResponse->json(),
-                ]);
                 if (!$packageResponse->successful()) {
-                    Log::warning('Roam eSIM package sync request failed', ['sku_id' => $skuId]);
+                    Log::warning('Roam eSIM package request failed', [
+                        'sku_id' => $skuId,
+                        'status' => $packageResponse->status(),
+                        'body' => $packageResponse->body(),
+                    ]);
                     continue;
                 }
 
@@ -573,7 +590,7 @@ class RoamController extends Controller
                     [
                         'packages'        => $finalPackages,
                         'support_country' => $packagePayload['supportCountry'] ?? [],
-                        'image'           => $packagePayload['imageUrl'] ?? null,
+                        'image'           => $packagePayload['imageUrl'] ?? ($old->image ?? ''),
                     ]
                 );
             }
@@ -586,10 +603,11 @@ class RoamController extends Controller
                 ->with('newPackages', $newPackages)
                 ->with('updatedPackages', $updatedPackages)
                 ->with('syncReport', [
-                    'synced_at'        => now()->format('Y-m-d H:i:s'),
-                    'new_skus'         => count($newSkus),
-                    'updated_skus'     => count($updatedSkus),
-                    'new_packages'     => count($newPackages),
+                    'synced_at' => now()->format('Y-m-d H:i:s'),
+                    'processed_skus' => $processedSkuCount,
+                    'new_skus' => count($newSkus),
+                    'updated_skus' => count($updatedSkus),
+                    'new_packages' => count($newPackages),
                     'updated_packages' => count($updatedPackages),
                 ]);
         } catch (Throwable $e) {
