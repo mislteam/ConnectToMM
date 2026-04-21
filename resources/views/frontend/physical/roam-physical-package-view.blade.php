@@ -36,16 +36,16 @@
                     <!-- <div id="productGlleryIndicators" class="carousel slide" data-ride="carousel"> -->
                     <div id="productGlleryIndicators" class="" data-ride="carousel">
                         <!-- <ol class="carousel-indicators">
-                                <li data-target="#productGlleryIndicators" data-slide-to="0" class="active">
-                                    <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
-                                </li>
-                                <li data-target="#productGlleryIndicators" data-slide-to="1">
-                                    <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
-                                </li>
-                                <li data-target="#productGlleryIndicators" data-slide-to="2">
-                                    <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
-                                </li>
-                              </ol> -->
+                                        <li data-target="#productGlleryIndicators" data-slide-to="0" class="active">
+                                            <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
+                                        </li>
+                                        <li data-target="#productGlleryIndicators" data-slide-to="1">
+                                            <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
+                                        </li>
+                                        <li data-target="#productGlleryIndicators" data-slide-to="2">
+                                            <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
+                                        </li>
+                                      </ol> -->
                         <div class="carousel-inner">
                             <div class="carousel-item active">
                                 <img class="d-block w-100"
@@ -61,13 +61,13 @@
                             </div>
                         </div>
                         <!-- <a class="carousel-control-prev" href="#productGlleryIndicators" role="button" data-slide="prev">
-                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                <span class="sr-only">Previous</span>
-                              </a>
-                              <a class="carousel-control-next" href="#productGlleryIndicators" role="button" data-slide="next">
-                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                <span class="sr-only">Next</span>
-                              </a> -->
+                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                        <span class="sr-only">Previous</span>
+                                      </a>
+                                      <a class="carousel-control-next" href="#productGlleryIndicators" role="button" data-slide="next">
+                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                        <span class="sr-only">Next</span>
+                                      </a> -->
                     </div>
                 </div>
                 <div class="col-lg-6 col-md-6">
@@ -133,16 +133,6 @@
                             </div>
                         @endif
                     @endforeach
-                    <div class="row">
-                        <div class="col-lg-4 col-md-4 col-sm-12 col-12">
-                            <label class="font-weight-bold">Delivery Time : </label>
-                        </div>
-                        <div class="col-lg-8 col-md-8 col-sm-12 col-12">
-                            <div class="content">
-                                <label class="text">A few minutes via email after purchase, 24/7 Support.</label>
-                            </div>
-                        </div>
-                    </div>
                     @php
                         $priceListCodes = $pricelists->pluck('product_code')->toArray();
 
@@ -222,9 +212,9 @@
 
                             <!-- Price Display -->
                             <!-- <div class="form-group">
-                                    <label class="font-weight-bold">Price</label>
-                                    <p id="priceDisplay" class="h5 text-success mb-0">Select a plan</p>
-                                </div> -->
+                                            <label class="font-weight-bold">Price</label>
+                                            <p id="priceDisplay" class="h5 text-success mb-0">Select a plan</p>
+                                        </div> -->
                             <!-- Add to Cart -->
                             <a href="cart-esim-roam.html" id="addToCartBtn" class="button_text">Add To Cart</a>
                         </form>
@@ -315,14 +305,8 @@
             const dataBox = document.getElementById('dataPlan');
             const total_price = document.getElementById('priceDisplay');
             const displayPriceInput = document.getElementById('display_price');
-
-            // Updated mapping to handle "Daypass" (case insensitive)
-            const typeMapping = {
-                'daypass': 'daily',
-                'fixed': 'total',
-                'unlimited': 'unlimited',
-                '': 'total'
-            };
+            const qtyInput = document.getElementById('qty');
+            const trafficTypeBox = document.getElementById('trafficType');
 
             function isProductValid(priceId) {
                 // Ensure comparison works regardless of string or integer type
@@ -334,18 +318,61 @@
                 return item ? item.exchange_rate : 0;
             }
 
+            function normalizeType(pkg) {
+                const rawType = String(pkg.showName || '').toLowerCase();
+                const supportDaypass = Number(pkg.supportDaypass || 0);
+                const hasDaypassDetail = Number(pkg.hadDaypassDetail || 0);
+
+                if (rawType.includes('unlimited')) {
+                    return 'unlimited';
+                }
+
+                if (
+                    rawType.includes('daypass') ||
+                    rawType.includes('daily') ||
+                    supportDaypass === 1 ||
+                    hasDaypassDetail === 1
+                ) {
+                    return 'daily';
+                }
+
+                return 'total';
+            }
+
+            function getPackagesForType(selectedType) {
+                return allPackages.filter(pkg => normalizeType(pkg) === selectedType && isProductValid(pkg
+                    .priceid));
+            }
+
+            function getSelectedType() {
+                const activeInput = trafficTypeBox ? trafficTypeBox.querySelector('input[name="tType"]:checked') :
+                    null;
+                return (activeInput ? activeInput.value : 'Daily').toLowerCase();
+            }
+
+            function getSelectedDayValue() {
+                const activeInput = service_day_box ?
+                    service_day_box.querySelector('input[name="sday"]:checked') :
+                    null;
+
+                if (!activeInput) {
+                    return null;
+                }
+
+                const dayFromData = activeInput.dataset.day ? parseInt(activeInput.dataset.day, 10) : null;
+                if (!Number.isNaN(dayFromData) && dayFromData !== null) {
+                    return dayFromData;
+                }
+
+                const parsed = parseInt(activeInput.value, 10);
+                return Number.isNaN(parsed) ? null : parsed;
+            }
+
             function filterTrafficTypes() {
                 const typesWithData = new Set();
 
                 allPackages.forEach(pkg => {
-                    const rawType = (pkg.showName || '').toLowerCase();
-                    let mappedType = 'total';
-
-                    if (rawType.includes('unlimited')) {
-                        mappedType = 'unlimited';
-                    } else if (rawType.includes('daypass')) {
-                        mappedType = 'daily';
-                    }
+                    const mappedType = normalizeType(pkg);
 
                     if (isProductValid(pkg.priceid)) {
                         typesWithData.add(mappedType);
@@ -357,7 +384,7 @@
 
                 let firstVisibleInput = null;
 
-                document.querySelectorAll('#trafficType label').forEach(label => {
+                trafficTypeBox.querySelectorAll('label').forEach(label => {
                     const input = label.querySelector('input[name="tType"]');
                     if (input) {
                         const typeValue = input.value.toLowerCase();
@@ -372,13 +399,22 @@
                 });
 
                 if (firstVisibleInput) {
-                    firstVisibleInput.closest('label').click(); // Triggers the render logic
+                    firstVisibleInput.checked = true;
+                    const label = firstVisibleInput.closest('label');
+                    if (label) label.classList.add('active');
+                    renderServiceDays();
                 }
             }
 
             function renderDataPlans(plans, selectedDay) {
                 dataBox.innerHTML = '';
-                const validPlans = plans.filter(p => String(p.days) === String(selectedDay));
+                const validPlans = plans.filter(plan => String(plan.days) === String(selectedDay));
+
+                if (!validPlans.length) {
+                    dataBox.innerHTML = '<span class="text-danger">No data for this day.</span>';
+                    updatePriceDisplay();
+                    return;
+                }
 
                 validPlans.forEach((plan, index) => {
                     const rate = getExchangeRate(plan.priceid);
@@ -387,10 +423,13 @@
 
                     const label = document.createElement('label');
                     label.className =
-                    `btn btn-outline-secondary m-1 rounded ${index === 0 ? 'active' : ''}`;
+                        `btn btn-outline-secondary m-1 rounded ${index === 0 ? 'active' : ''}`;
                     label.innerHTML = `
-                <input type="radio" name="sdata" value="${plan.flows}"
-                    data-price="${calculatedPrice}" 
+                <input type="radio" name="sdata" value="${dataLabel}"
+                    data-flow="${dataLabel}"
+                    data-day="${plan.days}"
+                    data-price="${calculatedPrice}"
+                    data-priceid="${plan.priceid}"
                     ${index === 0 ? 'checked' : ''}>
                 ${dataLabel}
             `;
@@ -401,93 +440,104 @@
             }
 
             function renderServiceDays() {
-                const activeInput = document.querySelector('#trafficType input[name="tType"]:checked');
+                const activeInput = trafficTypeBox.querySelector('input[name="tType"]:checked');
                 if (!activeInput) return;
 
                 const selectedType = activeInput.value.toLowerCase();
-
-                const filteredPackages = allPackages.filter(pkg => {
-                    const rawType = (pkg.showName || '').toLowerCase();
-                    let mappedType = 'total';
-                    if (rawType.includes('unlimited')) mappedType = 'unlimited';
-                    else if (rawType.includes('daypass')) mappedType = 'daily';
-
-                    return mappedType === selectedType && isProductValid(pkg.priceid);
-                });
+                const filteredPackages = getPackagesForType(selectedType);
 
                 const uniqueDays = [...new Set(filteredPackages.map(p => p.days))].sort((a, b) => a - b);
                 service_day_box.innerHTML = '';
+
+                if (!uniqueDays.length) {
+                    dataBox.innerHTML = '<span class="text-danger">No data for this plan type.</span>';
+                    updatePriceDisplay();
+                    return;
+                }
 
                 uniqueDays.forEach((day, index) => {
                     const label = document.createElement('label');
                     label.className = `btn btn-outline-secondary m-1 ${index === 0 ? 'active' : ''}`;
                     label.innerHTML = `
-                <input type="radio" name="sday" value="${day}" ${index === 0 ? 'checked' : ''}>
+                <input type="radio" name="sday" value="${day}" data-day="${day}" ${index === 0 ? 'checked' : ''}>
                 ${day} day
             `;
                     service_day_box.appendChild(label);
                 });
 
-                if (uniqueDays.length > 0) {
-                    renderDataPlans(filteredPackages, uniqueDays[0]);
-                } else {
-                    dataBox.innerHTML = '<span class="text-danger">No data for this day.</span>';
-                }
+                renderDataPlans(filteredPackages, uniqueDays[0]);
             }
 
             function updatePriceDisplay() {
                 const selectedData = dataBox.querySelector('input[name="sdata"]:checked');
-                const qty = parseInt(document.getElementById('qty').value) || 1;
+                const qty = parseInt(qtyInput.value) || 1;
 
                 if (selectedData) {
-                    const total = parseFloat(selectedData.dataset.price) * qty;
+                    const total = parseFloat(selectedData.dataset.price || 0) * qty;
                     total_price.innerText = `Total Price: ${total.toLocaleString()} MMK`;
                     if (displayPriceInput) displayPriceInput.value = total;
+                    return;
                 }
+
+                total_price.innerText = 'Total Price: 0 MMK';
+                if (displayPriceInput) displayPriceInput.value = '';
             }
 
             // Handlers
-            document.querySelectorAll('#trafficType label').forEach(label => {
-                label.addEventListener('click', function() {
-                    document.querySelectorAll('#trafficType label').forEach(l => l.classList.remove(
-                        'active'));
-                    this.classList.add('active');
-                    const input = this.querySelector('input');
-                    if (input) input.checked = true;
-                    renderServiceDays();
-                });
+            trafficTypeBox.addEventListener('click', function(e) {
+                const label = e.target.closest('label');
+                if (!label || !trafficTypeBox.contains(label)) return;
+
+                const input = label.querySelector('input[name="tType"]');
+                if (!input) return;
+
+                trafficTypeBox.querySelectorAll('label').forEach(item => item.classList.remove('active'));
+                label.classList.add('active');
+                input.checked = true;
+
+                renderServiceDays();
             });
 
             service_day_box.addEventListener('click', function(e) {
                 const label = e.target.closest('label');
-                if (!label) return;
+                if (!label || !service_day_box.contains(label)) return;
+
+                const input = label.querySelector('input[name="sday"]');
+                if (!input) return;
+
                 service_day_box.querySelectorAll('label').forEach(l => l.classList.remove('active'));
                 label.classList.add('active');
-                const input = label.querySelector('input');
-                const day = input.value;
+                input.checked = true;
 
-                const type = document.querySelector('#trafficType input[name="tType"]:checked').value
-                    .toLowerCase();
-                const filtered = allPackages.filter(pkg => {
-                    const rawType = (pkg.showName || '').toLowerCase();
-                    let mappedType = 'total';
+                const selectedType = getSelectedType();
+                const filtered = getPackagesForType(selectedType);
+                const selectedDay = getSelectedDayValue();
 
-                    if (rawType.includes('unlimited')) mappedType = 'unlimited';
-                    else if (rawType.includes('daypass')) mappedType = 'daily';
-                    return mappedType === type && isProductValid(pkg.priceid);
-                });
-
-                renderDataPlans(filtered, day);
+                renderDataPlans(filtered, selectedDay);
             });
 
-            dataBox.addEventListener('change', updatePriceDisplay);
+            dataBox.addEventListener('click', function(e) {
+                const label = e.target.closest('label');
+                if (!label || !dataBox.contains(label)) return;
+
+                const input = label.querySelector('input[name="sdata"]');
+                if (!input) return;
+
+                dataBox.querySelectorAll('label').forEach(item => item.classList.remove('active'));
+                label.classList.add('active');
+                input.checked = true;
+                updatePriceDisplay();
+            });
+
+            qtyInput.addEventListener('input', updatePriceDisplay);
+            qtyInput.addEventListener('change', updatePriceDisplay);
 
             document.querySelector('.qty-plus').addEventListener('click', () => {
-                document.getElementById('qty').value++;
+                qtyInput.value = parseInt(qtyInput.value || 1) + 1;
                 updatePriceDisplay();
             });
             document.querySelector('.qty-minus').addEventListener('click', () => {
-                if (document.getElementById('qty').value > 1) document.getElementById('qty').value--;
+                if (parseInt(qtyInput.value || 1) > 1) qtyInput.value = parseInt(qtyInput.value) - 1;
                 updatePriceDisplay();
             });
 
