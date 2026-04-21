@@ -124,6 +124,8 @@ class RoamPhysicalController extends Controller
             $updatedSkus = [];
             $newPackages = [];
             $updatedPackages = [];
+            $newPackageCount = 0;
+            $updatedPackageCount = 0;
 
             foreach ($dpData as $dp) {
 
@@ -227,23 +229,110 @@ class RoamPhysicalController extends Controller
                         $pkgList = data_get($pkgPayload, 'esimPackageVoList', []);
                         if (empty($pkgList)) continue;
 
+                        $existingPhysical = RoamPhysical::where('sku_id', $skuId)->where('dp_id', $dpId)->first();
+                        $oldPackages = is_array($existingPhysical?->packages) ? $existingPhysical->packages : [];
+
+                        $buildPackageKey = static function (array $package): string {
+                            foreach (['pid', 'priceid', 'id'] as $field) {
+                                if (isset($package[$field]) && $package[$field] !== '') {
+                                    return $field . ':' . (string) $package[$field];
+                                }
+                            }
+
+                            return 'hash:' . md5(json_encode([
+                                $package['showName'] ?? '',
+                                $package['days'] ?? null,
+                                $package['flows'] ?? null,
+                                $package['unit'] ?? null,
+                            ]));
+                        };
+
+                        $statusByKey = [];
+                        $oldPackagesByKey = [];
+                        foreach ($oldPackages as $oldPackage) {
+                            if (!is_array($oldPackage)) {
+                                continue;
+                            }
+
+                            $packageKey = $buildPackageKey($oldPackage);
+                            $statusByKey[$packageKey] = $oldPackage['status'] ?? 1;
+                            $oldPackagesByKey[$packageKey] = $oldPackage;
+                        }
+
                         $finalPackages = [];
 
                         foreach ($pkgList as $pkg) {
                             if (!is_array($pkg)) continue;
 
-                            $pkg['status'] = 1;
+                            $packageKey = $buildPackageKey($pkg);
+                            $isNew = !array_key_exists($packageKey, $statusByKey);
+                            $beforePackage = $oldPackagesByKey[$packageKey] ?? null;
+                            $pkg['status'] = $statusByKey[$packageKey] ?? 1;
                             $pkg['dp_name'] = $dpName;
 
-                            if (count($newPackages) < 500) {
-                                $pkg['is_new'] = true;
-                                $newPackages[] = $pkg;
+                            if ($beforePackage) {
+                                $fieldsToCompare = ['pid', 'priceid', 'showName', 'days', 'flows', 'unit', 'price', 'status'];
+                                $packageChangedKeys = [];
+
+                                foreach ($fieldsToCompare as $field) {
+                                    $beforeVal = $beforePackage[$field] ?? null;
+                                    $afterVal = $pkg[$field] ?? null;
+
+                                    $different = false;
+
+                                    switch ($field) {
+                                        case 'price':
+                                            $beforeNum = is_null($beforeVal) ? null : round((float) $beforeVal, 4);
+                                            $afterNum = is_null($afterVal) ? null : round((float) $afterVal, 4);
+                                            if ($beforeNum !== $afterNum) $different = true;
+                                            break;
+
+                                        case 'days':
+                                        case 'flows':
+                                        case 'status':
+                                            $beforeInt = is_null($beforeVal) ? null : (int) $beforeVal;
+                                            $afterInt = is_null($afterVal) ? null : (int) $afterVal;
+                                            if ($beforeInt !== $afterInt) $different = true;
+                                            break;
+
+                                        case 'showName':
+                                            $b = is_null($beforeVal) ? '' : trim((string) $beforeVal);
+                                            $a = is_null($afterVal) ? '' : trim((string) $afterVal);
+                                            if ($b !== $a) $different = true;
+                                            break;
+
+                                        default:
+                                            if ((string) ($beforeVal ?? '') !== (string) ($afterVal ?? '')) $different = true;
+                                    }
+
+                                    if ($different) {
+                                        $packageChangedKeys[] = $field;
+                                    }
+                                }
+
+                                if (!empty($packageChangedKeys)) {
+                                    $updatedPackageCount++;
+                                    $updatedPackages[] = [
+                                        'sku_id'       => $skuId,
+                                        'dp_id'        => $dpId,
+                                        'dp_name'      => $dpName,
+                                        'pid'          => $pkg['pid'] ?? ($pkg['priceid'] ?? '-'),
+                                        'before'       => $beforePackage,
+                                        'after'        => $pkg,
+                                        'changed_keys' => $packageChangedKeys,
+                                    ];
+                                }
+                            } elseif ($isNew) {
+                                $newPackageCount++;
+
+                                if (count($newPackages) < 500) {
+                                    $pkg['is_new'] = true;
+                                    $newPackages[] = $pkg;
+                                }
                             }
 
                             $finalPackages[] = $pkg;
                         }
-
-                        $existingPhysical = RoamPhysical::where('sku_id', $skuId)->where('dp_id', $dpId)->first();
 
                         RoamPhysical::updateOrCreate(
                             ['sku_id' => $skuId, 'dp_id' => $dpId],
@@ -271,8 +360,8 @@ class RoamPhysicalController extends Controller
                     'processed_skus' => $processedSkuCount,
                     'new_skus' => count($newSkus),
                     'updated_skus' => count($updatedSkus),
-                    'new_packages' => count($newPackages),
-                    'updated_packages' => count($updatedPackages),
+                    'new_packages' => $newPackageCount,
+                    'updated_packages' => $updatedPackageCount,
                 ]);
         } catch (Throwable $e) {
 

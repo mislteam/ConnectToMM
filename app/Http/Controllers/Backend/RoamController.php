@@ -488,7 +488,6 @@ class RoamController extends Controller
                         $package['days'] ?? null,
                         $package['flows'] ?? null,
                         $package['unit'] ?? null,
-                        $package['price'] ?? null,
                     ]));
                 };
 
