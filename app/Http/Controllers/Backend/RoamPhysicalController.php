@@ -54,58 +54,69 @@ class RoamPhysicalController extends Controller
         return view('admin.roamphysical.skulist', compact('logo', 'title', 'roamGlobal', 'roamAsia'));
     }
 
-
     public function syncPhysicalSkusAndPackages()
     {
         try {
             @set_time_limit(0);
+            ini_set('memory_limit', '512M');
+
+            $startTime = time();
+            $maxExecutionSeconds = 120; // prevent timeout
+            $maxSkusToProcess = 100;   // limit per request
+            $processedSkuCount = 0;
 
             $roamapi = RoamApi::first();
             if (!$roamapi) {
                 return redirect()->route('physical.updateData')->with('error', 'Missing API credentials.');
             }
 
+            //  LOGIN
             $loginParams = [
                 'phonenumber' => $roamapi->client_id,
                 'password'    => $roamapi->secret_key,
             ];
             $loginParams['sign'] = $this->createSign($loginParams, $roamapi->client_key);
 
-            $loginResponse = Http::timeout(40)
-                ->retry(2, 1200)
+            $loginResponse = Http::timeout(15)
+                ->retry(1, 300)
                 ->asForm()
                 ->post($roamapi->api_url . '/api_order/login', $loginParams);
 
+            if (!$loginResponse->successful()) {
+                Log::warning('Roam physical login request failed', [
+                    'status' => $loginResponse->status(),
+                    'body' => $loginResponse->body(),
+                ]);
+                return redirect()->route('physical.updateData')->with('error', 'Login failed.');
+            }
+
             $loginData = $loginResponse->json();
-            Log::debug('Roam physical login response payload', [
-                'status' => $loginResponse->status(),
-                'payload' => $loginData,
-            ]);
             if (!isset($loginData['data']['token'])) {
                 return redirect()->route('physical.updateData')->with('error', 'Login failed.');
             }
 
             $token = $loginData['data']['token'];
 
-            // GET PHYSICAL SIM DP LIST
+            // GET DP LIST
             $dpSign = $this->createTokenSign($token, $roamapi->client_key);
-            $dpResponse = Http::timeout(40)
-                ->retry(2, 1200)
+            $dpResponse = Http::timeout(15)
+                ->retry(1, 300)
                 ->asForm()
-                ->post(
-                    $roamapi->api_url . '/api_esim/getPhysicalSIMDpInfo',
-                    [
-                        'token' => $token,
-                        'sign'  => $dpSign,
-                    ]
-                );
+                ->post($roamapi->api_url . '/api_esim/getPhysicalSIMDpInfo', [
+                    'token' => $token,
+                    'sign'  => $dpSign,
+                ]);
 
-            $dpData = $dpResponse->json();
-            Log::debug('Roam physical dp response payload', [
-                'status' => $dpResponse->status(),
-                'payload' => $dpData,
-            ]);
-            if (!isset($dpData['data']) || !is_array($dpData['data'])) {
+            if (!$dpResponse->successful()) {
+                Log::warning('Roam physical DP request failed', [
+                    'status' => $dpResponse->status(),
+                    'body' => $dpResponse->body(),
+                ]);
+                return redirect()->route('physical.updateData')->with('error', 'No DP found.');
+            }
+
+            $dpData = $dpResponse->json('data');
+            if (!is_array($dpData)) {
                 return redirect()->route('physical.updateData')->with('error', 'No DP found.');
             }
 
@@ -114,276 +125,166 @@ class RoamPhysicalController extends Controller
             $newPackages = [];
             $updatedPackages = [];
 
-            // LOOP DPs → SKUs → PACKAGES
-            foreach ($dpData['data'] as $dp) {
+            foreach ($dpData as $dp) {
+
+                if ((time() - $startTime) > $maxExecutionSeconds) break;
+
                 $dpId = $dp['id'] ?? null;
                 $dpName = $dp['realName'] ?? null;
-                if (!$dpId) {
-                    continue;
-                }
+                if (!$dpId) continue;
 
-                $skuParams = [
-                    'token' => $token,
-                    'dpId'  => $dpId,
-                ];
+                // GET SKUs
+                $skuParams = ['token' => $token, 'dpId' => $dpId];
                 $skuSign = $this->createSign($skuParams, $roamapi->client_key);
-                $skuResponse = Http::timeout(40)
-                    ->retry(2, 1200)
+
+                $skuResponse = Http::timeout(15)
+                    ->retry(1, 300)
                     ->asForm()
-                    ->post(
-                        $roamapi->api_url . '/api_esim/getDpSupportSkuInfo',
-                        array_merge($skuParams, ['sign' => $skuSign])
-                    );
+                    ->post($roamapi->api_url . '/api_esim/getDpSupportSkuInfo', $skuParams + ['sign' => $skuSign]);
 
-                Log::debug('Roam physical sku response payload', [
-                    'dp_id' => $dpId,
-                    'status' => $skuResponse->status(),
-                    'payload' => $skuResponse->json(),
-                ]);
                 if (!$skuResponse->successful()) {
-                    Log::warning('Roam physical SKU sync request failed', ['dp_id' => $dpId]);
+                    Log::warning('Roam physical SKU request failed', [
+                        'dp_id' => $dpId,
+                        'status' => $skuResponse->status(),
+                        'body' => $skuResponse->body(),
+                    ]);
                     continue;
                 }
 
-                $skuData = $skuResponse->json();
-                if (!isset($skuData['data']) || !is_array($skuData['data'])) {
-                    continue;
-                }
+                $skuData = $skuResponse->json('data');
+                if (!is_array($skuData)) continue;
 
-                foreach ($skuData['data'] as $sku) {
-                    $skuId = $sku['skuid'] ?? null;
-                    if (!$skuId) {
-                        continue;
-                    }
+                // CHUNK SKUs
+                foreach (array_chunk($skuData, 5) as $skuChunk) {
 
-                    $existingSku = RoamPhysicalSku::where('sku_id', $skuId)->where('dp_id', $dpId)->first();
-                    $beforeSku = $existingSku ? [
-                        'dp_name'      => $dpName,
-                        'country_name' => $existingSku->country_name,
-                        'country_code' => $existingSku->country_code,
-                        'status'       => $existingSku->status,
-                    ] : null;
+                    foreach ($skuChunk as $sku) {
 
-                    $afterSku = [
-                        'dp_name'      => $dpName,
-                        'country_name' => $sku['display'] ?? 'N/A',
-                        'country_code' => $sku['countryCode'] ?? 'N/A',
-                        'status'       => $existingSku ? $existingSku->status : 1,
-                    ];
+                        if ((time() - $startTime) > $maxExecutionSeconds) break 2;
+                        if ($processedSkuCount >= $maxSkusToProcess) break 2;
 
-                    $skuChangedKeys = [];
-                    foreach (['country_name', 'country_code', 'status'] as $field) {
-                        if (($beforeSku[$field] ?? null) !== ($afterSku[$field] ?? null)) {
-                            $skuChangedKeys[] = $field;
-                        }
-                    }
+                        $processedSkuCount++;
 
-                    $skuRecord = RoamPhysicalSku::updateOrCreate(
-                        [
-                            'sku_id' => $skuId,
-                            'dp_id'  => $dpId,
-                        ],
-                        $afterSku
-                    );
+                        $skuId = $sku['skuid'] ?? null;
+                        if (!$skuId) continue;
 
-                    $skuRecord->dp_name = $dpName;
-                    if (!$existingSku) {
-                        $newSkus[] = $skuRecord;
-                    } elseif (!empty($skuChangedKeys)) {
-                        $updatedSkus[] = [
-                            'sku_id'       => $skuId,
-                            'dp_id'        => $dpId,
-                            'before'       => $beforeSku,
-                            'after'        => $afterSku,
-                            'changed_keys' => $skuChangedKeys,
+                        // Skip recently synced
+                        $existingRecent = RoamPhysical::where('sku_id', $skuId)
+                            ->where('dp_id', $dpId)
+                            ->where('updated_at', '>', now()->subMinutes(30))
+                            ->first();
+
+                        if ($existingRecent) continue;
+
+                        // ================= SKU =================
+                        $existingSku = RoamPhysicalSku::where('sku_id', $skuId)->where('dp_id', $dpId)->first();
+
+                        $afterSku = [
+                            'dp_name'      => $dpName,
+                            'country_name' => $sku['display'] ?? 'N/A',
+                            'country_code' => $sku['countryCode'] ?? 'N/A',
+                            'status'       => $existingSku ? $existingSku->status : 1,
                         ];
-                    }
 
-                    $pkgParams = [
-                        'token' => $token,
-                        'dpId'  => $dpId,
-                        'skuid' => $skuId,
-                    ];
-                    $pkgSign = $this->createSign($pkgParams, $roamapi->client_key);
-                    $pkgResponse = Http::timeout(40)
-                        ->retry(2, 1000)
-                        ->asForm()
-                        ->post(
-                            $roamapi->api_url . '/api_esim/getDpSkuSupportPackageInfo',
-                            array_merge($pkgParams, ['sign' => $pkgSign])
+                        $skuRecord = RoamPhysicalSku::updateOrCreate(
+                            ['sku_id' => $skuId, 'dp_id' => $dpId],
+                            $afterSku
                         );
 
-                    Log::debug('Roam physical package response payload', [
-                        'dp_id' => $dpId,
-                        'sku_id' => $skuId,
-                        'status' => $pkgResponse->status(),
-                        'payload' => $pkgResponse->json(),
-                    ]);
-                    if (!$pkgResponse->successful()) {
-                        Log::warning('Roam physical package sync request failed', ['dp_id' => $dpId, 'sku_id' => $skuId]);
-                        continue;
-                    }
+                        if (!$existingSku && count($newSkus) < 200) {
+                            $skuRecord->dp_name = $dpName;
+                            $newSkus[] = $skuRecord;
+                        }
 
-                    $pkgPayload = $pkgResponse->json('data');
-                    if (!is_array($pkgPayload)) {
-                        continue;
-                    }
+                        // ================= PACKAGES =================
+                        $pkgParams = [
+                            'token' => $token,
+                            'dpId'  => $dpId,
+                            'skuid' => $skuId,
+                        ];
+                        $pkgSign = $this->createSign($pkgParams, $roamapi->client_key);
 
-                    $pkgList = $pkgPayload['esimPackageVoList'] ?? [];
-                    if (!is_array($pkgList) || empty($pkgList)) {
-                        continue;
-                    }
+                        $pkgResponse = Http::timeout(15)
+                            ->retry(1, 300)
+                            ->asForm()
+                            ->post(
+                                $roamapi->api_url . '/api_esim/getDpSkuSupportPackageInfo',
+                                $pkgParams + ['sign' => $pkgSign]
+                            );
 
-                    $old = RoamPhysical::where('sku_id', $skuId)->where('dp_id', $dpId)->first();
-                    $oldPackages = is_array($old?->packages) ? $old->packages : [];
+                        if (!$pkgResponse->successful()) {
+                            Log::warning('Roam physical package request failed', [
+                                'dp_id' => $dpId,
+                                'sku_id' => $skuId,
+                                'status' => $pkgResponse->status(),
+                                'body' => $pkgResponse->body(),
+                            ]);
+                            continue;
+                        }
 
-                    $buildPackageKey = static function (array $package): string {
-                        foreach (['pid', 'priceid', 'id'] as $field) {
-                            if (isset($package[$field]) && $package[$field] !== '') {
-                                return $field . ':' . (string) $package[$field];
+                        $pkgPayload = $pkgResponse->json('data');
+                        if (!is_array($pkgPayload)) continue;
+
+                        $pkgList = data_get($pkgPayload, 'esimPackageVoList', []);
+                        if (empty($pkgList)) continue;
+
+                        $finalPackages = [];
+
+                        foreach ($pkgList as $pkg) {
+                            if (!is_array($pkg)) continue;
+
+                            $pkg['status'] = 1;
+                            $pkg['dp_name'] = $dpName;
+
+                            if (count($newPackages) < 500) {
+                                $pkg['is_new'] = true;
+                                $newPackages[] = $pkg;
                             }
+
+                            $finalPackages[] = $pkg;
                         }
 
-                        return 'hash:' . md5(json_encode([
-                            $package['showName'] ?? '',
-                            $package['days'] ?? null,
-                            $package['flows'] ?? null,
-                            $package['unit'] ?? null,
-                            $package['price'] ?? null,
-                        ]));
-                    };
+                        $existingPhysical = RoamPhysical::where('sku_id', $skuId)->where('dp_id', $dpId)->first();
 
-                    $statusByKey = [];
-                    $oldPackagesByKey = [];
-                    foreach ($oldPackages as $oldPackage) {
-                        if (!is_array($oldPackage)) {
-                            continue;
-                        }
-                        $pkgKey = $buildPackageKey($oldPackage);
-                        $statusByKey[$pkgKey] = $oldPackage['status'] ?? 1;
-                        $oldPackagesByKey[$pkgKey] = $oldPackage;
+                        RoamPhysical::updateOrCreate(
+                            ['sku_id' => $skuId, 'dp_id' => $dpId],
+                            [
+                                'packages'        => $finalPackages,
+                                'support_country' => $pkgPayload['supportCountry'] ?? [],
+                                'image'           => $pkgPayload['imageUrl'] ?? ($existingPhysical->image ?? ''),
+                            ]
+                        );
+
+                        usleep(100000); // prevent API overload
                     }
-
-                    $finalPackages = [];
-                    $seenKeys = [];
-                    foreach ($pkgList as $pkg) {
-                        if (!is_array($pkg)) {
-                            continue;
-                        }
-
-                        $pkgKey = $buildPackageKey($pkg);
-                        if (isset($seenKeys[$pkgKey])) {
-                            continue;
-                        }
-                        $seenKeys[$pkgKey] = true;
-
-                        $isNew = !array_key_exists($pkgKey, $statusByKey);
-                        $beforePackage = $oldPackagesByKey[$pkgKey] ?? null;
-                        $pkg['status'] = $statusByKey[$pkgKey] ?? 1;
-                        $pkg['dp_name'] = $dpName;
-                        $packageChangedKeys = [];
-                        if ($beforePackage) {
-                            $fieldsToCompare = ['pid', 'priceid', 'showName', 'days', 'flows', 'unit', 'price', 'status'];
-
-                            foreach ($fieldsToCompare as $field) {
-                                $beforeVal = $beforePackage[$field] ?? null;
-                                $afterVal = $pkg[$field] ?? null;
-
-                                $different = false;
-
-                                switch ($field) {
-                                    case 'price':
-                                        $beforeNum = is_null($beforeVal) ? null : round((float) $beforeVal, 4);
-                                        $afterNum = is_null($afterVal) ? null : round((float) $afterVal, 4);
-                                        if ($beforeNum !== $afterNum) $different = true;
-                                        break;
-
-                                    case 'days':
-                                    case 'flows':
-                                    case 'status':
-                                        $beforeInt = is_null($beforeVal) ? null : (int) $beforeVal;
-                                        $afterInt = is_null($afterVal) ? null : (int) $afterVal;
-                                        if ($beforeInt !== $afterInt) $different = true;
-                                        break;
-
-                                    case 'showName':
-                                        $b = is_null($beforeVal) ? '' : trim((string) $beforeVal);
-                                        $a = is_null($afterVal) ? '' : trim((string) $afterVal);
-                                        if ($b !== $a) $different = true;
-                                        break;
-
-                                    default:
-                                        if ((string) ($beforeVal ?? '') !== (string) ($afterVal ?? '')) $different = true;
-                                }
-
-                                if ($different) {
-                                    $packageChangedKeys[] = $field;
-                                }
-                            }
-                        }
-
-                        if ($isNew) {
-                            $pkg['is_new'] = true;
-                            $newPackages[] = $pkg;
-                        } elseif (!empty($packageChangedKeys)) {
-                            $updatedPackages[] = [
-                                'sku_id'       => $skuId,
-                                'dp_id'        => $dpId,
-                                'dp_name'      => $dpName,
-                                'pid'          => $pkg['pid'] ?? ($pkg['priceid'] ?? '-'),
-                                'before'       => $beforePackage,
-                                'after'        => $pkg,
-                                'changed_keys' => $packageChangedKeys,
-                            ];
-                        } else {
-                            unset($pkg['is_new']);
-                        }
-
-                        $finalPackages[] = $pkg;
-                    }
-
-                    if (empty($finalPackages)) {
-                        continue;
-                    }
-
-                    RoamPhysical::updateOrCreate(
-                        [
-                            'sku_id' => $skuId,
-                            'dp_id'  => $dpId,
-                        ],
-                        [
-                            'packages'        => $finalPackages,
-                            'support_country' => $pkgPayload['supportCountry'] ?? [],
-                            'image'           => $pkgPayload['imageUrl'] ?? null,
-                        ]
-                    );
                 }
             }
 
             return redirect()
                 ->route('physical.updateData')
-                ->with('success', 'Physical SIM SKUs & packages synced successfully')
+                ->with('success', 'Sync completed safely')
                 ->with('newSkus', $newSkus)
                 ->with('updatedSkus', $updatedSkus)
                 ->with('newPackages', $newPackages)
                 ->with('updatedPackages', $updatedPackages)
                 ->with('syncReport', [
-                    'synced_at'        => now()->format('Y-m-d H:i:s'),
-                    'new_skus'         => count($newSkus),
-                    'updated_skus'     => count($updatedSkus),
-                    'new_packages'     => count($newPackages),
+                    'synced_at' => now()->format('Y-m-d H:i:s'),
+                    'processed_skus' => $processedSkuCount,
+                    'new_skus' => count($newSkus),
+                    'updated_skus' => count($updatedSkus),
+                    'new_packages' => count($newPackages),
                     'updated_packages' => count($updatedPackages),
                 ]);
         } catch (Throwable $e) {
-            Log::error('Roam physical sync failed', [
+
+            Log::error('Roam sync failed', [
                 'message' => $e->getMessage(),
-                'line'    => $e->getLine(),
-                'file'    => $e->getFile(),
+                'line' => $e->getLine(),
+                'file' => $e->getFile(),
             ]);
 
             return redirect()
                 ->route('physical.updateData')
-                ->with('error', 'Sync failed. Please try again.');
+                ->with('error', 'Sync failed. Try again.');
         }
     }
 
