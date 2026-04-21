@@ -852,9 +852,12 @@ class RoamController extends Controller
                 $skuId       = $plan['sku_id'] ?? null;
 
                 // skip invalid
-                if (!$priceid || !$sellingRate || $sellingRate == 0) {
+                if (!$priceid || $sellingRate === null || $sellingRate === '') {
                     continue;
                 }
+
+                $sellingRate = (int) $sellingRate;
+                $profit = (int) $profit;
 
                 PriceList::updateOrCreate(
                     [

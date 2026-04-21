@@ -36,16 +36,16 @@
                     <!-- <div id="productGlleryIndicators" class="carousel slide" data-ride="carousel"> -->
                     <div id="productGlleryIndicators" class="" data-ride="carousel">
                         <!-- <ol class="carousel-indicators">
-                                                                                <li data-target="#productGlleryIndicators" data-slide-to="0" class="active">
-                                                                                    <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
-                                                                                </li>
-                                                                                <li data-target="#productGlleryIndicators" data-slide-to="1">
-                                                                                    <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
-                                                                                </li>
-                                                                                <li data-target="#productGlleryIndicators" data-slide-to="2">
-                                                                                    <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
-                                                                                </li>
-                                                                              </ol> -->
+                                                                                        <li data-target="#productGlleryIndicators" data-slide-to="0" class="active">
+                                                                                            <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
+                                                                                        </li>
+                                                                                        <li data-target="#productGlleryIndicators" data-slide-to="1">
+                                                                                            <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
+                                                                                        </li>
+                                                                                        <li data-target="#productGlleryIndicators" data-slide-to="2">
+                                                                                            <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
+                                                                                        </li>
+                                                                                      </ol> -->
                         <div class="carousel-inner">
                             <div class="carousel-item active">
                                 <img class="d-block w-100"
@@ -61,13 +61,13 @@
                             </div>
                         </div>
                         <!-- <a class="carousel-control-prev" href="#productGlleryIndicators" role="button" data-slide="prev">
-                                                                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                                                                <span class="sr-only">Previous</span>
-                                                                              </a>
-                                                                              <a class="carousel-control-next" href="#productGlleryIndicators" role="button" data-slide="next">
-                                                                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                                                                <span class="sr-only">Next</span>
-                                                                              </a> -->
+                                                                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                                                                        <span class="sr-only">Previous</span>
+                                                                                      </a>
+                                                                                      <a class="carousel-control-next" href="#productGlleryIndicators" role="button" data-slide="next">
+                                                                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                                                                        <span class="sr-only">Next</span>
+                                                                                      </a> -->
                     </div>
                 </div>
                 <div class="col-lg-6 col-md-6">
@@ -134,11 +134,18 @@
                         @endif
                     @endforeach
                     @php
-                        $priceListCodes = $pricelists->pluck('product_code')->toArray();
+                        $validPriceListCodes = $pricelists
+                            ->where('exchange_rate', '>', 0)
+                            ->pluck('product_code')
+                            ->toArray();
 
-                        $hasValidPlans = collect($activePackages)->contains(function ($plan) use ($priceListCodes) {
-                            return in_array($plan['priceid'], $priceListCodes);
-                        });
+                        $validPackages = collect($activePackages)
+                            ->filter(function ($plan) use ($validPriceListCodes) {
+                                return in_array($plan['priceid'], $validPriceListCodes);
+                            })
+                            ->values();
+
+                        $hasValidPlans = $validPackages->isNotEmpty();
                     @endphp
                     @if ($hasValidPlans)
                         <form class="form-design">
@@ -163,7 +170,7 @@
                                 <div id="serviceDay" class="btn-group btn-group-toggle d-flex flex-wrap"
                                     data-toggle="buttons">
                                     @php
-                                        $uniqueDays = collect($activePackages)->pluck('days')->unique()->sort();
+                                        $uniqueDays = $validPackages->pluck('days')->unique()->sort();
                                     @endphp
 
                                     @foreach ($uniqueDays as $day)
@@ -181,7 +188,7 @@
                                 <label class="font-weight-bold">Data</label>
                                 <div id="dataPlan" class="btn-group btn-group-toggle d-flex flex-wrap"
                                     data-toggle="buttons">
-                                    @foreach ($activePackages as $plan)
+                                    @foreach ($validPackages as $plan)
                                         @php
                                             $flow = $plan['flows'] . ' ' . $plan['unit'];
                                         @endphp
@@ -214,9 +221,9 @@
 
                             <!-- Price Display -->
                             <!-- <div class="form-group">
-                                                                                    <label class="font-weight-bold">Price</label>
-                                                                                    <p id="priceDisplay" class="h5 text-success mb-0">Select a plan</p>
-                                                                                </div> -->
+                                                                                            <label class="font-weight-bold">Price</label>
+                                                                                            <p id="priceDisplay" class="h5 text-success mb-0">Select a plan</p>
+                                                                                        </div> -->
                             <!-- Add to Cart -->
                             <a href="cart-esim-roam.html" id="addToCartBtn" class="button_text">Add To Cart</a>
                         </form>
@@ -301,7 +308,7 @@
             }
 
             const allPackages = @json($validPackages);
-            const priceLists = @json($pricelists);
+            const priceLists = @json($pricelists->where('exchange_rate', '>', 0)->values());
 
             const service_day_box = document.getElementById('serviceDay');
             const dataBox = document.getElementById('dataPlan');

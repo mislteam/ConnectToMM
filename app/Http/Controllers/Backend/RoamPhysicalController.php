@@ -528,9 +528,12 @@ class RoamPhysicalController extends Controller
                 $skuId = $plan['sku_id'] ?? null;
 
                 // skip invalid
-                if (!$priceid || !$sellingRate || $sellingRate == 0) {
+                if (!$priceid || $sellingRate === null || $sellingRate === '') {
                     continue;
                 }
+
+                $sellingRate = (float) $sellingRate;
+                $profit = (float) $profit;
 
                 // default
                 $dpStatus = 0;
