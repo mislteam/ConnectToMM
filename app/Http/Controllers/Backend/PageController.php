@@ -35,6 +35,8 @@ class PageController extends Controller
             $route = "page.home.index";
         } else if ($sectionConfig['page'] === "all") {
             $route = "page.common.index";
+        } else if ($sectionConfig['page'] === "aboutus") {
+            $route = 'page.about.index';
         }
         return view('admin.page.section.edit', array_merge($this->sharedData(), compact('section_key', 'section', 'route')));
     }
