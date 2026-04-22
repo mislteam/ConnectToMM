@@ -66,7 +66,11 @@ class FrontendJoytelController extends Controller
             });
         };
 
-        $validPlans = PriceList::pluck('plan')->toArray();
+        $validPlans = PriceList::where('exchange_rate', '>', 0)
+            ->pluck('plan')
+            ->filter()
+            ->unique()
+            ->toArray();
 
         $random_packages = Joytel::where('product_type', $product_type)
             ->where('status', 1)
@@ -115,7 +119,8 @@ class FrontendJoytelController extends Controller
         $query->whereIn('product_name', function ($subquery) {
             $subquery->select('plan')
                 ->from('price_lists')
-                ->whereNotNull('plan');
+                ->whereNotNull('plan')
+                ->where('exchange_rate', '>', 0);
         });
 
         $packages = $query->where('status', 1)
@@ -143,7 +148,8 @@ class FrontendJoytelController extends Controller
         $query->whereIn('product_name', function ($subquery) {
             $subquery->select('plan')
                 ->from('price_lists')
-                ->whereNotNull('plan');
+                ->whereNotNull('plan')
+                ->where('exchange_rate', '>', 0);
         });
 
         $packages = $query->where('status', 1)->get();

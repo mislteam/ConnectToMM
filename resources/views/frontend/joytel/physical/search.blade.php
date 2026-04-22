@@ -108,12 +108,24 @@
                                 <div class="content">
                                     <h4>{{ $package->product_name }}</h4>
                                     @php
-                                        $priceList = \App\Models\PriceList::where('plan', $package->product_name)
-                                            ->where('product_code', $package->plan[0]['product_code'])
-                                            ->first();
-                                        $lowest_price = $priceList
-                                            ? round($package->plan[0]['price_cny'] * $priceList->exchange_rate)
-                                            : 0;
+                                        $lowest_price = collect($package->plan ?? [])
+                                            ->map(function ($plan) {
+                                                $priceList = \App\Models\PriceList::where(
+                                                    'product_code',
+                                                    $plan['product_code'] ?? null,
+                                                )->first();
+
+                                                $exchangeRate = (float) ($priceList->exchange_rate ?? 0);
+                                                $priceCny = (float) ($plan['price_cny'] ?? 0);
+
+                                                if ($exchangeRate <= 0 || $priceCny <= 0) {
+                                                    return null;
+                                                }
+
+                                                return round($priceCny * $exchangeRate);
+                                            })
+                                            ->filter(fn($price) => $price > 0)
+                                            ->min();
                                     @endphp
                                     <p class="text-size-16">From
                                         {{ number_format($lowest_price) }}
