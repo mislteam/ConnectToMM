@@ -8,8 +8,8 @@
     </label>
     <div class="col-sm-10">
         <input id="input" type="{{ $type ?? 'text' }}" class="form-control @error($name) is-invalid @enderror"
-            name="{{ $name }}" value="{{ old($name, $value ?? '') }}" placeholder="{{ $placeholder ?? '' }}"
-            @if ($requred ?? false) required @endif>
+            name="{{ $name }}" value="{{ html_entity_decode(old($name, $value ?? '')) }}"
+            placeholder="{{ $placeholder ?? '' }}" @if ($requred ?? false) required @endif>
         @error($name)
             <small class="text-danger invalid-feedback d-block mt-2">{{ $message }}</small>
         @enderror

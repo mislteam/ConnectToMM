@@ -29,7 +29,14 @@ class PageController extends Controller
 
     public function sectionEdit(string $section_key, Section $section)
     {
-        return view('admin.page.section.edit', array_merge($this->sharedData(), compact('section_key', 'section')));
+        $sectionConfig = config("sections.$section_key");
+        $route = null;
+        if ($sectionConfig['page'] === "home") {
+            $route = "page.home.index";
+        } else if ($sectionConfig['page'] === "all") {
+            $route = "page.common.index";
+        }
+        return view('admin.page.section.edit', array_merge($this->sharedData(), compact('section_key', 'section', 'route')));
     }
 
     public function sectionUpdate(Request $request, Section $section)
