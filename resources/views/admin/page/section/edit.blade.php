@@ -12,7 +12,7 @@
                 </ol>
             </div>
             <div class="d-flex gap-2 justify-content-end">
-                <a href="{{ url()->previous() }}" class="btn btn-primary">Back</a>
+                <a href="{{ $route ? route($route) : url()->previous() }}" class="btn btn-primary">Back</a>
             </div>
         </div>
 

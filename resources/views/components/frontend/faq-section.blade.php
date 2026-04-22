@@ -57,7 +57,7 @@
                             </figure>
                             <div class="content {{ $index == 1 ? 'content1' : '' }}">
                                 <span class="text-size-18">{{ $index == 0 ? 'Email Address' : 'Phone Number' }}</span>
-                                <h4 class="mb-0">{{ $item->button_text }}</h4>
+                                <h4 class="mb-0">{{ $item->button_text ?? $item->button_url }}</h4>
                             </div>
                         @endforeach
 

@@ -23,13 +23,14 @@
             <div class="row align-items-center">
                 @php
                     $simCards = $section->items->where('item_type', 'sim_card')->values();
-                    $simImage = $section->items->firstWhere('item_type', 'sim_img');
+                    $simImage = $section->items->firstWhere('item_type', 'sim_image');
                 @endphp
                 @if (isset($simCards[0]))
                     <div class="col-lg-4 col-md-4 col-sm-12">
                         <div class="service-box">
                             <figure class="img img4">
-                                <img src="{{ asset('assets/images/services-friendly.png') }}" class="img-fluid">
+                                <img src="{{ $simCards[0]->item_image ? asset('item/' . $simCards[0]->item_image) : asset('assets/images/services-friendly.png') }}"
+                                    class="img-fluid">
                             </figure>
                             <div class="content">
                                 <h3>{{ $simCards[0]->title }}</h3>
@@ -55,7 +56,8 @@
                     <div class="col-lg-4 col-md-4 col-sm-12">
                         <div class="service-box">
                             <figure class="img img4">
-                                <img src="{{ asset('assets/images/services-friendly.png') }}" class="img-fluid">
+                                <img src="{{ $simCards[1]->item_image ? asset('item/' . $simCards[1]->item_image) : asset('assets/images/services-friendly.png') }}"
+                                    class="img-fluid">
                             </figure>
                             <div class="content">
                                 <h3>{{ $simCards[1]->title }}</h3>
