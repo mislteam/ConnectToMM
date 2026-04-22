@@ -161,7 +161,10 @@
                         </div>
                     </div>
                     @php
-                        $priceListCodes = $price_lists->pluck('product_code')->toArray();
+                        $priceListCodes = $price_lists
+                            ->where('exchange_rate', '>', 0)
+                            ->pluck('product_code')
+                            ->toArray();
                         $allPlans = collect()
                             ->merge($daily_types)
                             ->merge($total_types)
@@ -178,7 +181,10 @@
                             <div id="trafficType" class="btn-group btn-group-toggle d-flex flex-wrap">
                                 @php
                                     $validTrafficTypes = collect();
-                                    $priceListCodes = $price_lists->pluck('product_code')->toArray();
+                                    $priceListCodes = $price_lists
+                                        ->where('exchange_rate', '>', 0)
+                                        ->pluck('product_code')
+                                        ->toArray();
                                     foreach ($traffic_types as $type) {
                                         $key = str_contains(strtolower($type), 'daily') ? 'daily' :
                                         (str_contains(strtolower($type), 'total') ? 'total' : 'unlimited');
@@ -378,13 +384,24 @@
                 <div class="row">
                     @foreach ($random_packages as $ran_package)
                         @php
-                            $priceList = \App\Models\PriceList::where('product_code', $ran_package->plan[0]['product_code'])->first();
-                            $ori_sel_price = $priceList ? $ran_package->plan[0]['price_cny'] * $priceList->exchange_rate : 0;
+                            $lowest_price = collect($ran_package->plan ?? [])
+                                ->map(function ($plan) {
+                                    $priceList = \App\Models\PriceList::where(
+                                        'product_code',
+                                        $plan['product_code'] ?? null,
+                                    )->first();
 
-                            $upd_price = \App\Models\PriceList::where(
-                                'product_code',
-                                $ran_package->plan[0]['product_code'],
-                            )->first();
+                                    $exchangeRate = (float) ($priceList->exchange_rate ?? 0);
+                                    $priceCny = (float) ($plan['price_cny'] ?? 0);
+
+                                    if ($exchangeRate <= 0 || $priceCny <= 0) {
+                                        return null;
+                                    }
+
+                                    return round($priceCny * $exchangeRate);
+                                })
+                                ->filter(fn($price) => $price > 0)
+                                ->min();
                         @endphp
                         <div class="col-lg-4 col-md-4 col-sm-12 col-12">
                             <div class="service-box">
@@ -401,7 +418,7 @@
                                     <h4>{{ $ran_package->product_name }}</h4>
                                     <p class="text-size-16">
                                         From
-                                        {{ number_format($upd_price && $upd_price->price !== null ? $upd_price->price : $ori_sel_price) }}
+                                        {{ number_format($lowest_price) }}
                                         MMK</p>
                                     <a href="{{ route('joytel.packageview', $ran_package->id) }}" class="more">View
                                         Offer</a>

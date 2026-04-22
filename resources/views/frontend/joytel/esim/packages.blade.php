@@ -35,11 +35,24 @@
                 <div class="row">
                     @forelse ($packages as $index => $package)
                         @php
-                            $priceList = \App\Models\PriceList::where(
-                                'product_code', $package->plan[0]['product_code'])->first();
-                            $lowest_price = $priceList
-                                ? round($package->plan[0]['price_cny'] * $priceList->exchange_rate)
-                                : 0;
+                            $lowest_price = collect($package->plan ?? [])
+                                ->map(function ($plan) {
+                                    $priceList = \App\Models\PriceList::where(
+                                        'product_code',
+                                        $plan['product_code'] ?? null,
+                                    )->first();
+
+                                    $exchangeRate = (float) ($priceList->exchange_rate ?? 0);
+                                    $priceCny = (float) ($plan['price_cny'] ?? 0);
+
+                                    if ($exchangeRate <= 0 || $priceCny <= 0) {
+                                        return null;
+                                    }
+
+                                    return round($priceCny * $exchangeRate);
+                                })
+                                ->filter(fn($price) => $price > 0)
+                                ->min();
                         @endphp
                         <div class="col-lg-4 col-md-4 col-sm-12 col-12">
                             <div class="service-box">
