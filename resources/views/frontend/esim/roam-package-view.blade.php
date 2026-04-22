@@ -250,6 +250,7 @@
                             $itemPriceList = App\Models\PriceList::where('plan', $package->sku_id)
                                 ->where('dp_status', 0)
                                 ->first();
+                            $recommendedImage = $itemRoam->image ?? null;
 
                             $lowestPrice = null;
 
@@ -274,7 +275,7 @@
                         <div class="col-lg-4 col-md-4 col-sm-12 col-12">
                             <div class="service-box">
                                 <figure class="img img2 mb-3">
-                                    <img src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}"
+                                    <img src="{{ $recommendedImage && file_exists(public_path('storage/upload/roam/' . $recommendedImage)) ? asset('storage/upload/roam/' . $recommendedImage) : asset($recommendedImage ?? 'assets/images/package.jpg') }}"
                                         alt="{{ $package->country_name ?? 'Package' }}" class="img-fluid">
                                 </figure>
                                 <div class="content">
