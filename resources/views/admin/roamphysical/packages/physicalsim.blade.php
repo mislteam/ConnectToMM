@@ -347,7 +347,10 @@
                                                                     @continue
                                                                 @endif
                                                                 @php
-                                                                    $portal_price = $plan['price'] ?? 0;
+                                                                    $base_price = $plan['price'] ?? 0;
+                                                                    $open_card_fee = $plan['openCardFee'] ?? 0;
+                                                                    $portal_price = $base_price + $open_card_fee;
+
                                                                     $dpName = $plan['dp_name'] ?? '';
                                                                     $dpStatus = 1;
                                                                     $dpInfo = null;
