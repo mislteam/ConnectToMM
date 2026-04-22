@@ -36,16 +36,16 @@
                     <!-- <div id="productGlleryIndicators" class="carousel slide" data-ride="carousel"> -->
                     <div id="productGlleryIndicators" class="" data-ride="carousel">
                         <!-- <ol class="carousel-indicators">
-                                                                                                                <li data-target="#productGlleryIndicators" data-slide-to="0" class="active">
-                                                                                                                    <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
-                                                                                                                </li>
-                                                                                                                <li data-target="#productGlleryIndicators" data-slide-to="1">
-                                                                                                                    <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
-                                                                                                                </li>
-                                                                                                                <li data-target="#productGlleryIndicators" data-slide-to="2">
-                                                                                                                    <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
-                                                                                                                </li>
-                                                                                                              </ol> -->
+                                                                                                                                                    <li data-target="#productGlleryIndicators" data-slide-to="0" class="active">
+                                                                                                                                                        <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
+                                                                                                                                                    </li>
+                                                                                                                                                    <li data-target="#productGlleryIndicators" data-slide-to="1">
+                                                                                                                                                        <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
+                                                                                                                                                    </li>
+                                                                                                                                                    <li data-target="#productGlleryIndicators" data-slide-to="2">
+                                                                                                                                                        <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
+                                                                                                                                                    </li>
+                                                                                                                                                  </ol> -->
                         <div class="carousel-inner">
                             <div class="carousel-item active">
                                 <img class="d-block w-100"
@@ -61,13 +61,13 @@
                             </div>
                         </div>
                         <!-- <a class="carousel-control-prev" href="#productGlleryIndicators" role="button" data-slide="prev">
-                                                                                                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                                                                                                <span class="sr-only">Previous</span>
-                                                                                                              </a>
-                                                                                                              <a class="carousel-control-next" href="#productGlleryIndicators" role="button" data-slide="next">
-                                                                                                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                                                                                                <span class="sr-only">Next</span>
-                                                                                                              </a> -->
+                                                                                                                                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                                                                                                                                    <span class="sr-only">Previous</span>
+                                                                                                                                                  </a>
+                                                                                                                                                  <a class="carousel-control-next" href="#productGlleryIndicators" role="button" data-slide="next">
+                                                                                                                                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                                                                                                                                    <span class="sr-only">Next</span>
+                                                                                                                                                  </a> -->
                     </div>
                 </div>
                 <div class="col-lg-6 col-md-6">
@@ -120,7 +120,7 @@
                             $label = trim($label);
                             $value = trim($value);
                         @endphp
-                        @if ($label && $value)
+                        @if ($label && $value && strcasecmp($label, 'Data Allowance at Full Speed') !== 0)
                             <div class="row mb-2">
                                 <div class="col-lg-4 col-md-4 col-sm-12 col-12">
                                     <label class="font-weight-bold">{{ $label }} :</label>
@@ -219,15 +219,20 @@
                                     <button class="btn btn-outline-secondary qty-plus" type="button">+</button>
                                 </div>
                             </div>
+                            <div class="form-group d-none" id="planDescriptionGroup">
+                                <label class="font-weight-bold">Description</label>
+                                <p id="planDescription" class="mb-0"
+                                    style="font-size: 13px; line-height: 1.35; margin-top: 2px;"></p>
+                            </div>
                             <div class="form-group">
                                 <p id="priceDisplay" class="h5"></p>
                             </div>
 
                             <!-- Price Display -->
                             <!-- <div class="form-group">
-                                                                                                                    <label class="font-weight-bold">Price</label>
-                                                                                                                    <p id="priceDisplay" class="h5 text-success mb-0">Select a plan</p>
-                                                                                                                </div> -->
+                                                                                                                                                        <label class="font-weight-bold">Price</label>
+                                                                                                                                                        <p id="priceDisplay" class="h5 text-success mb-0">Select a plan</p>
+                                                                                                                                                    </div> -->
                             <!-- Add to Cart -->
                             <a href="cart-esim-roam.html" id="addToCartBtn" class="button_text">Add To Cart</a>
                         </form>
@@ -318,6 +323,8 @@
             const service_day_box = document.getElementById('serviceDay');
             const dataBox = document.getElementById('dataPlan');
             const total_price = document.getElementById('priceDisplay');
+            const planDescription = document.getElementById('planDescription');
+            const planDescriptionGroup = document.getElementById('planDescriptionGroup');
             const displayPriceInput = document.getElementById('display_price');
             const qtyInput = document.getElementById('qty');
             const trafficTypeBox = document.getElementById('trafficType');
@@ -370,6 +377,37 @@
 
             function getFlowKey(pkg) {
                 return `${pkg.flows} ${pkg.unit}`.trim();
+            }
+
+            function extractPlanDescription(premark) {
+                if (!premark) {
+                    return '';
+                }
+
+                const lines = String(premark)
+                    .split(/<br>|\n/)
+                    .map(line => line.trim())
+                    .filter(Boolean);
+
+                if (!lines.length) {
+                    return '';
+                }
+
+                const firstLine = lines[0];
+                if (/^plan type\s*:/i.test(firstLine)) {
+                    return '';
+                }
+
+                return firstLine.split(':').slice(1).join(':').trim() || firstLine;
+            }
+
+            function updatePlanDescription(text) {
+                if (!planDescription || !planDescriptionGroup) {
+                    return;
+                }
+
+                planDescription.innerText = text || '';
+                planDescriptionGroup.classList.toggle('d-none', !text);
             }
 
             function getSelectedDayValue() {
@@ -434,6 +472,7 @@
 
                 if (!validPlans.length) {
                     dataBox.innerHTML = '<span class="text-danger">No data for this day.</span>';
+                    updatePlanDescription('');
                     updatePriceDisplay();
                     return;
                 }
@@ -456,9 +495,16 @@
                     ${shouldSelect ? 'checked' : ''}>
                 ${dataLabel}
             `;
+                    const input = label.querySelector('input[name="sdata"]');
+                    const description = extractPlanDescription(plan.premark);
+                    label.dataset.description = description;
+                    if (input) {
+                        input.dataset.description = description;
+                    }
                     dataBox.appendChild(label);
                 });
 
+                updatePlanDescription(validPlans[0] ? extractPlanDescription(validPlans[0].premark) : '');
                 updatePriceDisplay();
             }
 
@@ -474,6 +520,7 @@
 
                 if (!uniqueDays.length) {
                     dataBox.innerHTML = '<span class="text-danger">No data for this plan type.</span>';
+                    updatePlanDescription('');
                     updatePriceDisplay();
                     return;
                 }
@@ -552,6 +599,7 @@
                 dataBox.querySelectorAll('label').forEach(item => item.classList.remove('active'));
                 label.classList.add('active');
                 input.checked = true;
+                updatePlanDescription(input.dataset.description || label.dataset.description || '');
                 updatePriceDisplay();
             });
 
