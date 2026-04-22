@@ -36,16 +36,16 @@
                     <!-- <div id="productGlleryIndicators" class="carousel slide" data-ride="carousel"> -->
                     <div id="productGlleryIndicators" class="" data-ride="carousel">
                         <!-- <ol class="carousel-indicators">
-                                                                                        <li data-target="#productGlleryIndicators" data-slide-to="0" class="active">
-                                                                                            <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
-                                                                                        </li>
-                                                                                        <li data-target="#productGlleryIndicators" data-slide-to="1">
-                                                                                            <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
-                                                                                        </li>
-                                                                                        <li data-target="#productGlleryIndicators" data-slide-to="2">
-                                                                                            <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
-                                                                                        </li>
-                                                                                      </ol> -->
+                                                                                                                <li data-target="#productGlleryIndicators" data-slide-to="0" class="active">
+                                                                                                                    <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
+                                                                                                                </li>
+                                                                                                                <li data-target="#productGlleryIndicators" data-slide-to="1">
+                                                                                                                    <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
+                                                                                                                </li>
+                                                                                                                <li data-target="#productGlleryIndicators" data-slide-to="2">
+                                                                                                                    <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
+                                                                                                                </li>
+                                                                                                              </ol> -->
                         <div class="carousel-inner">
                             <div class="carousel-item active">
                                 <img class="d-block w-100"
@@ -61,13 +61,13 @@
                             </div>
                         </div>
                         <!-- <a class="carousel-control-prev" href="#productGlleryIndicators" role="button" data-slide="prev">
-                                                                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                                                                        <span class="sr-only">Previous</span>
-                                                                                      </a>
-                                                                                      <a class="carousel-control-next" href="#productGlleryIndicators" role="button" data-slide="next">
-                                                                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                                                                        <span class="sr-only">Next</span>
-                                                                                      </a> -->
+                                                                                                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                                                                                                <span class="sr-only">Previous</span>
+                                                                                                              </a>
+                                                                                                              <a class="carousel-control-next" href="#productGlleryIndicators" role="button" data-slide="next">
+                                                                                                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                                                                                                <span class="sr-only">Next</span>
+                                                                                                              </a> -->
                     </div>
                 </div>
                 <div class="col-lg-6 col-md-6">
@@ -191,12 +191,16 @@
                                     @foreach ($validPackages as $plan)
                                         @php
                                             $flow = $plan['flows'] . ' ' . $plan['unit'];
+                                            $portalPrice = round(
+                                                ($plan['price'] ?? 0) + ($plan['openCardFee'] ?? 0),
+                                                2,
+                                            );
                                         @endphp
                                         <label class="btn btn-outline-secondary m-1 rounded d-none"
-                                            data-day="{{ $plan['days'] }}" data-price="{{ $plan['price'] }}"
+                                            data-day="{{ $plan['days'] }}" data-price="{{ $portalPrice }}"
                                             data-priceid="{{ $plan['priceid'] }}" data-sku="{{ $roam['sku_id'] }}">
                                             <input type="radio" name="sdata" value="{{ $flow }}"
-                                                data-day="{{ $plan['days'] }}" data-price="{{ $plan['price'] }}"
+                                                data-day="{{ $plan['days'] }}" data-price="{{ $portalPrice }}"
                                                 data-priceid="{{ $plan['priceid'] }}">
                                             {{ $flow }}
                                         </label>
@@ -221,9 +225,9 @@
 
                             <!-- Price Display -->
                             <!-- <div class="form-group">
-                                                                                            <label class="font-weight-bold">Price</label>
-                                                                                            <p id="priceDisplay" class="h5 text-success mb-0">Select a plan</p>
-                                                                                        </div> -->
+                                                                                                                    <label class="font-weight-bold">Price</label>
+                                                                                                                    <p id="priceDisplay" class="h5 text-success mb-0">Select a plan</p>
+                                                                                                                </div> -->
                             <!-- Add to Cart -->
                             <a href="cart-esim-roam.html" id="addToCartBtn" class="button_text">Add To Cart</a>
                         </form>
@@ -255,7 +259,8 @@
                                         if (!isset($priceMap[$pkg['priceid']])) {
                                             return null;
                                         }
-                                        return $pkg['price'] * $priceMap[$pkg['priceid']];
+                                        $portalPrice = ($pkg['price'] ?? 0) + ($pkg['openCardFee'] ?? 0);
+                                        return $portalPrice * $priceMap[$pkg['priceid']];
                                     })
                                     ->filter()
                                     ->min();
@@ -435,7 +440,8 @@
 
                 validPlans.forEach((plan, index) => {
                     const rate = getExchangeRate(plan.priceid);
-                    const calculatedPrice = Math.round(plan.price * rate);
+                    const portalPrice = (parseFloat(plan.price) || 0) + (parseFloat(plan.openCardFee) || 0);
+                    const calculatedPrice = Math.round(portalPrice * rate);
                     const dataLabel = `${plan.flows} ${plan.unit}`;
                     const shouldSelect = index === 0;
                     const label = document.createElement('label');
