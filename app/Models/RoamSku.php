@@ -14,4 +14,9 @@ class RoamSku extends Model
         'country_code',
         'status',
     ];
+
+    public function roam()
+    {
+        return $this->hasOne(Roam::class, 'sku_id', 'sku_id');
+    }
 }

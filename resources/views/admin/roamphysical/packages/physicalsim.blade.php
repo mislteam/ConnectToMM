@@ -90,18 +90,11 @@
 
                                             @foreach ($packages->where('dp_id', 9) as $pkg)
                                                 @php
-                                                    $plans = App\Models\RoamPhysical::where('sku_id', $pkg->sku_id)
-                                                        ->where('dp_id', $pkg->dp_id)
-                                                        ->first();
-
-                                                @endphp
-
-                                                @if (!$plans || empty($plans->packages))
-                                                    @continue
-                                                @endif
-
-                                                @php
-                                                    $status = $plans->packages[0]['status'] == 1 ? 'Enable' : 'Disable';
+                                                    $plans = collect($pkg->roamPhysical)->firstWhere(
+                                                        'dp_id',
+                                                        $pkg->dp_id,
+                                                    );
+                                                    $hasPlans = !empty($plans?->packages);
                                                 @endphp
 
                                                 <tr>
@@ -116,12 +109,15 @@
                                                     <td>
                                                         <h5 class="text-nowrap fs-base mb-0 lh-base">
                                                             {{ $pkg->country_name ?? 'No Title' }}</h5>
+                                                        @if (!$hasPlans)
+                                                            <small class="text-muted d-block">Package data not synced
+                                                                yet</small>
+                                                        @endif
                                                     </td>
-                                                    <td class="fw-semibold {{ $status == 'Enable' ? 'text-success' : 'text-danger' }}"
-                                                        data-value="{{ $status }}">
-
+                                                    <td class="{{ $pkg->status ? 'text-success' : 'text-danger' }} fw-semibold"
+                                                        data-value="{{ $pkg->status ? 'Enable' : 'Disable' }}">
                                                         <i class="ti ti-point-filled fs-sm"></i>
-                                                        <span>{{ $status }}</span>
+                                                        <span>{{ $pkg->status ? 'Enable' : 'Disable' }}</span>
                                                     </td>
                                                     <td>
                                                         <div class="d-flex justify-content-center gap-1">
@@ -227,17 +223,11 @@
 
                                             @foreach ($packages->where('dp_id', 21) as $pkg)
                                                 @php
-                                                    $plans = App\Models\RoamPhysical::where('sku_id', $pkg->sku_id)
-                                                        ->where('dp_id', $pkg->dp_id)
-                                                        ->first();
-                                                @endphp
-
-                                                @if (!$plans || empty($plans->packages))
-                                                    @continue
-                                                @endif
-
-                                                @php
-                                                    $status = $plans->packages[0]['status'] == 1 ? 'Enable' : 'Disable';
+                                                    $plans = collect($pkg->roamPhysical)->firstWhere(
+                                                        'dp_id',
+                                                        $pkg->dp_id,
+                                                    );
+                                                    $hasPlans = !empty($plans?->packages);
                                                 @endphp
 
                                                 <tr>
@@ -252,12 +242,15 @@
                                                     <td>
                                                         <h5 class="text-nowrap fs-base mb-0 lh-base">
                                                             {{ $pkg->country_name ?? 'No Title' }}</h5>
+                                                        @if (!$hasPlans)
+                                                            <small class="text-muted d-block">Package data not synced
+                                                                yet</small>
+                                                        @endif
                                                     </td>
-                                                    <td class="fw-semibold {{ $status == 'Enable' ? 'text-success' : 'text-danger' }}"
-                                                        data-value="{{ $status }}">
-
+                                                    <td class="{{ $pkg->status ? 'text-success' : 'text-danger' }} fw-semibold"
+                                                        data-value="{{ $pkg->status ? 'Enable' : 'Disable' }}">
                                                         <i class="ti ti-point-filled fs-sm"></i>
-                                                        <span>{{ $status }}</span>
+                                                        <span>{{ $pkg->status ? 'Enable' : 'Disable' }}</span>
                                                     </td>
                                                     <td>
                                                         <div class="d-flex justify-content-center gap-1">
@@ -307,6 +300,9 @@
 
 
                     @foreach ($packages as $index => $pkg)
+                        @php
+                            $plans = collect($pkg->roamPhysical)->firstWhere('dp_id', $pkg->dp_id);
+                        @endphp
                         <div class="modal fade" id="manage-price-{{ $pkg->sku_id }}" tabindex="-1" role="dialog"
                             aria-labelledby="managePrice{{ $index }}" aria-hidden="true">
                             <div class="modal-dialog modal-xl modal-dialog-scrollable">
@@ -333,13 +329,6 @@
                                                             <th>Total(MMK)</th>
                                                         </tr>
                                                     </thead>
-                                                    @php
-                                                        $plans = App\Models\RoamPhysical::where(
-                                                            'sku_id',
-                                                            $pkg->sku_id,
-                                                        )->first();
-
-                                                    @endphp
                                                     @if (!empty($plans->packages))
                                                         <tbody id="invoice-items">
                                                             @foreach ($plans->packages as $innerIndex => $plan)

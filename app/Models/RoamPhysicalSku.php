@@ -15,4 +15,9 @@ class RoamPhysicalSku extends Model
         'country_code',
         'status',
     ];
+
+    public function roamPhysical()
+    {
+        return $this->hasMany(RoamPhysical::class, 'sku_id', 'sku_id');
+    }
 }
