@@ -19,13 +19,15 @@ class RoamPhysicalController extends Controller
 {
     public function Physicalindex()
     {
-        $globalPackages = RoamPhysicalSku::where('status', 1)
+        $globalPackages = RoamPhysicalSku::with('roamPhysical')
+            ->where('status', 1)
             ->where('dp_id', 9)
             ->get();
-        $asiaPackages = RoamPhysicalSku::where('status', 1)
+        $asiaPackages = RoamPhysicalSku::with('roamPhysical')
+            ->where('status', 1)
             ->where('dp_id', 21)
             ->get();
-        $packages = RoamPhysicalSku::where('status', 1)->get();
+        $packages = RoamPhysicalSku::with('roamPhysical')->where('status', 1)->get();
 
         $usd_exchange_rate = Currency::where('name', 'usd')->value('value');
         $logo = GeneralSetting::where('type', 'file')->first();

@@ -20,7 +20,9 @@ class RoamController extends Controller
 {
     public function Esimindex()
     {
-        $packages = RoamPhysicalSku::where('status', 1)->get();
+        $packages = RoamSku::with('roam')
+            ->where('status', 1)
+            ->get();
         // dd($packages);
         $usd_exchange_rate = Currency::where('name', 'usd')->value('value');
         // dd($usd_exchange_rate);

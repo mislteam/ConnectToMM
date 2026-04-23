@@ -75,56 +75,57 @@
 
                                 @foreach ($packages as $index => $pkg)
                                     @php
-                                        $plans = App\Models\Roam::where('sku_id', $pkg->sku_id)->first();
+                                        $plans = $pkg->roam;
+                                        $hasPlans = !empty($plans?->packages);
                                     @endphp
-                                    @if (!empty($plans->packages))
-                                        <tr>
-                                            <td class="ps-3">
-                                                <input
-                                                    class="form-check-input form-check-input-light fs-14 product-item-check mt-0"
-                                                    type="checkbox" value="option">
-                                            </td>
-                                            <td>
-                                                <h5 class="fs-sm mb-0 fw-medium">{{ $loop->iteration }}</h5>
-                                            </td>
-                                            <td>
-                                                <h5 class="text-nowrap fs-base mb-0 lh-base">
-                                                    {{ $pkg->country_name ?? 'No Title' }}</h5>
-                                            </td>
-                                            <td class="text-success fw-semibold"><i class="ti ti-point-filled fs-sm"></i>
-                                                Enable
-                                            </td>
-                                            <td>
-                                                <div class="d-flex justify-content-center gap-1">
-                                                    <div class="btn-group">
-                                                        <button type="button"
-                                                            class="btn btn-light btn-icon btn-sm rounded-circle"
-                                                            data-bs-toggle="dropdown" aria-expanded="false"> <i
-                                                                class="ti ti-dots-vertical fs-lg"></i></button>
-                                                        <div class="dropdown-menu">
-                                                            <!-- Dynamic modal target using SKU ID -->
-                                                            <button type="button" class="dropdown-item"
-                                                                data-bs-toggle="modal"
-                                                                data-bs-target="#manage-price-{{ $index }}">
-                                                                <i class="ti ti-currency-dollar fs-lg"></i> Manage Price
-                                                            </button>
-                                                            <button type="button" class="dropdown-item"
-                                                                data-bs-toggle="modal"
-                                                                data-bs-target="#manage-status-{{ $index }}">
-                                                                <i class="ti ti-box fs-lg"></i> Manage Status
-                                                            </button>
-                                                        </div>
+                                    <tr>
+                                        <td class="ps-3">
+                                            <input
+                                                class="form-check-input form-check-input-light fs-14 product-item-check mt-0"
+                                                type="checkbox" value="option">
+                                        </td>
+                                        <td>
+                                            <h5 class="fs-sm mb-0 fw-medium">{{ $loop->iteration }}</h5>
+                                        </td>
+                                        <td>
+                                            <h5 class="text-nowrap fs-base mb-0 lh-base">
+                                                {{ $pkg->country_name ?? 'No Title' }}</h5>
+                                            @if (!$hasPlans)
+                                                <small class="text-muted d-block">Package data not synced yet</small>
+                                            @endif
+                                        </td>
+                                        <td class="{{ $pkg->status == 1 ? 'text-success' : 'text-danger' }} fw-semibold">
+                                            <i class="ti ti-point-filled fs-sm"></i>
+                                            {{ $pkg->status == 1 ? 'Enable' : 'Disable' }}
+                                        </td>
+                                        <td>
+                                            <div class="d-flex justify-content-center gap-1">
+                                                <div class="btn-group">
+                                                    <button type="button"
+                                                        class="btn btn-light btn-icon btn-sm rounded-circle"
+                                                        data-bs-toggle="dropdown" aria-expanded="false"> <i
+                                                            class="ti ti-dots-vertical fs-lg"></i></button>
+                                                    <div class="dropdown-menu">
+                                                        <!-- Dynamic modal target using SKU ID -->
+                                                        <button type="button" class="dropdown-item" data-bs-toggle="modal"
+                                                            data-bs-target="#manage-price-{{ $index }}">
+                                                            <i class="ti ti-currency-dollar fs-lg"></i> Manage Price
+                                                        </button>
+                                                        <button type="button" class="dropdown-item" data-bs-toggle="modal"
+                                                            data-bs-target="#manage-status-{{ $index }}">
+                                                            <i class="ti ti-box fs-lg"></i> Manage Status
+                                                        </button>
                                                     </div>
-                                                    <a href="{{ route('roamEsimEdit', ['skuid' => $pkg['sku_id']]) }}"
-                                                        class="btn btn-light btn-icon btn-sm rounded-circle"><i
-                                                            class="ti ti-edit fs-lg"></i></a>
-                                                    <a href="#" data-table-delete-row
-                                                        class="btn btn-light btn-icon btn-sm rounded-circle"><i
-                                                            class="ti ti-trash fs-lg"></i></a>
                                                 </div>
-                                            </td>
-                                        </tr>
-                                    @endif
+                                                <a href="{{ route('roamEsimEdit', ['skuid' => $pkg['sku_id']]) }}"
+                                                    class="btn btn-light btn-icon btn-sm rounded-circle"><i
+                                                        class="ti ti-edit fs-lg"></i></a>
+                                                <a href="#" data-table-delete-row
+                                                    class="btn btn-light btn-icon btn-sm rounded-circle"><i
+                                                        class="ti ti-trash fs-lg"></i></a>
+                                            </div>
+                                        </td>
+                                    </tr>
                                 @endforeach
                             </tbody>
                         </table>
@@ -138,6 +139,9 @@
                     </div>
 
                     @foreach ($packages as $index => $pkg)
+                        @php
+                            $plans = $pkg->roam;
+                        @endphp
                         <div class="modal fade" id="manage-price-{{ $index }}" tabindex="-1" role="dialog"
                             aria-labelledby="managePrice{{ $index }}" aria-hidden="true">
                             <div class="modal-dialog modal-xl modal-dialog-scrollable">
@@ -164,13 +168,6 @@
                                                             <th>Total(MMK)</th>
                                                         </tr>
                                                     </thead>
-                                                    @php
-                                                        $plans = App\Models\Roam::where(
-                                                            'sku_id',
-                                                            $pkg->sku_id,
-                                                        )->first();
-
-                                                    @endphp
                                                     @if (!empty($plans->packages))
                                                         @foreach ($plans->packages as $innerIndex => $plan)
                                                             @php
