@@ -564,7 +564,7 @@ class RoamPhysicalController extends Controller
                 );
             }
         }
-        return back()->with('success', 'Exchange rates saved successfully!');
+        return back()->with('success', 'Saved successfully!');
     }
 
     public function UpdateData()
