@@ -636,30 +636,4 @@
             });
         });
     </script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const modalSelector = '.modal[id^="manage-price-"]';
-
-            document.querySelectorAll(`${modalSelector} form`).forEach(function(form) {
-                form.addEventListener("submit", function() {
-                    const modal = this.closest(".modal");
-                    if (modal?.id) {
-                        sessionStorage.setItem("roamphysical_manage_price_modal", modal.id);
-                    }
-                });
-            });
-
-            const reopenModalId = sessionStorage.getItem("roamphysical_manage_price_modal");
-            if (reopenModalId) {
-                sessionStorage.removeItem("roamphysical_manage_price_modal");
-
-                const modalElement = document.getElementById(reopenModalId);
-                if (modalElement && window.bootstrap) {
-                    setTimeout(function() {
-                        bootstrap.Modal.getOrCreateInstance(modalElement).show();
-                    }, 150);
-                }
-            }
-        });
-    </script>
 @endsection
