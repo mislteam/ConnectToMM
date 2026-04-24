@@ -161,14 +161,26 @@
                         </div>
                     </div>
                     @php
-                        $priceListCodes = $price_lists
-                            ->where('exchange_rate', '>', 0)
-                            ->pluck('product_code')
-                            ->toArray();
-                        $allPlans = collect()->merge($daily_types)->merge($total_types)->merge($unlimited_types);
-                        $hasValidPlans = $allPlans->contains(function ($plan) use ($priceListCodes) {
-                            return in_array($plan['product_code'], $priceListCodes);
-                        });
+                        $validPriceLists = $price_lists->where('exchange_rate', '>', 0);
+                        $validPriceListMap = $validPriceLists->keyBy('product_code');
+
+                        $filterValidPlans = function ($plans) use ($validPriceListMap) {
+                            return collect($plans)
+                                ->filter(function ($plan) use ($validPriceListMap) {
+                                    return $validPriceListMap->has($plan['product_code'] ?? null);
+                                })
+                                ->values();
+                        };
+
+                        $daily_types_valid = $filterValidPlans($daily_types);
+                        $total_types_valid = $filterValidPlans($total_types);
+                        $unlimited_types_valid = $filterValidPlans($unlimited_types);
+
+                        $allPlans = collect()
+                            ->merge($daily_types_valid)
+                            ->merge($total_types_valid)
+                            ->merge($unlimited_types_valid);
+                        $hasValidPlans = $allPlans->isNotEmpty();
                     @endphp
                     @if ($hasValidPlans)
                         <form class="form-design" action="#" method="GET">
@@ -178,26 +190,15 @@
                                 <div id="trafficType" class="btn-group btn-group-toggle d-flex flex-wrap">
                                     @php
                                         $validTrafficTypes = collect();
-                                        $priceListCodes = $price_lists
-                                            ->where('exchange_rate', '>', 0)
-                                            ->pluck('product_code')
-                                            ->toArray();
                                         foreach ($traffic_types as $type) {
                                             $key = str_contains(strtolower($type), 'daily')
                                                 ? 'daily'
                                                 : (str_contains(strtolower($type), 'total')
                                                     ? 'total'
                                                     : 'unlimited');
-                                            $plans = ${$key . '_types'} ?? collect();
+                                            $plans = ${$key . '_types_valid'} ?? collect();
 
-                                            // Check if ANY plan under this type has valid product_code
-                                            $hasValid = collect($plans)->contains(function ($plan) use (
-                                                $priceListCodes,
-                                            ) {
-                                                return in_array($plan['product_code'], $priceListCodes);
-                                            });
-
-                                            if ($hasValid) {
+                                            if ($plans->isNotEmpty()) {
                                                 $validTrafficTypes->push($type);
                                             }
                                         }
@@ -224,16 +225,19 @@
                                 $service_days = collect();
                                 $type = null;
 
-                                if ($traffic_types->isNotEmpty()) {
-                                    $firstType = strtolower($traffic_types->first());
-                                    if (str_contains($firstType, 'daily') && $daily_types->isNotEmpty()) {
-                                        $firstCollection = $daily_types;
+                                if ($validTrafficTypes->isNotEmpty()) {
+                                    $firstType = strtolower($validTrafficTypes->first());
+                                    if (str_contains($firstType, 'daily') && $daily_types_valid->isNotEmpty()) {
+                                        $firstCollection = $daily_types_valid;
                                         $type = 'daily';
-                                    } elseif (str_contains($firstType, 'total') && $total_types->isNotEmpty()) {
-                                        $firstCollection = $total_types;
+                                    } elseif (str_contains($firstType, 'total') && $total_types_valid->isNotEmpty()) {
+                                        $firstCollection = $total_types_valid;
                                         $type = 'total';
-                                    } elseif (str_contains($firstType, 'unlimited') && $unlimited_types->isNotEmpty()) {
-                                        $firstCollection = $unlimited_types;
+                                    } elseif (
+                                        str_contains($firstType, 'unlimited') &&
+                                        $unlimited_types_valid->isNotEmpty()
+                                    ) {
+                                        $firstCollection = $unlimited_types_valid;
                                         $type = 'unlimited';
                                     }
                                 }
@@ -334,20 +338,23 @@
                                             $default_data = $firstCollection
                                                 ->where('service_day', $default_day)
                                                 ->values();
-                                            $priceListMap = $price_lists->keyBy('product_code');
+                                            $visibleIndex = 0;
                                         @endphp
-                                        @foreach ($default_data as $key => $data)
+                                        @foreach ($default_data as $data)
                                             @php
-                                                $extra_price = $priceListMap[$data['product_code']] ?? null;
+                                                $extra_price = $validPriceListMap->get($data['product_code']);
                                             @endphp
-                                            <label
-                                                class="btn btn-outline-secondary m-1 rounded {{ $key == 0 ? 'active' : '' }}">
-                                                <input type="radio" name="sdata" value="{{ $data['data'] }}"
-                                                    {{ $key == 0 ? 'checked' : '' }}
-                                                    data-price="{{ $extra_price ? round($data['price_cny'] * $extra_price->exchange_rate) : 0 }}"
-                                                    data-description="{{ $data['description'] }}"
-                                                    data-product-code="{{ $data['product_code'] }}">{{ $data['data'] }}
-                                            </label>
+                                            @if ($extra_price)
+                                                <label
+                                                    class="btn btn-outline-secondary m-1 rounded {{ $visibleIndex == 0 ? 'active' : '' }}">
+                                                    <input type="radio" name="sdata" value="{{ $data['data'] }}"
+                                                        {{ $visibleIndex == 0 ? 'checked' : '' }}
+                                                        data-price="{{ round($data['price_cny'] * $extra_price->exchange_rate) }}"
+                                                        data-description="{{ $data['description'] }}"
+                                                        data-product-code="{{ $data['product_code'] }}">{{ $data['data'] }}
+                                                </label>
+                                                @php $visibleIndex++; @endphp
+                                            @endif
                                         @endforeach
                                     @endif
                                 </div>
@@ -461,9 +468,9 @@
 
             // Data from Blade
             const trafficTypesData = {
-                'total': @json($total_types),
-                'unlimited': @json($unlimited_types),
-                'daily': @json($daily_types)
+                'total': @json($total_types_valid),
+                'unlimited': @json($unlimited_types_valid),
+                'daily': @json($daily_types_valid)
             };
 
             const priceLists = @json($price_lists); // price_lists table
@@ -476,14 +483,16 @@
 
             // Helper: Check if product exists in price_lists table
             function isProductValid(productCode) {
-                return priceLists.some(p => p.product_code === productCode);
+                const item = priceLists.find(p => p.product_code === productCode);
+                return !!(item && Number(item.exchange_rate) > 0);
             }
 
             function calculateTotal(priceCny, productCode, selectedDay = 1, isPerDay = false) {
                 const item = priceLists.find(p => p.product_code === productCode);
+                const exchangeRate = Number(item?.exchange_rate || 0);
 
-                if (item && item.exchange_rate) {
-                    let base = priceCny * item.exchange_rate;
+                if (exchangeRate > 0) {
+                    let base = priceCny * exchangeRate;
                     if (isPerDay) {
                         return Math.round(base * selectedDay);
                     }
