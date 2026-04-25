@@ -372,6 +372,33 @@
                 return (activeInput ? activeInput.value : 'Daily').toLowerCase();
             }
 
+            function getNumericDays(plans) {
+                return [...new Set(plans
+                    .map(plan => parseInt(plan.days, 10))
+                    .filter(day => !Number.isNaN(day)))].sort((a, b) => a - b);
+            }
+
+            function shouldExpandOneDayPlans(selectedType, plans) {
+                if (!['daily', 'unlimited'].includes(selectedType)) {
+                    return false;
+                }
+
+                const uniqueDays = getNumericDays(plans);
+                return uniqueDays.length === 1 && uniqueDays[0] === 1;
+            }
+
+            function getServiceDaysForType(selectedType, plans) {
+                const uniqueDays = getNumericDays(plans);
+
+                if (shouldExpandOneDayPlans(selectedType, plans)) {
+                    return Array.from({
+                        length: 30
+                    }, (_, index) => index + 1);
+                }
+
+                return uniqueDays;
+            }
+
             function getSelectedDayValue() {
                 const activeInput = service_day_box ?
                     service_day_box.querySelector('input[name="sday"]:checked') :
@@ -459,9 +486,12 @@
                 }
             }
 
-            function renderDataPlans(plans, selectedDay, preferredFlowKey = null) {
+            function renderDataPlans(plans, selectedDay, selectedType, preferredFlowKey = null) {
                 dataBox.innerHTML = '';
-                const validPlans = plans.filter(plan => String(plan.days) === String(selectedDay));
+                const expandOneDayPlans = shouldExpandOneDayPlans(selectedType, plans);
+                const validPlans = expandOneDayPlans ?
+                    plans.filter(plan => parseInt(plan.days, 10) === 1) :
+                    plans.filter(plan => String(plan.days) === String(selectedDay));
 
                 if (!validPlans.length) {
                     dataBox.innerHTML = '<span class="text-danger">No data for this day.</span>';
@@ -473,7 +503,8 @@
                 validPlans.forEach((plan, index) => {
                     const rate = getExchangeRate(plan.priceid);
                     const portalPrice = (parseFloat(plan.price) || 0) + (parseFloat(plan.openCardFee) || 0);
-                    const calculatedPrice = Math.round(portalPrice * rate);
+                    const dayMultiplier = expandOneDayPlans ? parseInt(selectedDay, 10) || 1 : 1;
+                    const calculatedPrice = Math.round(portalPrice * dayMultiplier * rate);
                     const dataLabel = `${plan.flows} ${plan.unit}`;
 
                     const label = document.createElement('label');
@@ -507,8 +538,7 @@
 
                 const selectedType = activeInput.value.toLowerCase();
                 const filteredPackages = getPackagesForType(selectedType);
-
-                const uniqueDays = [...new Set(filteredPackages.map(p => p.days))].sort((a, b) => a - b);
+                const uniqueDays = getServiceDaysForType(selectedType, filteredPackages);
                 service_day_box.innerHTML = '';
 
                 if (!uniqueDays.length) {
@@ -533,7 +563,7 @@
                     service_day_box.appendChild(label);
                 });
 
-                renderDataPlans(filteredPackages, dayToSelect, preferredFlowKey);
+                renderDataPlans(filteredPackages, dayToSelect, selectedType, preferredFlowKey);
             }
 
             function updatePriceDisplay() {
@@ -579,7 +609,7 @@
 
                 const selectedType = getSelectedType();
                 const filtered = getPackagesForType(selectedType);
-                renderDataPlans(filtered, parseInt(input.dataset.day || input.value, 10));
+                renderDataPlans(filtered, parseInt(input.dataset.day || input.value, 10), selectedType);
             });
 
             dataBox.addEventListener('click', function(e) {
