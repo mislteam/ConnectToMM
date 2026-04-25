@@ -271,6 +271,7 @@ class RoamPhysicalController extends Controller
                             $beforePackage = $oldPackagesByKey[$packageKey] ?? null;
                             $pkg['status'] = $statusByKey[$packageKey] ?? 1;
                             $pkg['dp_name'] = $dpName;
+                            $pkg['sku_id'] = $skuId;
 
                             if ($beforePackage) {
                                 $fieldsToCompare = ['pid', 'priceid', 'showName', 'days', 'flows', 'unit', 'price', 'status'];
@@ -574,8 +575,12 @@ class RoamPhysicalController extends Controller
         $newPackages = session('newPackages', []);
         $updatedPackages = session('updatedPackages', []);
         $syncReport = session('syncReport', []);
+        $parentPlanNames = RoamPhysicalSku::whereIn(
+            'sku_id',
+            collect($newPackages)->pluck('sku_id')->filter()->unique()->values()->all()
+        )->pluck('country_name', 'sku_id')->all();
         $logo = GeneralSetting::where('type', 'file')->first();
         $title = GeneralSetting::where('type', 'string')->first();
-        return view('admin.roamphysical.update-data', compact('logo', 'title', 'newSkus', 'updatedSkus', 'newPackages', 'updatedPackages', 'syncReport'));
+        return view('admin.roamphysical.update-data', compact('logo', 'title', 'newSkus', 'updatedSkus', 'newPackages', 'updatedPackages', 'syncReport', 'parentPlanNames'));
     }
 }
