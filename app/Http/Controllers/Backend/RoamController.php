@@ -521,6 +521,7 @@ class RoamController extends Controller
                     $isNew = !array_key_exists($packageKey, $statusByKey);
                     $beforePackage = $oldPackagesByKey[$packageKey] ?? null;
                     $package['status'] = $statusByKey[$packageKey] ?? 1;
+                    $package['sku_id'] = $skuId;
                     $packageChangedKeys = [];
                     if ($beforePackage) {
                         $fieldsToCompare = ['pid', 'priceid', 'showName', 'days', 'flows', 'unit', 'price', 'status'];
@@ -885,8 +886,12 @@ class RoamController extends Controller
         $newPackages = session('newPackages', []);
         $updatedPackages = session('updatedPackages', []);
         $syncReport = session('syncReport', []);
+        $parentPlanNames = RoamSku::whereIn(
+            'sku_id',
+            collect($newPackages)->pluck('sku_id')->filter()->unique()->values()->all()
+        )->pluck('country_name', 'sku_id')->all();
         $logo = GeneralSetting::where('type', 'file')->first();
         $title = GeneralSetting::where('type', 'string')->first();
-        return view('admin.roamsim.update-data', compact('logo', 'title', 'newSkus', 'updatedSkus', 'newPackages', 'updatedPackages', 'syncReport'));
+        return view('admin.roamsim.update-data', compact('logo', 'title', 'newSkus', 'updatedSkus', 'newPackages', 'updatedPackages', 'syncReport', 'parentPlanNames'));
     }
 }

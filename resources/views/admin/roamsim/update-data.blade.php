@@ -3,6 +3,7 @@
     $updatedSkus = $updatedSkus ?? [];
     $newPackages = $newPackages ?? [];
     $updatedPackages = $updatedPackages ?? [];
+    $parentPlanNames = $parentPlanNames ?? [];
 @endphp
 @extends('admin.layouts.index')
 @section('title', 'Update Data')
@@ -152,14 +153,20 @@
                             <thead class="bg-light align-middle bg-opacity-25 thead-sm">
                                 <tr class="text-uppercase fs-xxs">
                                     <th>No</th>
+                                    <th>Parent Plan Name</th>
                                     <th>Pkg Pid</th>
                                     <th>Package Plan</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse ($newPackages as $pkg)
+                                    @php
+                                        $skuId = $pkg['sku_id'] ?? '-';
+                                        $parentPlanName = $parentPlanNames[$pkg['sku_id'] ?? null] ?? '-';
+                                    @endphp
                                     <tr class="table-success">
                                         <td>{{ $loop->iteration }}</td>
+                                        <td>{{ $parentPlanName }}</td>
                                         <td>{{ $pkg['pid'] ?? '-' }}</td>
                                         <td>
                                             @php
@@ -179,7 +186,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="3" class="text-center text-muted">No new packages found</td>
+                                        <td colspan="4" class="text-center text-muted">No new packages found</td>
                                     </tr>
                                 @endforelse
                             </tbody>
