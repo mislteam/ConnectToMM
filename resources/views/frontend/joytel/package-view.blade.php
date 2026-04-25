@@ -207,11 +207,12 @@
                                     @foreach ($validTrafficTypes as $index => $type)
                                         @php
                                             $id = strtolower(str_replace(' ', '_', $type));
+                                            $label = str_ireplace(' Type', ' Plan', $type);
                                         @endphp
                                         <label class="btn btn-outline-secondary m-1 {{ $index == 0 ? 'active' : '' }}">
                                             <input type="radio" name="tType" value="{{ $type }}"
                                                 {{ $index == 0 ? 'checked' : '' }} id="{{ $id }}">
-                                            {{ $type }}
+                                            {{ $label }}
                                         </label>
                                     @endforeach
 
