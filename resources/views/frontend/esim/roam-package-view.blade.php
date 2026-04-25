@@ -36,16 +36,16 @@
                     <!-- <div id="productGlleryIndicators" class="carousel slide" data-ride="carousel"> -->
                     <div id="productGlleryIndicators" class="" data-ride="carousel">
                         <!-- <ol class="carousel-indicators">
-                                                                                                                                                        <li data-target="#productGlleryIndicators" data-slide-to="0" class="active">
-                                                                                                                                                            <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
-                                                                                                                                                        </li>
-                                                                                                                                                        <li data-target="#productGlleryIndicators" data-slide-to="1">
-                                                                                                                                                            <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
-                                                                                                                                                        </li>
-                                                                                                                                                        <li data-target="#productGlleryIndicators" data-slide-to="2">
-                                                                                                                                                            <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
-                                                                                                                                                        </li>
-                                                                                                                                                      </ol> -->
+                                                                                                                                                                <li data-target="#productGlleryIndicators" data-slide-to="0" class="active">
+                                                                                                                                                                    <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
+                                                                                                                                                                </li>
+                                                                                                                                                                <li data-target="#productGlleryIndicators" data-slide-to="1">
+                                                                                                                                                                    <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
+                                                                                                                                                                </li>
+                                                                                                                                                                <li data-target="#productGlleryIndicators" data-slide-to="2">
+                                                                                                                                                                    <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
+                                                                                                                                                                </li>
+                                                                                                                                                              </ol> -->
                         <div class="carousel-inner">
                             <div class="carousel-item active">
                                 <img class="d-block w-100"
@@ -61,13 +61,13 @@
                             </div>
                         </div>
                         <!-- <a class="carousel-control-prev" href="#productGlleryIndicators" role="button" data-slide="prev">
-                                                                                                                                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                                                                                                                                        <span class="sr-only">Previous</span>
-                                                                                                                                                      </a>
-                                                                                                                                                      <a class="carousel-control-next" href="#productGlleryIndicators" role="button" data-slide="next">
-                                                                                                                                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                                                                                                                                        <span class="sr-only">Next</span>
-                                                                                                                                                      </a> -->
+                                                                                                                                                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                                                                                                                                                <span class="sr-only">Previous</span>
+                                                                                                                                                              </a>
+                                                                                                                                                              <a class="carousel-control-next" href="#productGlleryIndicators" role="button" data-slide="next">
+                                                                                                                                                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                                                                                                                                                <span class="sr-only">Next</span>
+                                                                                                                                                              </a> -->
                     </div>
                 </div>
                 <div class="col-lg-6 col-md-6">
@@ -230,9 +230,9 @@
 
                             <!-- Price Display -->
                             <!-- <div class="form-group">
-                                                                                                                                                            <label class="font-weight-bold">Price</label>
-                                                                                                                                                            <p id="priceDisplay" class="h5 text-success mb-0">Select a plan</p>
-                                                                                                                                                        </div> -->
+                                                                                                                                                                    <label class="font-weight-bold">Price</label>
+                                                                                                                                                                    <p id="priceDisplay" class="h5 text-success mb-0">Select a plan</p>
+                                                                                                                                                                </div> -->
                             <!-- Add to Cart -->
                             <a href="cart-esim-roam.html" id="addToCartBtn" class="button_text">Add To Cart</a>
                         </form>
@@ -380,6 +380,33 @@
                 return `${pkg.flows} ${pkg.unit}`.trim();
             }
 
+            function getNumericDays(plans) {
+                return [...new Set(plans
+                    .map(plan => parseInt(plan.days, 10))
+                    .filter(day => !Number.isNaN(day)))].sort((a, b) => a - b);
+            }
+
+            function shouldExpandOneDayPlans(selectedType, plans) {
+                if (!['daily', 'unlimited'].includes(selectedType)) {
+                    return false;
+                }
+
+                const uniqueDays = getNumericDays(plans);
+                return uniqueDays.length === 1 && uniqueDays[0] === 1;
+            }
+
+            function getServiceDaysForType(selectedType, plans) {
+                const uniqueDays = getNumericDays(plans);
+
+                if (shouldExpandOneDayPlans(selectedType, plans)) {
+                    return Array.from({
+                        length: 30
+                    }, (_, index) => index + 1);
+                }
+
+                return uniqueDays;
+            }
+
             function extractPlanDescription(premark) {
                 if (!premark) {
                     return '';
@@ -467,9 +494,12 @@
                 }
             }
 
-            function renderDataPlans(plans, selectedDay, preferredFlowKey = null) {
+            function renderDataPlans(plans, selectedDay, selectedType, preferredFlowKey = null) {
                 dataBox.innerHTML = '';
-                const validPlans = plans.filter(plan => String(plan.days) === String(selectedDay));
+                const expandOneDayPlans = shouldExpandOneDayPlans(selectedType, plans);
+                const validPlans = expandOneDayPlans ?
+                    plans.filter(plan => parseInt(plan.days, 10) === 1) :
+                    plans.filter(plan => String(plan.days) === String(selectedDay));
 
                 if (!validPlans.length) {
                     dataBox.innerHTML = '<span class="text-danger">No data for this day.</span>';
@@ -481,7 +511,8 @@
                 validPlans.forEach((plan, index) => {
                     const rate = getExchangeRate(plan.priceid);
                     const portalPrice = (parseFloat(plan.price) || 0) + (parseFloat(plan.openCardFee) || 0);
-                    const calculatedPrice = Math.round(portalPrice * rate);
+                    const dayMultiplier = expandOneDayPlans ? parseInt(selectedDay, 10) || 1 : 1;
+                    const calculatedPrice = Math.round(portalPrice * dayMultiplier * rate);
                     const dataLabel = `${plan.flows} ${plan.unit}`;
                     const shouldSelect = index === 0;
                     const label = document.createElement('label');
@@ -515,8 +546,7 @@
 
                 const selectedType = activeInput.value.toLowerCase();
                 const filteredPackages = getPackagesForType(selectedType);
-
-                const uniqueDays = [...new Set(filteredPackages.map(p => p.days))].sort((a, b) => a - b);
+                const uniqueDays = getServiceDaysForType(selectedType, filteredPackages);
                 service_day_box.innerHTML = '';
 
                 if (!uniqueDays.length) {
@@ -541,7 +571,7 @@
                     service_day_box.appendChild(label);
                 });
 
-                renderDataPlans(filteredPackages, dayToSelect);
+                renderDataPlans(filteredPackages, dayToSelect, selectedType);
             }
 
             function updatePriceDisplay() {
@@ -587,7 +617,7 @@
 
                 const selectedType = getSelectedType();
                 const filtered = getPackagesForType(selectedType);
-                renderDataPlans(filtered, parseInt(input.dataset.day || input.value, 10));
+                renderDataPlans(filtered, parseInt(input.dataset.day || input.value, 10), selectedType);
             });
 
             dataBox.addEventListener('click', function(e) {
