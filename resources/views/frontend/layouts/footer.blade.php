@@ -11,14 +11,14 @@
                 <ul class="mb-0 list-unstyled">
                     <li>
                         <figure class="mb-0 partner1">
-                            <img class="img-fluid"
+                            <img class="img-fluid footer-partner-logo"
                                 src="{{ $contactInfo->joytel_image ? asset('general/sim_imgs/' . $contactInfo->joytel_image) : asset('assets/images/footer-default-img.png') }}"
                                 alt="joytel-img">
                         </figure>
                     </li>
                     <li>
                         <figure class="mb-0 partner1 partner2">
-                            <img class="img-fluid"
+                            <img class="img-fluid footer-partner-logo"
                                 src="{{ $contactInfo->roam_image ? asset('general/sim_imgs/' . $contactInfo->roam_image) : asset('assets/images/footer-default-img.png') }}"
                                 alt="roam-img">
                         </figure>
