@@ -340,10 +340,18 @@
                                                 ->where('service_day', $default_day)
                                                 ->values();
                                             $visibleIndex = 0;
+                                            $isUnlimitedType = $type === 'unlimited';
                                         @endphp
                                         @foreach ($default_data as $data)
                                             @php
                                                 $extra_price = $validPriceListMap->get($data['product_code']);
+                                                $display_data = $isUnlimitedType
+                                                    ? 'Unlimited (' . preg_replace(
+                                                        '/^unlimited\s*/i',
+                                                        '',
+                                                        (string) $data['data'],
+                                                    ) . ')'
+                                                    : $data['data'];
                                             @endphp
                                             @if ($extra_price)
                                                 <label
@@ -352,7 +360,7 @@
                                                         {{ $visibleIndex == 0 ? 'checked' : '' }}
                                                         data-price="{{ round($data['price_cny'] * $extra_price->exchange_rate) }}"
                                                         data-description="{{ $data['description'] }}"
-                                                        data-product-code="{{ $data['product_code'] }}">{{ $data['data'] }}
+                                                        data-product-code="{{ $data['product_code'] }}">{{ $display_data }}
                                                 </label>
                                                 @php $visibleIndex++; @endphp
                                             @endif
@@ -532,7 +540,17 @@
                 return String(text).trim().toLowerCase();
             }
 
-            function renderDataPlans(plans, selectedDay) {
+            function formatPlanDataLabel(data, isUnlimited) {
+                const text = String(data ?? '');
+
+                if (!isUnlimited) {
+                    return text;
+                }
+
+                return `Unlimited (${text.replace(/^unlimited\s*/i, '')})`;
+            }
+
+            function renderDataPlans(plans, selectedDay, selectedType) {
                 dataBox.innerHTML = '';
 
                 const validPlans = plans.filter(plan => {
@@ -548,6 +566,8 @@
                     return;
                 }
 
+                const isUnlimitedType = normalizeText(selectedType).includes('unlimited');
+
                 validPlans.forEach((plan, index) => {
                     const serviceText = plan.service_day.toLowerCase();
                     const isPerDay = serviceText === 'day' || serviceText.includes('charge from');
@@ -560,13 +580,14 @@
                     const label = document.createElement('label');
                     label.className =
                         `btn btn-outline-secondary m-1 rounded ${index === 0 ? 'active' : ''}`;
+                    const displayData = formatPlanDataLabel(plan.data, isUnlimitedType);
                     label.innerHTML = `
                 <input type="radio" name="sdata" value="${plan.data}"
                     data-price="${calculatedPrice}" 
                     data-description="${plan.description}" 
                     data-product-code="${plan.product_code}"
                     ${index === 0 ? 'checked' : ''}>
-                ${plan.data}
+                ${displayData}
             `;
                     dataBox.appendChild(label);
                 });
@@ -639,7 +660,7 @@
                 });
 
                 if (uniqueDays.length > 0) {
-                    renderDataPlans(filteredPlans, uniqueDays[0]);
+                    renderDataPlans(filteredPlans, uniqueDays[0], selectedType);
                 } else {
                     dataBox.innerHTML = '<span class="text-danger">No plans available.</span>';
                     des.innerText = '-';
@@ -710,7 +731,7 @@
                 //renderDataPlans(trafficTypesData[key], input.value);
                 const filteredPlans = trafficTypesData[key].filter(plan => isProductValid(plan
                     .product_code));
-                renderDataPlans(filteredPlans, input.value);
+                renderDataPlans(filteredPlans, input.value, type);
             });
 
             dataBox.addEventListener('change', function(e) {
