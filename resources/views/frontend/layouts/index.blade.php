@@ -68,10 +68,28 @@
     <script src="{{ asset('assets/js/animation.js') }}"></script>
     <script src="{{ asset('assets/js/select2/select2.full.min.js') }}"></script>
     <script type="text/javascript">
-        $(".select2_design").select2({
-            theme: 'bootstrap4',
-            placeholder: "Search for destination...",
-            allowClear: true
+        function initSelect2(scope) {
+            $(scope).find('.select2_design').each(function() {
+                if ($(this).data('select2')) {
+                    $(this).select2('destroy');
+                }
+
+                $(this).select2({
+                    theme: 'bootstrap4',
+                    placeholder: $(this).data('placeholder') || 'Search for destination...',
+                    allowClear: true,
+                    width: '100%'
+                });
+            });
+        }
+
+        initSelect2(document);
+
+        $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
+            var target = $(e.target).attr('href');
+            if (target) {
+                initSelect2(target);
+            }
         });
     </script>
 
