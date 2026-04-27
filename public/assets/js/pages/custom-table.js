@@ -34,6 +34,7 @@ class Table {
             this.setupCheckboxListeners(),
             this.setupSearch(),
             0 < this.headers.length && (this.setupFilters(), this.setupSort()),
+            this.applyDefaultSort(),
             this.setupRowsPerPage(),
             this.setupPagination(),
             this.setupPaginationInfo(),
@@ -432,8 +433,12 @@ class Table {
                                         : "string" == typeof e &&
                                           "string" == typeof t
                                         ? "asc" == s
-                                            ? e.localeCompare(t)
-                                            : t.localeCompare(e)
+                                            ? e.localeCompare(t, void 0, {
+                                                  sensitivity: "base",
+                                              })
+                                            : t.localeCompare(e, void 0, {
+                                                  sensitivity: "base",
+                                              })
                                         : 0;
                                 }),
                                 (this.currentPage = 1),
@@ -441,6 +446,74 @@ class Table {
                         }
                     });
             });
+    }
+    applyDefaultSort() {
+        const t = this.table.querySelector(
+            `${this.parentInstance.sortSelector}[data-table-default-sort]`
+        );
+        if (!t) return;
+        const columnIndex = Array.from(t.parentElement.children).indexOf(t);
+        if (-1 === columnIndex) return;
+        const direction = t.getAttribute("data-table-default-sort") || "asc";
+        let l = t.querySelector("i");
+        l ||
+            (((l = document.createElement("i")).className =
+                "ti ti-arrows-sort fs-xs ms-1"),
+            t.appendChild(l));
+        t.dataset.direction = direction;
+        l.className =
+            "asc" === direction
+                ? "ti ti-arrow-up fs-xs ms-1"
+                : "ti ti-arrow-down fs-xs ms-1";
+
+        const getValue = (row) => {
+            const cell = row.children[columnIndex];
+            if (!cell) return "";
+            let e = "";
+            let value = "";
+            e = (e = (
+                Array.from(cell.childNodes).find(
+                    (e) => e.nodeType === Node.TEXT_NODE && e.textContent.trim()
+                ) || cell
+            ).textContent.trim()).replace(/\s+/g, " ");
+            let match = e.match(/^\(([\d,.\s]+)\)$/);
+            if (match)
+                return (
+                    (value = parseFloat(match[1].replace(/,/g, ""))),
+                    isNaN(value) ? e.toLowerCase() : -value
+                );
+            if (/^-?[\d,.]+%$/.test(e)) {
+                const percent = parseFloat(e.replace("%", ""));
+                return isNaN(percent) ? 0 : percent / 100;
+            }
+            match = e.match(/^-?[\$€₹]?\s*([\d,.]+)\s*([KMB])?$/i);
+            if (match) {
+                let numericValue = parseFloat(match[1].replace(/,/g, ""));
+                const suffix = match[2]?.toUpperCase();
+                const multipliers = { K: 1e3, M: 1e6, B: 1e9 };
+                if (!isNaN(numericValue))
+                    return suffix && multipliers[suffix] && (numericValue *= multipliers[suffix]), numericValue;
+            }
+            match = e.match(/^(\d+)(st|nd|rd|th)$/i);
+            return match
+                ? parseInt(match[1], 10)
+                : /^-?\d+(\.\d+)?$/.test(e)
+                ? ((value = parseFloat(e)), isNaN(value) ? e.toLowerCase() : value)
+                : ((value = new Date(e)), isNaN(value.getTime()) ? e.toLowerCase() : value.getTime());
+        };
+        this.filteredRows.sort((e, t) => {
+            e = getValue(e);
+            t = getValue(t);
+            return "number" == typeof e && "number" == typeof t
+                ? "asc" === direction
+                    ? e - t
+                    : t - e
+                : "string" == typeof e && "string" == typeof t
+                ? "asc" === direction
+                    ? e.localeCompare(t, void 0, { sensitivity: "base" })
+                    : t.localeCompare(e, void 0, { sensitivity: "base" })
+                : 0;
+        });
     }
     deleteSelected() {
         (this.deleteSelectedSelector = this.table.querySelector(
