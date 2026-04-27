@@ -12,7 +12,7 @@
                 <div class="row">
                     <div class="col-lg-12 col-md-12 col-sm-12 col-12">
                         <div class="banner_content">
-                            <h1>Physical-SIM - Roam</h1>
+                            <h1>Physical-SIM - FiROAM</h1>
                             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
                                 labore et dolore magna aliqua.</p>
                         </div>
@@ -23,7 +23,7 @@
         <div class="box">
             <span class="mb-0 text-size-16">Our Service</span><span class="mb-0 text-size-16 dash">-</span><span
                 class="mb-0 text-size-16">Physical-SIM</span><span class="mb-0 text-size-16 dash">-</span><span
-                class="mb-0 text-size-16 box_span">Roam</span>
+                class="mb-0 text-size-16 box_span">FiROAM</span>
         </div>
     </div>
     <!--Contact-->
@@ -65,40 +65,40 @@
                                     </div>
                                 </form>
                                 <!-- <form method="POST">
-                                                                                                                                                                    <div class="row">
-                                                                                                                                                                        <div class="col-12">
-                                                                                                                                                                            <div class="form-group mb-0">
-                                                                                                                                                                                <h4>Shop for the best eSIM offers:</h4>
-                                                                                                                                                                                <select class="select2_design form-control" multiple="multiple">
-                                                                                                                                                                                    <option value="Mayotte">Mayotte</option>
-                                                                                                                                                                                    <option value="Mexico">Mexico</option>
-                                                                                                                                                                                    <option value="Micronesia, Federated States of">Micronesia, Federated
-                                                                                                                                                                                        States of</option>
-                                                                                                                                                                                    <option value="Moldova, Republic of">Moldova, Republic of</option>
-                                                                                                                                                                                    <option value="Monaco">Monaco</option>
-                                                                                                                                                                                    <option value="Mongolia">Mongolia</option>
-                                                                                                                                                                                    <option value="Montenegro">Montenegro</option>
-                                                                                                                                                                                    <option value="Montserrat">Montserrat</option>
-                                                                                                                                                                                    <option value="Morocco">Morocco</option>
-                                                                                                                                                                                    <option value="Mozambique">Mozambique</option>
-                                                                                                                                                                                    <option value="Myanmar">Myanmar</option>
-                                                                                                                                                                                    <option value="Namibia">Namibia</option>
-                                                                                                                                                                                    <option value="Nauru">Nauru</option>
-                                                                                                                                                                                    <option value="Nepal">Nepal</option>
-                                                                                                                                                                                    <option value="Netherlands">Netherlands</option>
-                                                                                                                                                                                    <option value="New Caledonia">New Caledonia</option>
-                                                                                                                                                                                    <option value="New Zealand">New Zealand</option>
-                                                                                                                                                                                    <option value="Nicaragua">Nicaragua</option>
-                                                                                                                                                                                </select>
-                                                                                                                                                                            </div>
-                                                                                                                                                                        </div>
-                                                                                                                                                                        <div class="col-12">
-                                                                                                                                                                            <div class="mt-4 text-center">
-                                                                                                                                                                                <a href="{{ route('physical.roamsearch') }}" class="button_text">Continue Search</a>
-                                                                                                                                                                            </div>
-                                                                                                                                                                        </div>
-                                                                                                                                                                    </div>
-                                                                                                                                                                </form> -->
+                                                                                                                                                                                        <div class="row">
+                                                                                                                                                                                            <div class="col-12">
+                                                                                                                                                                                                <div class="form-group mb-0">
+                                                                                                                                                                                                    <h4>Shop for the best eSIM offers:</h4>
+                                                                                                                                                                                                    <select class="select2_design form-control" multiple="multiple">
+                                                                                                                                                                                                        <option value="Mayotte">Mayotte</option>
+                                                                                                                                                                                                        <option value="Mexico">Mexico</option>
+                                                                                                                                                                                                        <option value="Micronesia, Federated States of">Micronesia, Federated
+                                                                                                                                                                                                            States of</option>
+                                                                                                                                                                                                        <option value="Moldova, Republic of">Moldova, Republic of</option>
+                                                                                                                                                                                                        <option value="Monaco">Monaco</option>
+                                                                                                                                                                                                        <option value="Mongolia">Mongolia</option>
+                                                                                                                                                                                                        <option value="Montenegro">Montenegro</option>
+                                                                                                                                                                                                        <option value="Montserrat">Montserrat</option>
+                                                                                                                                                                                                        <option value="Morocco">Morocco</option>
+                                                                                                                                                                                                        <option value="Mozambique">Mozambique</option>
+                                                                                                                                                                                                        <option value="Myanmar">Myanmar</option>
+                                                                                                                                                                                                        <option value="Namibia">Namibia</option>
+                                                                                                                                                                                                        <option value="Nauru">Nauru</option>
+                                                                                                                                                                                                        <option value="Nepal">Nepal</option>
+                                                                                                                                                                                                        <option value="Netherlands">Netherlands</option>
+                                                                                                                                                                                                        <option value="New Caledonia">New Caledonia</option>
+                                                                                                                                                                                                        <option value="New Zealand">New Zealand</option>
+                                                                                                                                                                                                        <option value="Nicaragua">Nicaragua</option>
+                                                                                                                                                                                                    </select>
+                                                                                                                                                                                                </div>
+                                                                                                                                                                                            </div>
+                                                                                                                                                                                            <div class="col-12">
+                                                                                                                                                                                                <div class="mt-4 text-center">
+                                                                                                                                                                                                    <a href="{{ route('physical.roamsearch') }}" class="button_text">Continue Search</a>
+                                                                                                                                                                                                </div>
+                                                                                                                                                                                            </div>
+                                                                                                                                                                                        </div>
+                                                                                                                                                                                    </form> -->
                             </div>
                         </div>
                     </div>
@@ -174,9 +174,9 @@
             <div class="services-data mt-4">
                 <div class="form-design tabs-container">
                     <!-- <ul class="nav" role="tablist">
-                                                                                                                                                        <li><a class="nav-link active" data-toggle="tab" href="#roam-new-esim-package"> New eSIM</a></li>
-                                                                                                                                                        <li><a class="nav-link" data-toggle="tab" href="#roam-recharge-package">Recharge</a></li>
-                                                                                                                                                    </ul> -->
+                                                                                                                                                                            <li><a class="nav-link active" data-toggle="tab" href="#roam-new-esim-package"> New eSIM</a></li>
+                                                                                                                                                                            <li><a class="nav-link" data-toggle="tab" href="#roam-recharge-package">Recharge</a></li>
+                                                                                                                                                                        </ul> -->
                     <div class="tab-content mt-4 shadow-none p-0">
                         <div role="tabpanel" id="roam-new-physical-package" class="tab-pane active">
                             <div class="panel-body">
