@@ -96,9 +96,9 @@
             <div class="services-data mt-4">
                 <div class="form-design tabs-container">
                     <!-- <ul class="nav" role="tablist">
-                                                                                                                                                                                    <li><a class="nav-link active" data-toggle="tab" href="#roam-new-esim-package"> New eSIM</a></li>
-                                                                                                                                                                                    <li><a class="nav-link" data-toggle="tab" href="#roam-recharge-package">Recharge</a></li>
-                                                                                                                                                                                </ul> -->
+                                                                                                                                                                                                    <li><a class="nav-link active" data-toggle="tab" href="#roam-new-esim-package"> New eSIM</a></li>
+                                                                                                                                                                                                    <li><a class="nav-link" data-toggle="tab" href="#roam-recharge-package">Recharge</a></li>
+                                                                                                                                                                                                </ul> -->
                     <div class="tab-content mt-4 shadow-none p-0">
                         <div role="tabpanel" id="roam-new-physical-package" class="tab-pane active">
                             <div class="panel-body">
