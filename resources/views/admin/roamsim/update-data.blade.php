@@ -147,7 +147,7 @@
         <div class="row">
             <div class="col-12">
                 <div data-table data-table-rows-per-page="50" class="card">
-                    <div class="card-header fw-semibold">New Roam Package Data</div>
+                    <div class="card-header fw-semibold">New Esim Package Data</div>
                     <div class="table-responsive mb-5">
                         <table class="table table-custom table-centered table-select table-hover w-100 mb-0">
                             <thead class="bg-light align-middle bg-opacity-25 thead-sm">
@@ -199,7 +199,7 @@
         <div class="row">
             <div class="col-12">
                 <div data-table data-table-rows-per-page="50" class="card">
-                    <div class="card-header fw-semibold">Updated Roam Package Data</div>
+                    <div class="card-header fw-semibold">Updated Esim Package Data</div>
                     <div class="table-responsive mb-5">
                         <table class="table table-custom table-centered table-select table-hover w-100 mb-0">
                             <thead class="bg-light align-middle bg-opacity-25 thead-sm">

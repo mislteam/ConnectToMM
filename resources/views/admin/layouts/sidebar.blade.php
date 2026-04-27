@@ -80,7 +80,7 @@
                 <a data-bs-toggle="collapse" href="#sidebarRoam" aria-expanded="false" aria-controls="sidebarRoam"
                     class="side-nav-link">
                     <span class="menu-icon"><i class="ti ti-device-sim"></i></span>
-                    <span class="menu-text">Roam Sim</span>
+                    <span class="menu-text">FiROAM</span>
                     <span class="menu-arrow"></span>
                 </a>
                 <div class="collapse" id="sidebarRoam">

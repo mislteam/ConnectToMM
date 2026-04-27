@@ -72,7 +72,7 @@
                                                  <a class="nav-link" href="{{ route('esimIndex') }}">Joytel</a>
                                              </li>
                                              <li class="nav-item {{ request()->routeIs('esim.roam') ? 'active' : '' }}">
-                                                 <a class="nav-link" href="{{ route('esim.roam') }}">Roam</a>
+                                                 <a class="nav-link" href="{{ route('esim.roam') }}">FiROAM</a>
                                              </li>
                                          </ul>
                                      </div>
@@ -86,7 +86,7 @@
                                              </li>
                                              <li
                                                  class="nav-item {{ request()->routeIs('physical.roam') ? 'active' : '' }}">
-                                                 <a class="nav-link" href="{{ route('physical.roam') }}">Roam</a>
+                                                 <a class="nav-link" href="{{ route('physical.roam') }}">FiROAM</a>
                                              </li>
                                          </ul>
                                      </div>
