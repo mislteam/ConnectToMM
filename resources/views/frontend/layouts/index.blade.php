@@ -35,10 +35,16 @@
     <!-- Font Awesome link -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
     <!-- StyleSheet link CSS -->
-    <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet" type="text/css">
-    <link href="{{ asset('assets/css/responsive.css') }}" rel="stylesheet" type="text/css">
-    <link rel="stylesheet" href="{{ asset('assets/css/custom-style.css') }}" type="text/css">
-    <link rel="stylesheet" href="{{ asset('assets/css/special-classes.css') }}" type="text/css">
+    <link href="{{ asset('assets/css/style.css') }}?v={{ filemtime(public_path('assets/css/style.css')) }}"
+        rel="stylesheet" type="text/css">
+    <link href="{{ asset('assets/css/responsive.css') }}?v={{ filemtime(public_path('assets/css/responsive.css')) }}"
+        rel="stylesheet" type="text/css">
+    <link rel="stylesheet"
+        href="{{ asset('assets/css/custom-style.css') }}?v={{ filemtime(public_path('assets/css/custom-style.css')) }}"
+        type="text/css">
+    <link rel="stylesheet"
+        href="{{ asset('assets/css/special-classes.css') }}?v={{ filemtime(public_path('assets/css/special-classes.css')) }}"
+        type="text/css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/magnific-popup.css">
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
 
