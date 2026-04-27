@@ -22,12 +22,17 @@ class RoamPhysicalController extends Controller
         $globalPackages = RoamPhysicalSku::with('roamPhysical')
             ->where('status', 1)
             ->where('dp_id', 9)
+            ->orderBy('country_name', 'asc')
             ->get();
         $asiaPackages = RoamPhysicalSku::with('roamPhysical')
             ->where('status', 1)
             ->where('dp_id', 21)
+            ->orderBy('country_name', 'asc')
             ->get();
-        $packages = RoamPhysicalSku::with('roamPhysical')->where('status', 1)->get();
+        $packages = RoamPhysicalSku::with('roamPhysical')
+            ->where('status', 1)
+            ->orderBy('country_name', 'asc')
+            ->get();
 
         $usd_exchange_rate = Currency::where('name', 'usd')->value('value');
         $logo = GeneralSetting::where('type', 'file')->first();

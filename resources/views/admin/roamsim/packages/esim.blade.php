@@ -66,7 +66,7 @@
                                             value="option">
                                     </th>
                                     <th data-table-sort>No</th>
-                                    <th data-table-sort>Plan Name</th>
+                                    <th data-table-sort data-table-default-sort="asc">Plan Name</th>
                                     <th data-table-sort data-column="product-status">Status</th>
                                     <th class="text-center" style="width: 1%;">Actions</th>
                                 </tr>

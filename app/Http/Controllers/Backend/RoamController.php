@@ -22,6 +22,7 @@ class RoamController extends Controller
     {
         $packages = RoamSku::with('roam')
             ->where('status', 1)
+            ->orderBy('country_name', 'asc')
             ->get();
         // dd($packages);
         $usd_exchange_rate = Currency::where('name', 'usd')->value('value');
