@@ -469,32 +469,13 @@ class CustomerAuthController extends Controller
                 ->with('error', 'Unable to read your Google profile.');
         }
 
-        $googleUser = $profileResponse->json();
-        $customer = Customer::where('auth_provider', 'google')
-            ->where('provider_user_id', $googleUser['id'] ?? null)
-            ->first();
-
-        if (! $customer && ! empty($googleUser['email'])) {
-            $customer = Customer::where('email', $googleUser['email'])->first();
-        }
+        $customer = $this->resolveGoogleCustomer($profileResponse->json());
 
         if (! $customer) {
-            $customer = new Customer();
+            return redirect()
+                ->route($this->googleFlowLandingRoute($flow))
+                ->with('error', 'Google did not return a verified email address.');
         }
-
-        $customer->name = $googleUser['name'] ?? $googleUser['email'] ?? 'Google Customer';
-        $customer->email = $googleUser['email'] ?? $customer->email;
-        $customer->profile_image = $googleUser['picture'] ?? $customer->profile_image;
-        $customer->auth_provider = 'google';
-        $customer->provider_user_id = $googleUser['id'] ?? $customer->provider_user_id ?? (string) Str::uuid();
-        $customer->meta = array_merge($customer->meta ?? [], [
-            'provider' => 'google',
-            'picture' => $googleUser['picture'] ?? null,
-        ]);
-        $customer->role = 'customer';
-        $customer->markActive();
-        $customer->email_verified_at = now();
-        $customer->save();
 
         Auth::guard('customers')->login($customer);
         $customer->forceFill(['last_login_at' => now()])->save();
@@ -503,6 +484,51 @@ class CustomerAuthController extends Controller
         return redirect()
             ->to($this->customerRedirectUrl($request))
             ->with('success', 'Welcome back!');
+    }
+
+    private function resolveGoogleCustomer(array $googleUser): ?Customer
+    {
+        $googleId = (string) ($googleUser['id'] ?? '');
+        $email = trim(strtolower((string) ($googleUser['email'] ?? '')));
+        $isVerifiedEmail = filter_var($googleUser['verified_email'] ?? false, FILTER_VALIDATE_BOOLEAN);
+
+        if ($googleId === '' || $email === '' || ! $isVerifiedEmail) {
+            return null;
+        }
+
+        return DB::transaction(function () use ($googleUser, $googleId, $email) {
+            $customer = Customer::query()
+                ->where('auth_provider', 'google')
+                ->where('provider_user_id', $googleId)
+                ->first();
+
+            if (! $customer) {
+                $customer = Customer::query()
+                    ->where('email', $email)
+                    ->first();
+            }
+
+            if (! $customer) {
+                $customer = new Customer();
+            }
+
+            $customer->name = $googleUser['name'] ?? $email ?? 'Google Customer';
+            $customer->email = $email;
+            $customer->profile_image = $googleUser['picture'] ?? $customer->profile_image;
+            $customer->auth_provider = 'google';
+            $customer->provider_user_id = $googleId;
+            $customer->meta = array_merge($customer->meta ?? [], [
+                'provider' => 'google',
+                'google_id' => $googleId,
+                'picture' => $googleUser['picture'] ?? null,
+            ]);
+            $customer->role = 'customer';
+            $customer->markActive();
+            $customer->email_verified_at = now();
+            $customer->save();
+
+            return $customer;
+        });
     }
 
     private function issueVerificationCode(Customer $customer, Request $request, string $purpose = self::OTP_PURPOSE_EMAIL_VERIFICATION): CustomerVerificationCode
