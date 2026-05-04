@@ -35,23 +35,6 @@
 
         {{-- <link href="{{ asset('assets/bootstrap/bootstrap.min.css') }}" rel="stylesheet"> --}}
 
-<<<<<<< Updated upstream
-    <!-- Font Awesome link -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
-    <!-- StyleSheet link CSS -->
-    <link href="{{ asset('assets/css/style.css') }}?v={{ filemtime(public_path('assets/css/style.css')) }}"
-        rel="stylesheet" type="text/css">
-    <link href="{{ asset('assets/css/responsive.css') }}?v={{ filemtime(public_path('assets/css/responsive.css')) }}"
-        rel="stylesheet" type="text/css">
-    <link rel="stylesheet"
-        href="{{ asset('assets/css/custom-style.css') }}?v={{ filemtime(public_path('assets/css/custom-style.css')) }}"
-        type="text/css">
-    <link rel="stylesheet"
-        href="{{ asset('assets/css/special-classes.css') }}?v={{ filemtime(public_path('assets/css/special-classes.css')) }}"
-        type="text/css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/magnific-popup.css">
-    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-=======
         <!-- Font Awesome link -->
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
         <!-- StyleSheet link CSS -->
@@ -61,7 +44,6 @@
         <link rel="stylesheet" href="{{ asset('assets/css/special-classes.css') }}" type="text/css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/magnific-popup.js/1.1.0/magnific-popup.css">
         <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
->>>>>>> Stashed changes
 
         <!-- select 2 -->
         <link rel="stylesheet" href="{{ asset('assets/css/select2/select2.min.css') }}">
@@ -75,46 +57,6 @@
         @include('frontend.layouts.footer')
 
 
-<<<<<<< Updated upstream
-    <!-- Latest compiled JavaScript -->
-    <script src="{{ asset('assets/js/vendors.min.js') }}"></script>
-    <script src="{{ asset('assets/js/config.js') }}"></script>
-    {{-- <script src="{{ asset('assets/js/app.js') }}"></script> --}}
-    <script src="{{ asset('assets/js/jquery-3.6.0.min.js') }}"></script>
-    <script src="{{ asset('assets/js/bootstrap.min.js') }}"></script>
-    <script src="{{ asset('assets/js/video_link.js') }}"></script>
-    <script src="{{ asset('assets/js/video.js') }}"></script>
-    <script src="{{ asset('assets/js/counter.js') }}"></script>
-    <script src="{{ asset('assets/js/custom.js') }}"></script>
-    <script src="{{ asset('assets/js/animation_links.js') }}"></script>
-    <script src="{{ asset('assets/js/animation.js') }}"></script>
-    <script src="{{ asset('assets/js/select2/select2.full.min.js') }}"></script>
-    <script type="text/javascript">
-        function initSelect2(scope) {
-            $(scope).find('.select2_design').each(function() {
-                if ($(this).data('select2')) {
-                    $(this).select2('destroy');
-                }
-
-                $(this).select2({
-                    theme: 'bootstrap4',
-                    placeholder: $(this).data('placeholder') || 'Search for destination...',
-                    allowClear: true,
-                    width: '100%'
-                });
-            });
-        }
-
-        initSelect2(document);
-
-        $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
-            var target = $(e.target).attr('href');
-            if (target) {
-                initSelect2(target);
-            }
-        });
-    </script>
-=======
         <!-- Latest compiled JavaScript -->
         <script src="{{ asset('assets/js/vendors.min.js') }}"></script>
         <script src="{{ asset('assets/js/config.js') }}"></script>
@@ -135,7 +77,6 @@
                 allowClear: true
             });
         </script>
->>>>>>> Stashed changes
 
         <script>
             $(document).ready(function() {
