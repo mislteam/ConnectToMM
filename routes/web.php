@@ -137,8 +137,8 @@ Route::middleware(['auth'])->group(function () {
         // General Setting 
 
         Route::get('admin/general', [GeneralSettingController::class, 'index'])->name('generalIndex');
-        Route::get('/general/edit/{data}', [GeneralSettingController::class, 'edit'])->name('generalEdit');
-        Route::patch('/general/update/{data}', [GeneralSettingController::class, 'update'])->name('generalUpdate');
+        Route::get('/general/edit/{type}', [GeneralSettingController::class, 'edit'])->name('generalEdit');
+        Route::patch('/general/update/{type}', [GeneralSettingController::class, 'update'])->name('generalUpdate');
     });
 
     Route::prefix('roam')->group(function () {
