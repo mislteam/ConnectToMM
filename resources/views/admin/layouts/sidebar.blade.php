@@ -16,7 +16,6 @@
                     <a href="#" class="link-reset">
                         <img src="{{ asset('general/logo/' . $logo->value) }}" alt="user-image" class="img-fluid">
                     </a>
-
                 </div>
             </div>
         </div>
@@ -48,7 +47,7 @@
                 <a data-bs-toggle="collapse" href="#sidebarjoytel" aria-expanded="false" aria-controls="sidebarjoytel"
                     class="side-nav-link">
                     <span class="menu-icon"><i class="ti ti-device-sim"></i></span>
-                    <span class="menu-text">Joytel</span>
+                    <span class="menu-text">{{ $settings['joytel_title']->value ?? 'Joytel' }}</span>
                     <span class="menu-arrow"></span>
                 </a>
                 <div class="collapse" id="sidebarjoytel">
@@ -80,7 +79,7 @@
                 <a data-bs-toggle="collapse" href="#sidebarRoam" aria-expanded="false" aria-controls="sidebarRoam"
                     class="side-nav-link">
                     <span class="menu-icon"><i class="ti ti-device-sim"></i></span>
-                    <span class="menu-text">FiROAM</span>
+                    <span class="menu-text">{{ $settings['roam_title']->value ?? 'ROAM' }}</span>
                     <span class="menu-arrow"></span>
                 </a>
                 <div class="collapse" id="sidebarRoam">

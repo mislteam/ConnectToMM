@@ -49,8 +49,6 @@ class FooterPageController extends Controller
             'description'           => 'required|string',
             'email'                 => 'required|email',
             'phone'                 => 'required|string',
-            'joytel_image' => 'nullable|image|mimes:jpeg,png',
-            'roam_image' => 'nullable|image|mimes:jpeg,png',
             'title'                 => 'nullable|array',
             'title.*'               => 'required_with:title|string',
             'icon_name'             => 'nullable|array',
@@ -74,20 +72,8 @@ class FooterPageController extends Controller
             }
         }
 
-        if ($request->hasFile('joytel_image')) {
-            image_delete('general/sim_imgs', $info->joytel_image);
-            $info->joytel_image = store_image($request->file('joytel_image'), 'general/sim_imgs');
-        }
-
-        if ($request->hasFile('roam_image')) {
-            image_delete('general/sim_imgs', $info->roam_image);
-            $info->roam_image = store_image($request->file('roam_image'), 'general/sim_imgs');
-        }
-
         $info->update(array_merge($data, [
             'social_media_links' => $socialLinks,
-            'joytel_image' => $info->joytel_image ?? null,
-            'roam_image' => $info->roam_image ?? null,
         ]));
 
         return redirect()->route('footer.contact.index')

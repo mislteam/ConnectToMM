@@ -113,23 +113,6 @@
                                 </div>
                             </div>
 
-                            <x-form.filepond-input name="joytel_image" label="Joytel Image">
-                                <div class="mt-3">
-                                    @if ($info->joytel_image)
-                                        <a target="_blank" href="{{ asset('general/sim_imgs/' . $info->joytel_image) }}"
-                                            alt="sim_img">{{ asset('general/sim_imgs/' . $info->joytel_image) }}</a>
-                                    @endif
-                                </div>
-                            </x-form.filepond-input>
-
-                            <x-form.filepond-input name="roam_image" label="Roam Image">
-                                <div class="mt-3">
-                                    @if ($info->roam_image)
-                                        <a target="_blank" href="{{ asset('general/sim_imgs/' . $info->roam_image) }}"
-                                            alt="sim_img">{{ asset('general/sim_imgs/' . $info->roam_image) }}</a>
-                                    @endif
-                                </div>
-                            </x-form.filepond-input>
                         </div>
                         <div class="card-footer">
                             <div class="d-flex gap-2 justify-content-end">

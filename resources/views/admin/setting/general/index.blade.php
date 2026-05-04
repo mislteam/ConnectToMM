@@ -1,6 +1,7 @@
 @extends('admin.layouts.index')
 @section('title', 'General Setting')
 @section('content')
+    @include('components.alert')
     <div class="container-fluid">
         <div class="page-title-head d-flex align-items-center">
             <div class="flex-grow-1 py-3">
@@ -31,16 +32,14 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @php
-                                    $index = 1;
-                                @endphp
                                 @foreach ($generals as $data)
                                     <tr>
                                         <td class="ps-3"><input
                                                 class="form-check-input form-check-input-light fs-14 file-item-check mt-0"
                                                 type="checkbox" value="option"></td>
                                         <td>
-                                            <h5 class="m-0"><a href="#" class="link-reset">{{ $index++ }}</a>
+                                            <h5 class="m-0"><a href="#"
+                                                    class="link-reset">{{ $loop->iteration }}</a>
                                             </h5>
                                         </td>
                                         <td>
@@ -48,7 +47,7 @@
                                         </td>
                                         <td>
                                             <div class="d-flex justify-content-center gap-1">
-                                                <a href="{{ route('generalEdit', $data->id) }}"
+                                                <a href="{{ route('generalEdit', ['type' => $data->name]) }}"
                                                     class="btn btn-light btn-icon btn-sm rounded-circle"><i
                                                         class="ti ti-edit fs-lg"></i></a>
                                             </div>
@@ -56,6 +55,45 @@
                                     </tr>
                                 @endforeach
 
+                                <tr>
+                                    <td class="ps-3"><input
+                                            class="form-check-input form-check-input-light fs-14 file-item-check mt-0"
+                                            type="checkbox" value="option"></td>
+                                    <td>
+                                        <h5 class="m-0"><a href="#" class="link-reset">3</a>
+                                        </h5>
+                                    </td>
+                                    <td>
+                                        joytel
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-center gap-1">
+                                            <a href="{{ route('generalEdit', ['type' => 'joytel']) }}"
+                                                class="btn btn-light btn-icon btn-sm rounded-circle"><i
+                                                    class="ti ti-edit fs-lg"></i></a>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <td class="ps-3"><input
+                                            class="form-check-input form-check-input-light fs-14 file-item-check mt-0"
+                                            type="checkbox" value="option"></td>
+                                    <td>
+                                        <h5 class="m-0"><a href="#" class="link-reset">4</a>
+                                        </h5>
+                                    </td>
+                                    <td>
+                                        roam
+                                    </td>
+                                    <td>
+                                        <div class="d-flex justify-content-center gap-1">
+                                            <a href="{{ route('generalEdit', ['type' => 'roam']) }}"
+                                                class="btn btn-light btn-icon btn-sm rounded-circle"><i
+                                                    class="ti ti-edit fs-lg"></i></a>
+                                        </div>
+                                    </td>
+                                </tr>
 
                             </tbody>
                         </table>

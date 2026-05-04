@@ -7,7 +7,7 @@
         @endif
     </label>
     <div class="col-sm-10">
-        <textarea rows="3" name="{{ $name }}" class="form-control" placeholder="{{ $placeholder }}">{{ old($name, $value ?? '') }}</textarea>
+        <textarea rows="3" name="{{ $name }}" class="form-control" placeholder="{{ $placeholder }}">{{ html_entity_decode(old($name, $value ?? '')) }}</textarea>
     </div>
     @error('{{ $name }}')
         <small class="text-danger">{{ $message }}</small>

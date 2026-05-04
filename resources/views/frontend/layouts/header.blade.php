@@ -70,10 +70,13 @@
                                          <h5 class="font-weight-bold">E-SIM</h5>
                                          <ul class="list-unstyled drop-down-pages">
                                              <li class="nav-item {{ request()->routeIs('esimIndex') ? 'active' : '' }}">
-                                                 <a class="nav-link" href="{{ route('esimIndex') }}">Joytel</a>
+                                                 <a class="nav-link"
+                                                     href="{{ route('esimIndex') }}">{{ $settings['joytel_title']->value ?? 'Joytel' }}</a>
                                              </li>
-                                             <li class="nav-item {{ request()->routeIs('esim.roam') ? 'active' : '' }}">
-                                                 <a class="nav-link" href="{{ route('esim.roam') }}">FiROAM</a>
+                                             <li
+                                                 class="nav-item {{ request()->routeIs('esim.roam') ? 'active' : '' }}">
+                                                 <a class="nav-link"
+                                                     href="{{ route('esim.roam') }}">{{ $settings['roam_title']->value ?? 'Joytel' }}</a>
                                              </li>
                                          </ul>
                                      </div>
@@ -83,11 +86,13 @@
                                          <ul class="list-unstyled drop-down-pages">
                                              <li
                                                  class="nav-item {{ request()->routeIs('physicalIndex') ? 'active' : '' }}">
-                                                 <a class="nav-link" href="{{ route('physicalIndex') }}">Joytel</a>
+                                                 <a class="nav-link"
+                                                     href="{{ route('physicalIndex') }}">{{ $settings['joytel_title']->value ?? 'Joytel' }}</a>
                                              </li>
                                              <li
                                                  class="nav-item {{ request()->routeIs('physical.roam') ? 'active' : '' }}">
-                                                 <a class="nav-link" href="{{ route('physical.roam') }}">FiROAM</a>
+                                                 <a class="nav-link"
+                                                     href="{{ route('physical.roam') }}">{{ $settings['roam_title']->value ?? 'Joytel' }}</a>
                                              </li>
                                          </ul>
                                      </div>
@@ -103,26 +108,27 @@
                          <li class="nav-item {{ request()->routeIs('Contact') ? 'active' : '' }}">
                              <a class="nav-link" href="{{ route('Contact') }}">Contact Us</a>
                          </li>
-                        @if ($customer)
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle signup" href="#" id="customerMenu"
-                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                    <i class="fa-solid fa-user-check"></i>
-                                    {{ \Illuminate\Support\Str::limit($customer->name, 16) }}
-                                </a>
-                                <div class="dropdown-menu dropdown-menu-right customer-dropdown"
-                                    aria-labelledby="customerMenu">
-                                    <div class="dropdown-header">
-                                        <small class="text-muted d-block">Signed in as</small>
-                                        <strong class="d-block text-truncate">{{ $customer->name }}</strong>
-                                    </div>
-                                    <div class="dropdown-divider"></div>
-                                    <form method="POST" action="{{ route('customer.logout') }}" class="m-0">
-                                        @csrf
-                                        <button type="submit" class="dropdown-item customer-logout-btn">Logout</button>
-                                    </form>
-                                </div>
-                            </li>
+                         @if ($customer)
+                             <li class="nav-item dropdown">
+                                 <a class="nav-link dropdown-toggle signup" href="#" id="customerMenu"
+                                     data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                     <i class="fa-solid fa-user-check"></i>
+                                     {{ \Illuminate\Support\Str::limit($customer->name, 16) }}
+                                 </a>
+                                 <div class="dropdown-menu dropdown-menu-right customer-dropdown"
+                                     aria-labelledby="customerMenu">
+                                     <div class="dropdown-header">
+                                         <small class="text-muted d-block">Signed in as</small>
+                                         <strong class="d-block text-truncate">{{ $customer->name }}</strong>
+                                     </div>
+                                     <div class="dropdown-divider"></div>
+                                     <form method="POST" action="{{ route('customer.logout') }}" class="m-0">
+                                         @csrf
+                                         <button type="submit"
+                                             class="dropdown-item customer-logout-btn">Logout</button>
+                                     </form>
+                                 </div>
+                             </li>
                          @else
                              <li class="nav-item {{ request()->routeIs('user.register') ? 'active' : '' }}">
                                  <a class="nav-link signup" href="{{ route('user.register') }}"><i
