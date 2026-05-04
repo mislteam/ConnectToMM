@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\CustomerAuthController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Backend\DashboardController;
@@ -47,9 +48,26 @@ Route::get('/blog-article', [HomeController::class, 'blog'])->name('Blog');
 Route::get('/contact', [HomeController::class, 'contact'])->name('Contact');
 Route::post('/contact', [ContactUsController::class, 'store'])->name('contact.store');
 
-// user 
-Route::get('/register', [RegisterController::class, 'register'])->name('user.register');
-Route::get('/user/login', [LoginController::class, 'userLogin'])->name('user.login');
+// user
+Route::middleware('guest:customers')->group(function () {
+    Route::get('/register', [CustomerAuthController::class, 'showRegister'])->name('user.register');
+    Route::post('/register', [CustomerAuthController::class, 'register'])->name('customer.register.submit');
+
+    Route::get('/user/login', [CustomerAuthController::class, 'showLogin'])->name('user.login');
+    Route::post('/user/login', [CustomerAuthController::class, 'login'])->name('customer.login.submit');
+
+    Route::get('/forgot-password', [CustomerAuthController::class, 'showForgotPassword'])->name('customer.password.request');
+    Route::post('/forgot-password', [CustomerAuthController::class, 'sendPasswordResetOtp'])->name('customer.password.email');
+
+    Route::get('/customer/google/redirect', [CustomerAuthController::class, 'googleRedirect'])->name('customer.google.redirect');
+    Route::get('/customer/google/callback', [CustomerAuthController::class, 'googleCallback'])->name('customer.google.callback');
+
+    Route::get('/customer/email/verify', [CustomerAuthController::class, 'showVerificationNotice'])->name('verification.notice');
+    Route::post('/customer/email/verify', [CustomerAuthController::class, 'verifyEmailOtp'])->name('verification.verify.otp');
+    Route::post('/customer/email/resend', [CustomerAuthController::class, 'resendEmailOtp'])->name('verification.resend.otp');
+});
+
+Route::post('/customer/logout', [CustomerAuthController::class, 'logout'])->name('customer.logout')->middleware('auth:customers');
 
 // cart + checkout
 Route::get('/joytel-package/cart/{joytel}', [ESimController::class, 'cart'])->name('joytelpackage.cart');

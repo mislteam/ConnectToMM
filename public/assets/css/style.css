@@ -225,6 +225,35 @@ p {
     transition: all 0.3s ease-in-out;
 }
 
+.navbar-nav .nav-item .customer-dropdown {
+    min-width: 220px;
+    padding: 0.75rem;
+    border: 0;
+    border-radius: 14px;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+    margin-top: 10px;
+}
+
+.navbar-nav .nav-item .customer-dropdown .dropdown-header {
+    padding: 0.5rem 0.75rem 0.25rem;
+}
+
+.navbar-nav .nav-item .customer-dropdown .dropdown-header strong {
+    font-size: 16px;
+    color: var(--e-global-color-primary);
+}
+
+.navbar-nav .nav-item .customer-dropdown .dropdown-divider {
+    margin: 0.5rem 0;
+}
+
+.navbar-nav .nav-item .customer-dropdown .customer-logout-btn {
+    width: 100%;
+    text-align: left;
+    border-radius: 10px;
+    padding: 0.65rem 0.75rem;
+}
+
 .navbar-nav .drop-down-pages .active > a {
     color: var(--e-global-color-white) !important;
     background-color: var(--e-global-color-accent) !important;
@@ -2055,6 +2084,7 @@ p {
 /********* LOGIN PAGE FORM *******/
 .login-form {
     min-height: 100vh;
+    padding: 155px 0 90px;
     background-image: url(../images/about-background.png);
     background-size: cover;
     background-position: center;
@@ -2077,7 +2107,8 @@ p {
 }
 
 .login-form .login-form-box {
-    width: 450px;
+    width: 100%;
+    max-width: 450px;
     margin: 0 auto;
     position: relative;
 }
@@ -2166,7 +2197,8 @@ p {
 }
 
 .sign-up-form .login-form-box {
-    width: 700px;
+    width: 100%;
+    max-width: 650px;
 }
 
 .sign-up-form .login-card label small {

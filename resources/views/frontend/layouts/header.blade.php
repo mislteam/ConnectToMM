@@ -1,5 +1,6 @@
  @php
      $logo = \App\Models\GeneralSetting::where('type', 'file')->first();
+     $customer = Auth::guard('customers')->user();
  @endphp
  <div class="fixed-top">
      <div class="topbar">
@@ -102,11 +103,33 @@
                          <li class="nav-item {{ request()->routeIs('Contact') ? 'active' : '' }}">
                              <a class="nav-link" href="{{ route('Contact') }}">Contact Us</a>
                          </li>
-                         <li class="nav-item {{ request()->routeIs('user.register') ? 'active' : '' }}">
-                             <a class="nav-link signup" href="{{ route('user.register') }}"><i
-                                     class="fa-solid fa-user-lock"></i>Sign
-                                 Up</a>
-                         </li>
+                        @if ($customer)
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle signup" href="#" id="customerMenu"
+                                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="fa-solid fa-user-check"></i>
+                                    {{ \Illuminate\Support\Str::limit($customer->name, 16) }}
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-right customer-dropdown"
+                                    aria-labelledby="customerMenu">
+                                    <div class="dropdown-header">
+                                        <small class="text-muted d-block">Signed in as</small>
+                                        <strong class="d-block text-truncate">{{ $customer->name }}</strong>
+                                    </div>
+                                    <div class="dropdown-divider"></div>
+                                    <form method="POST" action="{{ route('customer.logout') }}" class="m-0">
+                                        @csrf
+                                        <button type="submit" class="dropdown-item customer-logout-btn">Logout</button>
+                                    </form>
+                                </div>
+                            </li>
+                         @else
+                             <li class="nav-item {{ request()->routeIs('user.register') ? 'active' : '' }}">
+                                 <a class="nav-link signup" href="{{ route('user.register') }}"><i
+                                         class="fa-solid fa-user-lock"></i>Sign
+                                     Up</a>
+                             </li>
+                         @endif
                      </ul>
                  </div>
              </nav>
