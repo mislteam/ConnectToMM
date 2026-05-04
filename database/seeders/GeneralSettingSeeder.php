@@ -13,17 +13,38 @@ class GeneralSettingSeeder extends Seeder
     public function run(): void
     {
         $settings = [
-            'logo' => 'logo.png',
-            'title' => 'Connect to Myanmar',
-            'joytel_title' => 'Joytel',
-            'joytel_logo' => 'joy_logo.png',
-            'roam_title' => 'Roam',
-            'roam_logo' => 'roam_logo.png',
+            'logo' => [
+                'value' => 'logo.png',
+                'type' => 'file',
+            ],
+            'title' => [
+                'value' => 'Connect to Myanmar',
+                'type' => 'string',
+            ],
+            'joytel_title' => [
+                'value' => 'Joytel',
+                'type' => 'string',
+            ],
+            'joytel_logo' => [
+                'value' => 'joy_logo.png',
+                'type' => 'file',
+            ],
+            'roam_title' => [
+                'value' => 'Roam',
+                'type' => 'string',
+            ],
+            'roam_logo' => [
+                'value' => 'roam_logo.png',
+                'type' => 'file',
+            ],
         ];
-        foreach ($settings as $name => $value) {
+        foreach ($settings as $name => $data) {
             GeneralSetting::updateOrCreate(
                 ['name' => $name],
-                ['value' => $value]
+                [
+                    'value' => $data['value'],
+                    'type' => $data['type']
+                ]
             );
         }
     }
