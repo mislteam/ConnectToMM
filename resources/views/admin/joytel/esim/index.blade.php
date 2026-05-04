@@ -181,6 +181,7 @@
 
                     <!-- manage price -->
                     <!-- <div class="modal fade" id="manage-price" tabindex="-1" role="dialog"
+<<<<<<< Updated upstream
                                                                                                                                                                                                                                                         aria-labelledby="managePrice" aria-hidden="true">
                                                                                                                                                                                                                                                         <div class="modal-dialog modal-lg modal-dialog-scrollable">
                                                                                                                                                                                                                                                             <div class="modal-content">
@@ -219,6 +220,46 @@
                                                                                                                                                                                                                                                             </div>
                                                                                                                                                                                                                                                         </div>
                                                                                                                                                                                                                                                     </div> -->
+=======
+                                                                                                                                                                                                                                                aria-labelledby="managePrice" aria-hidden="true">
+                                                                                                                                                                                                                                                <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                                                                                                                                                                                                                                                    <div class="modal-content">
+                                                                                                                                                                                                                                                        <div class="modal-header">
+                                                                                                                                                                                                                                                            <h4 class="modal-title" id="managePrice">Manage Price</h4>
+                                                                                                                                                                                                                                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                                                                                                                                                                                                                                aria-label="Close"></button>
+                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                        <div class="modal-body">
+                                                                                                                                                                                                                                                            <div class="table-responsive mt-2">
+                                                                                                                                                                                                                                                                <table class="table table-bordered table-nowrap text-center align-middle">
+                                                                                                                                                                                                                                                                    <thead class="bg-light align-middle bg-opacity-25 thead-sm">
+                                                                                                                                                                                                                                                                        <tr class="text-uppercase fs-xxs">
+                                                                                                                                                                                                                                                                            <th>#</th>
+                                                                                                                                                                                                                                                                            <th class="text-start">Product SKU</th>
+                                                                                                                                                                                                                                                                            <th>Traffic Type</th>
+                                                                                                                                                                                                                                                                            <th>Original Selling Price<br>(MMK)</th>
+                                                                                                                                                                                                                                                                            <th>Update Selling Price<br>(MMK)</th>
+                                                                                                                                                                                                                                                                            <th>Profit<br>(MMK)</th>
+                                                                                                                                                                                                                                                                            <th>Increment</th>
+
+                                                                                                                                                                                                                                                                        </tr>
+                                                                                                                                                                                                                                                                    </thead>
+                                                                                                                                                                                                                                                                    <tbody id="price-invoice-items">
+
+                                                                                                                                                                                                                                                                    </tbody>
+                                                                                                                                                                                                                                                                </table>
+
+                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                        <div class="modal-footer">
+                                                                                                                                                                                                                                                            <div class="my-3 d-flex gap-2 justify-content-end">
+                                                                                                                                                                                                                                                                <button type="button" class="btn btn-primary text-end">Update</button>
+                                                                                                                                                                                                                                                            </div>
+                                                                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                                                                    </div>
+                                                                                                                                                                                                                                                </div>
+                                                                                                                                                                                                                                            </div> -->
+>>>>>>> Stashed changes
 
                     <!-- manage price -->
                     <div class="modal fade" id="manage-price" tabindex="-1">
@@ -229,7 +270,7 @@
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                 </div>
                                 <div class="modal-body">
-                                    <div class="table-responsive mt-2">
+                                    <div class="mt-2">
                                         <table class="table table-bordered text-center align-middle"
                                             style="white-space: nowrap; min-width: 800px;">
                                             <thead class="bg-light align-middle bg-opacity-25 thead-sm">
