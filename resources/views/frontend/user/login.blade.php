@@ -88,7 +88,7 @@
         }
 
         .login-form .social-auth-icon.google {
-            color: #4285f4;
+            color: #1877f2;
             border: 1px solid #d7dff5;
             background: #f7faff;
             font-family: Arial, sans-serif;
@@ -169,14 +169,17 @@
                         <button type="submit" class="btn btn-primary w-100">Login</button>
                         <div class="text-center my-3 social-login-label">Or continue with</div>
                         <div class="social-auth-row">
-                            <a href="{{ route('customer.google.redirect', ['flow' => 'login']) }}" class="social-auth-btn"
-                                aria-label="Continue with Google">
-                                <span class="social-auth-icon google">G</span>
+                            <a href="{{ route('customer.google.redirect', ['flow' => 'login']) }}" class="social-auth-btn">
+                                <span class="social-auth-icon google">
+                                    <i class="fa-brands fa-google"></i>
+                                </span>
                                 <span>Google</span>
                             </a>
-                            <a href="#" class="social-auth-btn disabled" aria-disabled="true"
-                                title="Facebook login coming soon">
-                                <span class="social-auth-icon facebook">f</span>
+
+                            <a href="#" class="social-auth-btn">
+                                <span class="social-auth-icon facebook">
+                                    <i class="fa-brands fa-facebook-f"></i>
+                                </span>
                                 <span>Facebook</span>
                             </a>
                         </div>
