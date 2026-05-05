@@ -11,7 +11,7 @@
                 <div class="row">
                     <div class="col-lg-12 col-md-12 col-sm-12 col-12">
                         <div class="banner_content">
-                            <h1>Physical - Joytel</h1>
+                            <h1>Physical - {{ $settings['joytel_title']->value ?? 'Joytel' }}</h1>
                             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
                                 labore et dolore magna aliqua.</p>
                         </div>
@@ -22,7 +22,7 @@
         <div class="box">
             <span class="mb-0 text-size-16">Our Service</span><span class="mb-0 text-size-16 dash">-</span><span
                 class="mb-0 text-size-16">Physical</span><span class="mb-0 text-size-16 dash">-</span><span
-                class="mb-0 text-size-16 box_span">Joytel</span>
+                class="mb-0 text-size-16 box_span">{{ $settings['joytel_title']->value ?? 'Joytel' }}</span>
         </div>
     </div>
     <!--Services section-->

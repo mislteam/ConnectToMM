@@ -17,8 +17,6 @@ class ContactInfo extends Model
         'email',
         'phone',
         'social_media_links',
-        'joytel_image',
-        'roam_image'
     ];
 
     public function getSocialMediaTitlesAttribute()

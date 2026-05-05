@@ -4,7 +4,7 @@
     <div class="container-fluid">
         <div class="page-title-head d-flex align-items-center">
             <div class="flex-grow-1 py-3">
-                <h4 class="fs-sm fw-bold m-0 text-black">FiROAM</h4>
+                <h4 class="fs-sm fw-bold m-0 text-black">{{ $settings['roam_title']->value ?? 'Roam' }}</h4>
                 <ol class="breadcrumb m-0 py-0">
                     <li class="breadcrumb-item"><a href="javascript: void(0);">Home</a></li>
 
@@ -19,12 +19,12 @@
                     <ul class="nav nav-tabs mb-3">
                         <li class="nav-item">
                             <button class="nav-link active fw-bold" data-bs-toggle="tab" data-bs-target="#global-tab">
-                                FiROAM GLOBAL
+                                {{ $settings['roam_title']->value ?? 'Roam' }} GLOBAL
                             </button>
                         </li>
                         <li class="nav-item">
                             <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#asia-tab">
-                                FiROAM ASIA
+                                {{ $settings['roam_title']->value ?? 'Roam' }} ASIA
                             </button>
                         </li>
                     </ul>
