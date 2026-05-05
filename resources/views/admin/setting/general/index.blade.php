@@ -55,16 +55,20 @@
                                     </tr>
                                 @endforeach
 
+                                @php
+                                    $i = $generals->count();
+                                @endphp
+
                                 <tr>
                                     <td class="ps-3"><input
                                             class="form-check-input form-check-input-light fs-14 file-item-check mt-0"
                                             type="checkbox" value="option"></td>
                                     <td>
-                                        <h5 class="m-0"><a href="#" class="link-reset">3</a>
+                                        <h5 class="m-0"><a href="#" class="link-reset">{{ ++$i }}</a>
                                         </h5>
                                     </td>
                                     <td>
-                                        joytel
+                                        {{ $settings['joytel_title']->value ?? 'Joytel' }}
                                     </td>
                                     <td>
                                         <div class="d-flex justify-content-center gap-1">
@@ -80,11 +84,11 @@
                                             class="form-check-input form-check-input-light fs-14 file-item-check mt-0"
                                             type="checkbox" value="option"></td>
                                     <td>
-                                        <h5 class="m-0"><a href="#" class="link-reset">4</a>
+                                        <h5 class="m-0"><a href="#" class="link-reset">{{ ++$i }}</a>
                                         </h5>
                                     </td>
                                     <td>
-                                        roam
+                                        {{ $settings['roam_title']->value ?? 'Roam' }}
                                     </td>
                                     <td>
                                         <div class="d-flex justify-content-center gap-1">

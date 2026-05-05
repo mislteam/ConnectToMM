@@ -20,7 +20,7 @@
         <div class="box">
             <span class="mb-0 text-size-16">Our Service</span><span class="mb-0 text-size-16 dash">-</span><span
                 class="mb-0 text-size-16">{{ $joytel_type_label }}</span><span class="mb-0 text-size-16 dash">-</span><span
-                class="mb-0 text-size-16 box_span">Joytel</span>
+                class="mb-0 text-size-16 box_span">{{ $settings['joytel_title']->value ?? 'Joytel' }}</span>
         </div>
     </div>
     <!--Services section-->
@@ -346,11 +346,9 @@
                                             @php
                                                 $extra_price = $validPriceListMap->get($data['product_code']);
                                                 $display_data = $isUnlimitedType
-                                                    ? 'Unlimited (' . preg_replace(
-                                                        '/^unlimited\s*/i',
-                                                        '',
-                                                        (string) $data['data'],
-                                                    ) . ')'
+                                                    ? 'Unlimited (' .
+                                                        preg_replace('/^unlimited\s*/i', '', (string) $data['data']) .
+                                                        ')'
                                                     : $data['data'];
                                             @endphp
                                             @if ($extra_price)

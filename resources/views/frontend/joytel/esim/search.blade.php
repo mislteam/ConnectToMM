@@ -26,7 +26,7 @@
         <div class="box">
             <span class="mb-0 text-size-16">Our Service</span><span class="mb-0 text-size-16 dash">-</span><span
                 class="mb-0 text-size-16">E-SIM</span><span class="mb-0 text-size-16 dash">-</span><span
-                class="mb-0 text-size-16 box_span">Joytel</span>
+                class="mb-0 text-size-16 box_span">{{ $settings['joytel_title']->value ?? 'Joytel' }}</span>
         </div>
     </div>
     <!--Contact-->
@@ -81,7 +81,7 @@
             <div class="row">
                 <div class="col-12">
                     <div class="content text-center" data-aos="fade-right">
-                        <h6>E-SIM - Joytel</h6>
+                        <h6>E-SIM - {{ $settings['joytel_title']->value ?? 'Joytel' }}</h6>
                         <h2>Package Plan</h2>
                         <p class="text-size-18">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod
                             tempor incididuntabore et dolore aliquaQuis ipsum suspe.</p>

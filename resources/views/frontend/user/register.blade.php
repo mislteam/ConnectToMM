@@ -3,23 +3,11 @@
 @section('content')
     @include('components.alert')
     <style>
-        .sign-up-form .login-card label,
-        .sign-up-form .terms-label {
-            color: #1f2430;
-            font-weight: 600;
-        }
-
-        .sign-up-form .terms-label {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            line-height: 1.4;
-        }
-
-        .sign-up-form .terms-label input {
-            flex: 0 0 auto;
-            margin-top: 0;
+        .sign-up-form .login-form-box {
+            width: 100%;
+            max-width: 450px;
+            margin: 0 auto;
+            position: relative;
         }
 
         .sign-up-form .password-wrap {

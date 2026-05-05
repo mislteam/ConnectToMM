@@ -141,7 +141,7 @@
                     <form method="POST" action="{{ route('customer.login.submit') }}">
                         @csrf
                         <div class="form-group">
-                            <label for="email">Enter your e-mail</label>
+                            <label for="email">Enter your e-mail *</label>
                             <input class="input-field form-control" type="email" id="email" name="email"
                                 value="{{ old('email') }}" placeholder="e.g. elon@tesla.com" autocomplete="email">
                             @error('email')
@@ -149,7 +149,7 @@
                             @enderror
                         </div>
                         <div class="form-group">
-                            <label for="password">Enter your password</label>
+                            <label for="password">Enter your password *</label>
                             <div class="password-wrap">
                                 <input class="input-field form-control pr-5" type="password" id="password" name="password"
                                     placeholder="Password" autocomplete="current-password">
@@ -175,13 +175,13 @@
                                 </span>
                                 <span>Google</span>
                             </a>
-                            {{-- 
+
                             <a href="#" class="social-auth-btn">
                                 <span class="social-auth-icon facebook">
                                     <i class="fa-brands fa-facebook-f"></i>
                                 </span>
                                 <span>Facebook</span>
-                            </a> --}}
+                            </a>
                         </div>
                     </form>
                 </div>

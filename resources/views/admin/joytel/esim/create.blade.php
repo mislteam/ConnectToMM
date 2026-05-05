@@ -17,7 +17,7 @@
     <div class="container-fluid">
         <div class="page-title-head d-flex align-items-center">
             <div class="flex-grow-1 py-3">
-                <h4 class="fs-sm fw-bold m-0 text-black">Joytel</h4>
+                <h4 class="fs-sm fw-bold m-0 text-black">{{ $settings['joytel_title']->value ?? 'Joytel' }}</h4>
                 <ol class="breadcrumb m-0 py-0">
                     <li class="breadcrumb-item"><a href="javascript: void(0);">Home</a></li>
 
@@ -356,7 +356,7 @@
                 <div class="sk-circle-dot"></div>
             </div>
         </div> --}}
-        
+
     </div>
 @endsection
 

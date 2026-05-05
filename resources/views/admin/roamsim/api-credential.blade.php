@@ -5,11 +5,12 @@
     <div class="container-fluid">
         <div class="page-title-head d-flex align-items-center">
             <div class="flex-grow-1 py-3">
-                <h4 class="fs-sm fw-bold m-0 text-black">FiROAM API Credentials</h4>
+                <h4 class="fs-sm fw-bold m-0 text-black">{{ $settings['roam_title']->value ?? 'Roam' }} API Credentials</h4>
                 <ol class="breadcrumb m-0 py-0">
                     <li class="breadcrumb-item"><a href="javascript: void(0);">Home</a></li>
 
-                    <li class="breadcrumb-item active text-black">FiROAM API Credentials</li>
+                    <li class="breadcrumb-item active text-black">{{ $settings['roam_title']->value ?? 'Roam' }} API
+                        Credentials</li>
                 </ol>
             </div>
         </div>
@@ -23,7 +24,8 @@
                         @csrf
                         <div class="card-body px-4">
                             <div class="mb-3">
-                                <label for="productName" class="form-label">FiROAM Client ID</label>
+                                <label for="productName" class="form-label">{{ $settings['roam_title']->value ?? 'Roam' }}
+                                    Client ID</label>
                                 <input type="text" name="client_id" class="form-control"
                                     placeholder="Enter ROAM Client ID(phone number)"
                                     value="{{ old('client_id', $api->client_id ?? '') }}">
@@ -32,7 +34,8 @@
                                 @enderror
                             </div>
                             <div class="mb-3">
-                                <label for="productName" class="form-label">FiROAM Client Secret</label>
+                                <label for="productName" class="form-label">{{ $settings['roam_title']->value ?? 'Roam' }}
+                                    Client Secret</label>
                                 <input type="text" name="client_secret" class="form-control"
                                     placeholder="Enter Roam Client Secret (password)"
                                     value="{{ old('secret_key', $api->secret_key ?? '') }}">
@@ -41,7 +44,8 @@
                                 @enderror
                             </div>
                             <div class="mb-3">
-                                <label for="productName" class="form-label">FiROAM Client Key</label>
+                                <label for="productName" class="form-label">{{ $settings['roam_title']->value ?? 'Roam' }}
+                                    Client Key</label>
                                 <input type="text" name="client_key" class="form-control"
                                     placeholder="Enter Roam Client Key"
                                     value="{{ old('client_key', $api->client_key ?? '') }}">

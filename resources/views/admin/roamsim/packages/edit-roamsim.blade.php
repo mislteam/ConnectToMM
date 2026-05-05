@@ -5,7 +5,7 @@
     <div class="container-fluid">
         <div class="page-title-head d-flex align-items-center">
             <div class="flex-grow-1 py-3">
-                <h4 class="fs-sm fw-bold m-0 text-black">FiROAM</h4>
+                <h4 class="fs-sm fw-bold m-0 text-black">{{ $settings['roam_title']->value ?? 'Roam' }}</h4>
                 <ol class="breadcrumb m-0 py-0">
                     <li class="breadcrumb-item"><a href="javascript: void(0);">Home</a></li>
 
@@ -158,7 +158,7 @@
                                     </div>
                             </div>
                             <!-- {{-- Dropzone Previews --}}
-                                                <div class="dropzone-previews mt-3" id="file-previews"></div> -->
+                                                    <div class="dropzone-previews mt-3" id="file-previews"></div> -->
                             <div class="col-12">
                                 {{-- Status Section --}}
                                 <div class="card mt-3">
