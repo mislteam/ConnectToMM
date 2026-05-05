@@ -176,12 +176,12 @@
                                 <span>Google</span>
                             </a>
 
-                            <a href="#" class="social-auth-btn">
+                            {{-- <a href="#" class="social-auth-btn">
                                 <span class="social-auth-icon facebook">
                                     <i class="fa-brands fa-facebook-f"></i>
                                 </span>
                                 <span>Facebook</span>
-                            </a>
+                            </a> --}}
                         </div>
                     </form>
                 </div>
