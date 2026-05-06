@@ -146,6 +146,24 @@
                             ->values();
 
                         $hasValidPlans = $validPackages->isNotEmpty();
+                        $daypassPackages = $validPackages->filter(function ($plan) {
+                            return (int) ($plan['supportDaypass'] ?? 0) === 1;
+                        });
+
+                        $daypassMinDay = $daypassPackages->isNotEmpty()
+                            ? (int) $daypassPackages->min(function ($plan) {
+                                return (int) ($plan['minDay'] ?? $plan['days'] ?? 1);
+                            })
+                            : null;
+                        $daypassMaxDay = $daypassPackages->isNotEmpty()
+                            ? (int) $daypassPackages->max(function ($plan) {
+                                return (int) ($plan['maxDay'] ?? $plan['days'] ?? 1);
+                            })
+                            : null;
+
+                        $serviceDays = $daypassMinDay !== null && $daypassMaxDay !== null && $daypassMinDay <= $daypassMaxDay
+                            ? range($daypassMinDay, $daypassMaxDay)
+                            : $validPackages->pluck('days')->unique()->sort()->values();
                     @endphp
                     @if ($hasValidPlans)
                         <form class="form-design">
@@ -169,11 +187,7 @@
                                 <label for="serviceDaySlect" class="font-weight-bold">Service Days</label>
                                 <div id="serviceDay" class="btn-group btn-group-toggle d-flex flex-wrap"
                                     data-toggle="buttons">
-                                    @php
-                                        $uniqueDays = collect($activePackages)->pluck('days')->unique()->sort();
-                                    @endphp
-
-                                    @foreach ($uniqueDays as $day)
+                                    @foreach ($serviceDays as $day)
                                         <label class="btn btn-outline-secondary m-1 {{ $loop->first ? 'active' : '' }}">
                                             <input type="radio" name="sday" value="{{ $day }} Days"
                                                 data-day="{{ $day }}" {{ $loop->first ? 'checked' : '' }}>
@@ -381,25 +395,55 @@
                     .filter(day => !Number.isNaN(day)))].sort((a, b) => a - b);
             }
 
+            function getDaypassRange(plans) {
+                const daypassPlans = plans.filter(plan => Number(plan.supportDaypass || 0) === 1);
+
+                if (!daypassPlans.length) {
+                    return null;
+                }
+
+                const minDays = daypassPlans
+                    .map(plan => parseInt(plan.minDay ?? plan.days ?? 1, 10))
+                    .filter(day => !Number.isNaN(day));
+                const maxDays = daypassPlans
+                    .map(plan => parseInt(plan.maxDay ?? plan.days ?? 1, 10))
+                    .filter(day => !Number.isNaN(day));
+
+                if (!minDays.length || !maxDays.length) {
+                    return null;
+                }
+
+                const minDay = Math.min(...minDays);
+                const maxDay = Math.max(...maxDays);
+
+                if (Number.isNaN(minDay) || Number.isNaN(maxDay) || minDay > maxDay) {
+                    return null;
+                }
+
+                return {
+                    minDay,
+                    maxDay,
+                };
+            }
+
             function shouldExpandOneDayPlans(selectedType, plans) {
                 if (!['daily', 'unlimited'].includes(selectedType)) {
                     return false;
                 }
 
-                const uniqueDays = getNumericDays(plans);
-                return uniqueDays.length === 1 && uniqueDays[0] === 1;
+                return Boolean(getDaypassRange(plans));
             }
 
             function getServiceDaysForType(selectedType, plans) {
-                const uniqueDays = getNumericDays(plans);
+                const daypassRange = getDaypassRange(plans);
 
-                if (shouldExpandOneDayPlans(selectedType, plans)) {
+                if (daypassRange && ['daily', 'unlimited'].includes(selectedType)) {
                     return Array.from({
-                        length: 30
-                    }, (_, index) => index + 1);
+                        length: daypassRange.maxDay - daypassRange.minDay + 1
+                    }, (_, index) => daypassRange.minDay + index);
                 }
 
-                return uniqueDays;
+                return getNumericDays(plans);
             }
 
             function getSelectedDayValue() {
