@@ -89,7 +89,8 @@
                         <div class="col-lg-8 col-md-8 col-sm-12 col-12">
                             <div class="content">
                                 @php
-                                    $operators = collect($activePackages[0]['networkDtoList'])
+                                    $firstPackage = collect($activePackages)->first() ?? [];
+                                    $operators = collect(data_get($firstPackage, 'networkDtoList', []))
                                         ->pluck('operator')
                                         ->unique()
                                         ->join(', ');
@@ -110,8 +111,8 @@
                         </div>
                     </div>
                     @php
-                        $premark = $activePackages[0]['premark'];
-                        $premarkLines = array_filter(array_map('trim', preg_split('/<br>|\n/', $premark)));
+                        $premark = data_get($firstPackage, 'premark');
+                        $premarkLines = array_filter(array_map('trim', preg_split('/<br>|\n/', (string) $premark)));
                     @endphp
 
                     @foreach ($premarkLines as $line)
@@ -141,7 +142,12 @@
 
                         $validPackages = collect($activePackages)
                             ->filter(function ($plan) use ($validPriceListCodes) {
-                                return in_array($plan['priceid'], $validPriceListCodes);
+                                $apiCode = $plan['apiCode'] ?? $plan['api_code'] ?? null;
+                                $legacyCode = $plan['priceid'] ?? null;
+                                return (
+                                    ($apiCode !== null && in_array($apiCode, $validPriceListCodes)) ||
+                                    ($legacyCode !== null && in_array($legacyCode, $validPriceListCodes))
+                                );
                             })
                             ->values();
 
@@ -214,12 +220,13 @@
                                                 2,
                                             );
                                         @endphp
+                                        @php $apiCode = $plan['apiCode'] ?? $plan['api_code'] ?? $plan['priceid']; @endphp
                                         <label class="btn btn-outline-secondary m-1 rounded d-none"
                                             data-day="{{ $plan['days'] }}" data-price="{{ $portalPrice }}"
-                                            data-priceid="{{ $plan['priceid'] }}" data-sku="{{ $roam['sku_id'] }}">
+                                            data-apicode="{{ $apiCode }}" data-sku="{{ $roam['sku_id'] }}">
                                             <input type="radio" name="sdata" value="{{ $flow }}"
                                                 data-day="{{ $plan['days'] }}" data-price="{{ $portalPrice }}"
-                                                data-priceid="{{ $plan['priceid'] }}">
+                                                data-apicode="{{ $apiCode }}">
                                             {{ $flow }}
                                         </label>
                                     @endforeach
@@ -278,13 +285,16 @@
                                     ->pluck('exchange_rate', 'product_code');
 
                                 $lowestPrice = collect($itemRoam->packages)
-                                    ->filter(fn($pkg) => isset($pkg['priceid']) && $pkg['status'] == 1)
+                                    ->filter(fn($pkg) => ($pkg['status'] ?? 0) == 1)
                                     ->map(function ($pkg) use ($priceMap) {
-                                        if (!isset($priceMap[$pkg['priceid']])) {
-                                            return null;
-                                        }
+                                        $apiCode = $pkg['apiCode'] ?? $pkg['api_code'] ?? null;
+                                        $legacyCode = $pkg['priceid'] ?? null;
+                                        $rate = ($apiCode !== null && isset($priceMap[$apiCode]))
+                                            ? $priceMap[$apiCode]
+                                            : (($legacyCode !== null && isset($priceMap[$legacyCode])) ? $priceMap[$legacyCode] : null);
+                                        if ($rate === null) return null;
                                         $portalPrice = ($pkg['price'] ?? 0) + ($pkg['openCardFee'] ?? 0);
-                                        return $portalPrice * $priceMap[$pkg['priceid']];
+                                        return $portalPrice * $rate;
                                     })
                                     ->filter()
                                     ->min();
@@ -348,13 +358,23 @@
             const qtyInput = document.getElementById('qty');
             const trafficTypeBox = document.getElementById('trafficType');
 
-            function isProductValid(priceId) {
-                // Ensure comparison works regardless of string or integer type
-                return priceLists.some(p => String(p.product_code) === String(priceId));
+            function getPackageCodes(pkg) {
+                return [...new Set([
+                    pkg.apiCode ?? pkg.api_code ?? null,
+                    pkg.priceid ?? null,
+                ].filter(Boolean))];
             }
 
-            function getExchangeRate(priceId) {
-                const item = priceLists.find(p => String(p.product_code) === String(priceId));
+            function isProductValid(pkg) {
+                const codes = getPackageCodes(pkg);
+                return codes.some(code => priceLists.some(p => String(p.product_code) === String(code)));
+            }
+
+            function getExchangeRate(pkg) {
+                const codes = getPackageCodes(pkg);
+                const item = codes
+                    .map(code => priceLists.find(p => String(p.product_code) === String(code)))
+                    .find(Boolean);
                 return item ? item.exchange_rate : 0;
             }
 
@@ -380,8 +400,7 @@
             }
 
             function getPackagesForType(selectedType) {
-                return allPackages.filter(pkg => normalizeType(pkg) === selectedType && isProductValid(pkg
-                    .priceid));
+                return allPackages.filter(pkg => normalizeType(pkg) === selectedType && isProductValid(pkg));
             }
 
             function getSelectedType() {
@@ -509,12 +528,13 @@
 
                 allPackages.forEach(pkg => {
                     const mappedType = normalizeType(pkg);
+                    const apiCode = getPackageCodes(pkg)[0] || null;
 
-                    if (isProductValid(pkg.priceid)) {
+                    if (isProductValid(pkg)) {
                         typesWithData.add(mappedType);
                     } else {
                         console.warn(
-                            `PriceID ${pkg.priceid} (${pkg.showName}) not found in price_lists table.`);
+                            `Package ${apiCode} (${pkg.showName}) not found in price_lists table.`);
                     }
                 });
 
@@ -557,7 +577,8 @@
                 }
 
                 validPlans.forEach((plan, index) => {
-                    const rate = getExchangeRate(plan.priceid);
+                    const apiCode = getPackageCodes(plan)[0] || null;
+                    const rate = getExchangeRate(plan);
                     const portalPrice = (parseFloat(plan.price) || 0) + (parseFloat(plan.openCardFee) || 0);
                     const dayMultiplier = expandOneDayPlans ? parseInt(selectedDay, 10) || 1 : 1;
                     const calculatedPrice = Math.round(portalPrice * dayMultiplier * rate);
@@ -573,7 +594,7 @@
                     data-flow="${dataLabel}"
                     data-day="${plan.days}"
                     data-price="${calculatedPrice}"
-                    data-priceid="${plan.priceid}"
+                    data-apicode="${apiCode}"
                     ${shouldSelect ? 'checked' : ''}>
                 ${dataLabel}
             `;

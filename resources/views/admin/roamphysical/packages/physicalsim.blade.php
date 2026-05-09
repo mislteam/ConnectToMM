@@ -349,13 +349,24 @@
                                                                     } elseif ($dpName === 'FiROAM ASIA') {
                                                                         $dpInfo = 21;
                                                                     }
+                                                                    $apiCode = $plan['apiCode'] ?? $plan['api_code'] ?? null;
+                                                                    $legacyCode = $plan['priceid'] ?? null;
                                                                     $savedRate = App\Models\PriceList::where(
                                                                         'product_code',
-                                                                        $plan['priceid'],
+                                                                        $apiCode,
                                                                     )
                                                                         ->where('dp_status', $dpStatus)
                                                                         ->where('dp_info', $dpInfo)
                                                                         ->first();
+                                                                    if (!$savedRate && $legacyCode !== null) {
+                                                                        $savedRate = App\Models\PriceList::where(
+                                                                            'product_code',
+                                                                            $legacyCode,
+                                                                        )
+                                                                            ->where('dp_status', $dpStatus)
+                                                                            ->where('dp_info', $dpInfo)
+                                                                            ->first();
+                                                                    }
                                                                     $exchange_rate = round(
                                                                         $portal_price * $usd_exchange_rate,
                                                                         2,
@@ -409,8 +420,8 @@
                                                                         name="plans[{{ $innerIndex }}][profit]"
                                                                         class="profit-input" value="{{ $profit }}">
                                                                     <input type="hidden"
-                                                                        name="plans[{{ $innerIndex }}][priceid]"
-                                                                        value="{{ $plan['priceid'] }}">
+                                                                        name="plans[{{ $innerIndex }}][apiCode]"
+                                                                        value="{{ $apiCode }}">
                                                                     <input type="hidden" class="portal-price"
                                                                         value="{{ $portal_price }}">
                                                                     <input type="hidden"
@@ -419,6 +430,9 @@
                                                                     <input type="hidden"
                                                                         name="plans[{{ $innerIndex }}][dp_name]"
                                                                         value="{{ $plan['dp_name'] ?? '' }}">
+                                                                    <input type="hidden"
+                                                                        name="plans[{{ $innerIndex }}][apiCode]"
+                                                                        value="{{ $apiCode ?? $legacyCode }}">
                                                                     <input type="hidden" class="base-exchange-rate"
                                                                         value="{{ $exchange_rate }}">
                                                                 </tr>

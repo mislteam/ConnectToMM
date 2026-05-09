@@ -185,13 +185,16 @@
                                                     ->pluck('exchange_rate', 'product_code');
 
                                                 $lowestPrice = collect($pkg->packages)
-                                                    ->filter(fn($p) => isset($p['priceid']) && $p['status'] == 1)
+                                                    ->filter(fn($p) => ($p['status'] ?? 0) == 1)
                                                     ->map(function ($p) use ($priceMap) {
-                                                        if (!isset($priceMap[$p['priceid']])) {
-                                                            return null;
-                                                        }
+                                                        $apiCode = $p['apiCode'] ?? $p['api_code'] ?? null;
+                                                        $legacyCode = $p['priceid'] ?? null;
+                                                        $rate = ($apiCode !== null && isset($priceMap[$apiCode]))
+                                                            ? $priceMap[$apiCode]
+                                                            : (($legacyCode !== null && isset($priceMap[$legacyCode])) ? $priceMap[$legacyCode] : null);
+                                                        if ($rate === null) return null;
                                                         $portalPrice = ($p['price'] ?? 0) + ($p['openCardFee'] ?? 0);
-                                                        return $portalPrice * $priceMap[$p['priceid']];
+                                                        return $portalPrice * $rate;
                                                     })
                                                     ->filter()
                                                     ->min();

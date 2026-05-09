@@ -174,12 +174,19 @@
                                                                 $open_card_fee = $plan['openCardFee'] ?? 0;
                                                                 $portal_price = $base_price + $open_card_fee;
 
+                                                                $apiCode = $plan['apiCode'] ?? $plan['api_code'] ?? null;
+                                                                $legacyCode = $plan['priceid'] ?? null;
                                                                 $savedRate = App\Models\PriceList::where(
                                                                     'product_code',
-                                                                    $plan['priceid'],
+                                                                    $apiCode,
                                                                 )
                                                                     ->where('dp_status', 0)
                                                                     ->first();
+                                                                if (!$savedRate && $legacyCode !== null) {
+                                                                    $savedRate = App\Models\PriceList::where('product_code', $legacyCode)
+                                                                        ->where('dp_status', 0)
+                                                                        ->first();
+                                                                }
 
                                                                 $exchange_rate = round(
                                                                     $portal_price * $usd_exchange_rate,
@@ -240,8 +247,8 @@
                                                                         name="plans[{{ $innerIndex }}][sku_id]"
                                                                         value="{{ $pkg->sku_id }}">
                                                                     <input type="hidden"
-                                                                        name="plans[{{ $innerIndex }}][priceid]"
-                                                                        value="{{ $plan['priceid'] }}">
+                                                                        name="plans[{{ $innerIndex }}][apiCode]"
+                                                                        value="{{ $apiCode ?? $legacyCode }}">
                                                                     <input type="hidden" class="portal-price"
                                                                         value="{{ $portal_price }}">
                                                                     <input type="hidden" class="base-exchange-rate"
