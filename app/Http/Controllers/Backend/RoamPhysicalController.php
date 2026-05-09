@@ -239,13 +239,28 @@ class RoamPhysicalController extends Controller
                         $existingPhysical = RoamPhysical::where('sku_id', $skuId)->where('dp_id', $dpId)->first();
                         $oldPackages = is_array($existingPhysical?->packages) ? $existingPhysical->packages : [];
 
-                        $buildPackageKey = static function (array $package): string {
-                            foreach (['pid', 'priceid', 'id'] as $field) {
+                        $buildPackageKeys = static function (array $package): array {
+                            $keys = [];
+
+                            foreach (['apiCode', 'api_code', 'pid', 'priceid', 'id'] as $field) {
                                 if (isset($package[$field]) && $package[$field] !== '') {
-                                    return $field . ':' . (string) $package[$field];
+                                    $keys[] = $field . ':' . (string) $package[$field];
                                 }
                             }
 
+                            if (empty($keys)) {
+                                $keys[] = 'hash:' . md5(json_encode([
+                                    $package['showName'] ?? '',
+                                    $package['days'] ?? null,
+                                    $package['flows'] ?? null,
+                                    $package['unit'] ?? null,
+                                ]));
+                            }
+
+                            return array_values(array_unique($keys));
+                        };
+
+                        $buildFallbackKey = static function (array $package): string {
                             return 'hash:' . md5(json_encode([
                                 $package['showName'] ?? '',
                                 $package['days'] ?? null,
@@ -261,9 +276,11 @@ class RoamPhysicalController extends Controller
                                 continue;
                             }
 
-                            $packageKey = $buildPackageKey($oldPackage);
-                            $statusByKey[$packageKey] = $oldPackage['status'] ?? 1;
-                            $oldPackagesByKey[$packageKey] = $oldPackage;
+                            $packageKeys = $buildPackageKeys($oldPackage);
+                            foreach ($packageKeys as $packageKey) {
+                                $statusByKey[$packageKey] = $oldPackage['status'] ?? 1;
+                                $oldPackagesByKey[$packageKey] = $oldPackage;
+                            }
                         }
 
                         $finalPackages = [];
@@ -271,15 +288,28 @@ class RoamPhysicalController extends Controller
                         foreach ($pkgList as $pkg) {
                             if (!is_array($pkg)) continue;
 
-                            $packageKey = $buildPackageKey($pkg);
+                            $packageKeys = $buildPackageKeys($pkg);
+                            $packageKey = null;
+                            foreach ($packageKeys as $candidateKey) {
+                                if (array_key_exists($candidateKey, $statusByKey)) {
+                                    $packageKey = $candidateKey;
+                                    break;
+                                }
+                            }
+
+                            if (!$packageKey) {
+                                $packageKey = $packageKeys[0] ?? $buildFallbackKey($pkg);
+                            }
+
                             $isNew = !array_key_exists($packageKey, $statusByKey);
                             $beforePackage = $oldPackagesByKey[$packageKey] ?? null;
                             $pkg['status'] = $statusByKey[$packageKey] ?? 1;
                             $pkg['dp_name'] = $dpName;
                             $pkg['sku_id'] = $skuId;
+                            $pkg['apiCode'] = $pkg['apiCode'] ?? ($pkg['api_code'] ?? null);
 
                             if ($beforePackage) {
-                                $fieldsToCompare = ['pid', 'priceid', 'showName', 'days', 'flows', 'unit', 'price', 'status'];
+                                $fieldsToCompare = ['apiCode', 'pid', 'priceid', 'showName', 'days', 'flows', 'unit', 'price', 'status'];
                                 $packageChangedKeys = [];
 
                                 foreach ($fieldsToCompare as $field) {
@@ -324,6 +354,7 @@ class RoamPhysicalController extends Controller
                                         'sku_id'       => $skuId,
                                         'dp_id'        => $dpId,
                                         'dp_name'      => $dpName,
+                                        'apiCode'      => $pkg['apiCode'] ?? '-',
                                         'pid'          => $pkg['pid'] ?? ($pkg['priceid'] ?? '-'),
                                         'before'       => $beforePackage,
                                         'after'        => $pkg,
@@ -527,7 +558,7 @@ class RoamPhysicalController extends Controller
         if ($request->has('plans')) {
 
             foreach ($request->plans as $plan) {
-                $priceid = $plan['priceid'] ?? null;
+                $apiCode = $plan['apiCode'] ?? null;
                 $sellingRate = $plan['selling_rate'] ?? null;
                 $profit      = $plan['profit'] ?? 0;
                 $dpName = $plan['dp_name'] ?? null;
@@ -536,7 +567,7 @@ class RoamPhysicalController extends Controller
                 $skuId = $plan['sku_id'] ?? null;
 
                 // skip invalid
-                if (!$priceid || $sellingRate === null || $sellingRate === '') {
+                if (!$apiCode || $sellingRate === null || $sellingRate === '') {
                     continue;
                 }
 
@@ -558,7 +589,7 @@ class RoamPhysicalController extends Controller
 
                 PriceList::updateOrCreate(
                     [
-                        'product_code' => $priceid,
+                        'product_code' => $apiCode,
                         'dp_status' => $dpStatus,
                         'dp_info' => $dpInfo,
                         'plan' => $skuId

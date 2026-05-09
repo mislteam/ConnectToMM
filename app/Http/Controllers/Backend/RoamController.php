@@ -479,13 +479,28 @@ class RoamController extends Controller
                 $old = Roam::where('sku_id', $skuId)->first();
                 $oldPackages = is_array($old?->packages) ? $old->packages : [];
 
-                $buildPackageKey = static function (array $package): string {
-                    foreach (['pid', 'priceid', 'id'] as $field) {
+                $buildPackageKeys = static function (array $package): array {
+                    $keys = [];
+
+                    foreach (['apiCode', 'api_code', 'pid', 'priceid', 'id'] as $field) {
                         if (isset($package[$field]) && $package[$field] !== '') {
-                            return $field . ':' . (string) $package[$field];
+                            $keys[] = $field . ':' . (string) $package[$field];
                         }
                     }
 
+                    if (empty($keys)) {
+                        $keys[] = 'hash:' . md5(json_encode([
+                            $package['showName'] ?? '',
+                            $package['days'] ?? null,
+                            $package['flows'] ?? null,
+                            $package['unit'] ?? null,
+                        ]));
+                    }
+
+                    return array_values(array_unique($keys));
+                };
+
+                $buildFallbackKey = static function (array $package): string {
                     return 'hash:' . md5(json_encode([
                         $package['showName'] ?? '',
                         $package['days'] ?? null,
@@ -501,9 +516,11 @@ class RoamController extends Controller
                         continue;
                     }
 
-                    $packageKey = $buildPackageKey($oldPackage);
-                    $statusByKey[$packageKey] = $oldPackage['status'] ?? 1;
-                    $oldPackagesByKey[$packageKey] = $oldPackage;
+                    $packageKeys = $buildPackageKeys($oldPackage);
+                    foreach ($packageKeys as $packageKey) {
+                        $statusByKey[$packageKey] = $oldPackage['status'] ?? 1;
+                        $oldPackagesByKey[$packageKey] = $oldPackage;
+                    }
                 }
 
                 $finalPackages = [];
@@ -513,7 +530,23 @@ class RoamController extends Controller
                         continue;
                     }
 
-                    $packageKey = $buildPackageKey($package);
+                    $packageKeys = $buildPackageKeys($package);
+                    $packageKey = null;
+                    foreach ($packageKeys as $candidateKey) {
+                        if (isset($seenKeys[$candidateKey])) {
+                            continue;
+                        }
+
+                        if (array_key_exists($candidateKey, $statusByKey)) {
+                            $packageKey = $candidateKey;
+                            break;
+                        }
+                    }
+
+                    if (!$packageKey) {
+                        $packageKey = $packageKeys[0] ?? $buildFallbackKey($package);
+                    }
+
                     if (isset($seenKeys[$packageKey])) {
                         continue;
                     }
@@ -523,9 +556,10 @@ class RoamController extends Controller
                     $beforePackage = $oldPackagesByKey[$packageKey] ?? null;
                     $package['status'] = $statusByKey[$packageKey] ?? 1;
                     $package['sku_id'] = $skuId;
+                    $package['apiCode'] = $package['apiCode'] ?? ($package['api_code'] ?? null);
                     $packageChangedKeys = [];
                     if ($beforePackage) {
-                        $fieldsToCompare = ['pid', 'priceid', 'showName', 'days', 'flows', 'unit', 'price', 'status'];
+                        $fieldsToCompare = ['apiCode', 'pid', 'priceid', 'showName', 'days', 'flows', 'unit', 'price', 'status'];
 
                         foreach ($fieldsToCompare as $field) {
                             $beforeVal = $beforePackage[$field] ?? null;
@@ -572,6 +606,7 @@ class RoamController extends Controller
                     } elseif (!empty($packageChangedKeys)) {
                         $updatedPackages[] = [
                             'sku_id'       => $skuId,
+                            'apiCode'      => $package['apiCode'] ?? '-',
                             'pid'          => $package['pid'] ?? ($package['priceid'] ?? '-'),
                             'before'       => $beforePackage,
                             'after'        => $package,
@@ -850,13 +885,13 @@ class RoamController extends Controller
 
             foreach ($request->plans as $plan) {
 
-                $priceid     = $plan['priceid'] ?? null;
+                $apiCode     = $plan['apiCode'] ?? null;
                 $sellingRate = $plan['selling_rate'] ?? null;
                 $profit      = $plan['profit'] ?? 0;
                 $skuId       = $plan['sku_id'] ?? null;
 
                 // skip invalid
-                if (!$priceid || $sellingRate === null || $sellingRate === '') {
+                if (!$apiCode || $sellingRate === null || $sellingRate === '') {
                     continue;
                 }
 
@@ -865,7 +900,7 @@ class RoamController extends Controller
 
                 PriceList::updateOrCreate(
                     [
-                        'product_code' => $priceid,
+                        'product_code' => $apiCode,
                         'plan'         => $skuId,
                         'dp_status'    => 0,
                     ],

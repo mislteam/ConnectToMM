@@ -55,18 +55,21 @@
                                         $lowestPrice = null;
 
                                         if ($itemRoam && !empty($itemRoam->packages)) {
-                                            $priceMap = App\Models\PriceList::where('plan', $package->sku_id)
-                                                ->where('dp_status', 1)
-                                                ->pluck('exchange_rate', 'product_code');
+                                $priceMap = App\Models\PriceList::where('plan', $package->sku_id)
+                                    ->where('dp_status', 1)
+                                    ->pluck('exchange_rate', 'product_code');
 
-                                            $lowestPrice = collect($itemRoam->packages)
-                                                ->filter(fn($pkg) => isset($pkg['priceid']) && $pkg['status'] == 1)
-                                                ->map(function ($pkg) use ($priceMap) {
-                                                    if (!isset($priceMap[$pkg['priceid']])) {
-                                                        return null;
-                                                    }
+                                $lowestPrice = collect($itemRoam->packages)
+                                    ->filter(fn($pkg) => ($pkg['status'] ?? 0) == 1)
+                                    ->map(function ($pkg) use ($priceMap) {
+                                        $apiCode = $pkg['apiCode'] ?? $pkg['api_code'] ?? null;
+                                        $legacyCode = $pkg['priceid'] ?? null;
+                                                    $rate = ($apiCode !== null && isset($priceMap[$apiCode]))
+                                                        ? $priceMap[$apiCode]
+                                                        : (($legacyCode !== null && isset($priceMap[$legacyCode])) ? $priceMap[$legacyCode] : null);
+                                                    if ($rate === null) return null;
                                                     $portalPrice = ($pkg['price'] ?? 0) + ($pkg['openCardFee'] ?? 0);
-                                                    return $portalPrice * $priceMap[$pkg['priceid']];
+                                                    return $portalPrice * $rate;
                                                 })
                                                 ->filter()
                                                 ->min();

@@ -39,7 +39,13 @@ class ESimController extends Controller
                 $validPackage = collect($roam->packages)
                     ->where('status', 1)
                     ->first(function ($pkg) use ($priceCodes) {
-                        return in_array($pkg['priceid'], $priceCodes);
+                        $apiCode = $pkg['apiCode'] ?? $pkg['api_code'] ?? null;
+                        $legacyCode = $pkg['priceid'] ?? null;
+
+                        return (
+                            ($apiCode !== null && in_array($apiCode, $priceCodes)) ||
+                            ($legacyCode !== null && in_array($legacyCode, $priceCodes))
+                        );
                     });
 
                 return !empty($validPackage);
@@ -153,7 +159,13 @@ class ESimController extends Controller
         $activePackages = collect($packages)
             ->where('status', 1)
             ->filter(function ($pkg) use ($priceListCodes) {
-                return in_array($pkg['priceid'], $priceListCodes);
+                $apiCode = $pkg['apiCode'] ?? $pkg['api_code'] ?? null;
+                $legacyCode = $pkg['priceid'] ?? null;
+
+                return (
+                    ($apiCode !== null && in_array($apiCode, $priceListCodes)) ||
+                    ($legacyCode !== null && in_array($legacyCode, $priceListCodes))
+                );
             })
             ->values();
 
