@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Frontend;
 use App\Http\Controllers\Controller;
 use App\Models\Banner;
 use App\Models\Blog;
+use App\Models\Customer;
 use App\Models\Faq;
 use App\Models\HelpSection;
 use App\Models\Section;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 
 class HomeController extends Controller
 {
@@ -54,5 +56,40 @@ class HomeController extends Controller
         $banner = Banner::where('banner_type', 'contact_us')->first();
         $section = Section::where('section_key', 'need_more_help')->first();
         return view('frontend.contact', compact('banner', 'section'));
+    }
+
+    public function customerProfile()
+    {
+        $banner = Banner::where('banner_type', 'my_account')->first();
+        return view('frontend.user.profile', compact('banner'));
+    }
+
+    public function customerEdit(Customer $customer, $edit_type, Request $request)
+    {
+        if ($edit_type === 'profile') {
+            $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email'
+            ]);
+            $customer->name = $request->name;
+            $customer->email = $request->email;
+            $customer->save();
+            return back()->with('success', 'Customer Profile Updated Successfully!');
+        } else if ($edit_type === 'password') {
+            $request->validate([
+                'old_password' => 'required|min:8',
+                'new_password' => 'required|min:8|different:old_password',
+                'confirm_password' => 'required|same:new_password'
+            ]);
+
+            if (!Hash::check($request->old_password, $customer->password)) {
+                return back()->withErrors(['old_password' => 'Old password is incorrect.']);
+            }
+
+            $customer->password = Hash::make($request->new_password);
+            $customer->save();
+            auth()->logout();
+            return redirect()->route('user.login');
+        }
     }
 }

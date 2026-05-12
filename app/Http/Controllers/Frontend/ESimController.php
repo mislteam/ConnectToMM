@@ -67,6 +67,11 @@ class ESimController extends Controller
     //for roam
     public function roamSearch(Request $request)
     {
+        if ($request->filled('iccid_number')) {
+            session(['iccid_no' => $request->iccid_number]);
+        } else {
+            session()->forget('iccid_no');
+        }
         $validated = $request->validate([
             'countryname'   => 'required|array',
             'countryname.*' => 'string'
@@ -139,8 +144,11 @@ class ESimController extends Controller
     //     return view('frontend.esim.roam-package-view',compact('usd_exchange_rate','profit','skupackages','skus','activePackages','sku','roam','pricelists','currencies'));
     // }
 
-    public function roamView($skuid)
+    public function roamView($skuid, Request $request)
     {
+        if ($request->has('list_view')) {
+            session()->forget('iccid_no');
+        }
         $roam = Roam::where('sku_id', $skuid)->first();
 
         $packages = $roam->packages;
@@ -198,5 +206,48 @@ class ESimController extends Controller
             'hasValidPlans',
             'randomSkus'
         ));
+    }
+
+    public function cart($skuid, Request $request)
+    {
+        $sku = RoamSku::where('sku_id', $skuid)->first();
+        $request->validate([
+            'sday' => 'required',
+            'sdata' => 'required',
+            'display_price' => 'required',
+            'qty' => 'required',
+        ]);
+        $cart = [
+            'sku' => $sku->id,
+            'service_day' => $request->sday,
+            'service_data' => $request->sdata,
+            'qty' => $request->qty,
+            'price' => $request->display_price
+        ];
+        session(['roam_cart' => $cart]);
+        return view('frontend.esim.cart', [
+            'sku' => $sku,
+            'service_day' => $request->sday,
+            'service_data' => $request->sdata,
+            'qty' => request()->qty,
+            'price' => request()->display_price,
+        ]);
+    }
+
+    // joytel checkout
+    public function checkout()
+    {
+        $cart = session('roam_cart');
+        if (!$cart) {
+            return redirect()->back()->with('error', 'Cart is Empty!');
+        }
+        $sku = RoamSku::findOrFail($cart['sku']);
+        return view('frontend.esim.checkout', [
+            'sku' => $sku,
+            'service_day' => $cart['service_day'],
+            'service_data' => $cart['service_data'],
+            'qty' => $cart['qty'],
+            'price' => $cart['price']
+        ]);
     }
 }

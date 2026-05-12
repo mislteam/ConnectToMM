@@ -171,6 +171,7 @@
                                 <small class="text-danger">{{ $message }}</small>
                             @enderror
                         </div>
+
                         <div class="form-group">
                             <label for="password_confirmation">Confirm your password *</label>
                             <div class="password-wrap">

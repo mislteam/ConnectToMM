@@ -22,6 +22,16 @@
     </div>
 @endif
 
+@if ($errors->any())
+    <div class="alert alert-danger alert-dismissible fade show alert-fixed" role="alert" data-auto-dismiss="5000">
+        @foreach ($errors->all() as $error)
+            {{ $error }}
+        @endforeach
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
+        </button>
+    </div>
+@endif
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         document.querySelectorAll('[data-auto-dismiss]').forEach(function(alertEl) {
@@ -44,7 +54,7 @@
 </script>
 
 <!-- @if ($errors->any())
-    <div class="alert alert-danger alert-dismissible fade show alert-fixed" role="alert">
+<div class="alert alert-danger alert-dismissible fade show alert-fixed" role="alert">
         <ul class="mb-0">
             @foreach ($errors->all() as $error)
 <li>{{ $error }}</li>
