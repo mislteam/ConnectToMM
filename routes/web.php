@@ -29,6 +29,10 @@ Route::get('/', function () {
     return redirect()->route('Index');
 });
 
+Route::get('/login', function () {
+    return redirect()->route('user.login');
+});
+
 /// ==================
 // Public Routes
 // ==================
@@ -67,11 +71,20 @@ Route::middleware('guest:customers')->group(function () {
     Route::post('/customer/email/resend', [CustomerAuthController::class, 'resendEmailOtp'])->name('verification.resend.otp');
 });
 
-Route::post('/customer/logout', [CustomerAuthController::class, 'logout'])->name('customer.logout')->middleware('auth:customers');
+Route::middleware('auth:customers')->group(function () {
+    Route::post('/customer/logout', [CustomerAuthController::class, 'logout'])->name('customer.logout');
 
-// cart + checkout
-Route::get('/joytel-package/cart/{joytel}', [ESimController::class, 'cart'])->name('joytelpackage.cart');
-Route::get('/joytel-package/checkout/{joytel}/{day}/{data}', [ESimController::class, 'checkout'])->name('joytelpackage.checkout');
+    // joy checkout
+    Route::post('/joytel-package/cart/{joytel}', [FrontendJoytelController::class, 'cart'])->name('joytelpackage.cart');
+    Route::get('/joytel-package/checkout', [FrontendJoytelController::class, 'checkout'])->name('joytelpackage.checkout');
+
+    // roam checkout
+    Route::post('/roam-package/cart/{skuId}', [ESimController::class, 'cart'])->name('roam.cart');
+    Route::get('/roam-package/checkout', [ESimController::class, 'checkout'])->name('roam.checkout');
+
+    Route::get('/customer/profile', [HomeController::class, 'customerProfile'])->name('customer.profile.index');
+    Route::post('/customer/edit/{customer}/{edit_type}', [HomeController::class, 'customerEdit'])->name('customer.edit');
+});
 
 // e-sim
 Route::get('/esim/roam', [ESimController::class, 'roam'])->name('esim.roam');

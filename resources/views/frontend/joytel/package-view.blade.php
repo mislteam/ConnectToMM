@@ -183,7 +183,9 @@
                         $hasValidPlans = $allPlans->isNotEmpty();
                     @endphp
                     @if ($hasValidPlans)
-                        <form class="form-design" action="#" method="GET">
+                        <form class="form-design" action="{{ route('joytelpackage.cart', $joytel->id) }}"
+                            method="POST">
+                            @csrf
                             <!-- Traffic Types -->
                             <div class="form-group">
                                 <label for="trafficType" class="font-weight-bold">Type of Plan</label>
@@ -397,7 +399,6 @@
                     @endif
                 </div>
             </div>
-
             <!-- Random card section -->
             <h4 class="mb-4">You may also like</h4>
             <div class="services-data">
@@ -555,8 +556,6 @@
                     return matchServiceDay(plan.service_day, selectedDay);
                 });
 
-                console.log('Filtered Plans:', validPlans);
-
                 if (validPlans.length === 0) {
                     dataBox.innerHTML = '<span class="text-danger">No plans available.</span>';
                     total_price.innerText = '';
@@ -664,9 +663,6 @@
                     des.innerText = '-';
                     total_price.innerText = '';
                 }
-                console.log('Selected Type:', selectedType);
-                console.log('Key:', key);
-                console.log('All Plans:', allPlans);
             }
 
             function normalizeDay(day) {
@@ -724,8 +720,6 @@
                 if (typeValue.includes('total')) key = 'total';
                 else if (typeValue.includes('unlimited')) key = 'unlimited';
 
-                console.log('Day clicked:', input.value);
-
                 //renderDataPlans(trafficTypesData[key], input.value);
                 const filteredPlans = trafficTypesData[key].filter(plan => isProductValid(plan
                     .product_code));
@@ -745,18 +739,8 @@
                 setSelectedDataPlan(label);
             });
 
-            document.querySelector('.qty-plus').addEventListener('click', () => {
-                const qty = document.getElementById('qty');
-                qty.value = parseInt(qty.value) + 1;
-                updatePriceDisplay();
-            });
-
-            document.querySelector('.qty-minus').addEventListener('click', () => {
-                const qty = document.getElementById('qty');
-                if (qty.value > 1) {
-                    qty.value = parseInt(qty.value) - 1;
-                    updatePriceDisplay();
-                }
+            ['.qty-plus', '.qty-minus'].forEach(selector => {
+                document.querySelector(selector).addEventListener('click', updatePriceDisplay);
             });
 
             renderServiceDays();

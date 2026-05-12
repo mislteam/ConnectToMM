@@ -61,6 +61,7 @@ class PhysicalSimController extends Controller
 
     public function roamPhysicalSearch(Request $request)
     {
+        session(['iccid_no' => $request->iccid_number]);
         $validated = $request->validate([
             'countryname'   => 'required|array',
             'countryname.*' => 'string'

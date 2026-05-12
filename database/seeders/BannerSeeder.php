@@ -69,16 +69,40 @@ class BannerSeeder extends Seeder
                 'banner_type' => 'rom_physical',
                 'status' => 0
             ],
+            [
+                'page' => 'My Account',
+                'title' => 'My Account',
+                'subtitle' => 'My Account Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+                'banner_type' => 'my_account',
+                'status' => 0
+            ],
+            [
+                'page' => 'Order',
+                'title' => 'Order',
+                'subtitle' => 'Order Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+                'banner_type' => 'order',
+                'status' => 0
+            ],
+            [
+                'page' => 'Checkout',
+                'title' => 'Checkout',
+                'subtitle' => 'Checkout Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+                'banner_type' => 'checkout',
+                'status' => 0
+            ],
 
         ];
         foreach ($banners as $banner) {
-            \App\Models\Banner::create([
-                'page' => $banner['page'],
-                'title' => $banner['title'],
-                'subtitle' => $banner['subtitle'],
-                'banner_type' => $banner['banner_type'],
-                'status' => $banner['status']
-            ]);
+            \App\Models\Banner::updateOrCreate(
+                ['page' => $banner['page']],
+
+                [
+                    'title' => $banner['title'],
+                    'subtitle' => $banner['subtitle'],
+                    'banner_type' => $banner['banner_type'],
+                    'status' => $banner['status']
+                ]
+            );
         }
     }
 }

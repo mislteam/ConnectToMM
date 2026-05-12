@@ -71,7 +71,8 @@
                                         {{ number_format($lowest_price) }}
                                         MMK
                                     </p>
-                                    <a href="{{ route('joytel.packageview', $package->id) }}" class="more">View
+                                    <a href="{{ route('joytel.packageview', ['joytel' => $package->id, 'type' => 'esim']) }}"
+                                        class="more">View
                                         Offer</a>
                                 </div>
                             </div>

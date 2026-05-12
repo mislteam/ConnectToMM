@@ -60,7 +60,22 @@
                          <li class="nav-item {{ request()->routeIs('About') ? 'active' : '' }}">
                              <a class="nav-link" href="{{ route('About') }}">About Us</a>
                          </li>
-                         <li class="nav-item dropdown megamenu">
+                         @php
+                             $isServiceActive = request()->routeIs(
+                                 'esimIndex',
+                                 'esim.search',
+                                 'joytel.packageview',
+                                 'esim.roam',
+                                 'esim.roamsearch',
+                                 'esim.roampackageview',
+                                 'physicalIndex',
+                                 'physical.search',
+                                 'physical.roam',
+                                 'physical.roamsearch',
+                                 'physical.roampackageview',
+                             );
+                         @endphp
+                         <li class="nav-item dropdown megamenu {{ $isServiceActive ? 'active' : '' }}">
                              <a class="nav-link dropdown-toggle" href="#" id="megamenu"
                                  data-toggle="dropdown">Our Services</a>
                              <div class="dropdown-menu" aria-labelledby="megamenu">
@@ -69,12 +84,13 @@
                                      <div class="col-md-6">
                                          <h5 class="font-weight-bold">E-SIM</h5>
                                          <ul class="list-unstyled drop-down-pages">
-                                             <li class="nav-item {{ request()->routeIs('esimIndex') ? 'active' : '' }}">
+                                             <li
+                                                 class="nav-item {{ request()->routeIs('esimIndex', 'esim.search') || (request()->routeIs('joytel.packageview') && request()->type == 'esim') ? 'active' : '' }}">
                                                  <a class="nav-link"
                                                      href="{{ route('esimIndex') }}">{{ $settings['joytel_title']->value ?? 'Joytel' }}</a>
                                              </li>
                                              <li
-                                                 class="nav-item {{ request()->routeIs('esim.roam') ? 'active' : '' }}">
+                                                 class="nav-item {{ request()->routeIs('esim.roam', 'esim.roamsearch', 'esim.roampackageview') ? 'active' : '' }}">
                                                  <a class="nav-link"
                                                      href="{{ route('esim.roam') }}">{{ $settings['roam_title']->value ?? 'Joytel' }}</a>
                                              </li>
@@ -85,12 +101,12 @@
                                          <h5 class="font-weight-bold">Physical SIM</h5>
                                          <ul class="list-unstyled drop-down-pages">
                                              <li
-                                                 class="nav-item {{ request()->routeIs('physicalIndex') ? 'active' : '' }}">
+                                                 class="nav-item {{ request()->routeIs('physicalIndex', 'physical.search') || (request()->routeIs('joytel.packageview') && request()->type == 'physical') ? 'active' : '' }}">
                                                  <a class="nav-link"
                                                      href="{{ route('physicalIndex') }}">{{ $settings['joytel_title']->value ?? 'Joytel' }}</a>
                                              </li>
                                              <li
-                                                 class="nav-item {{ request()->routeIs('physical.roam') ? 'active' : '' }}">
+                                                 class="nav-item {{ request()->routeIs('physical.roam', 'physical.roamsearch', 'physical.roampackageview') ? 'active' : '' }}">
                                                  <a class="nav-link"
                                                      href="{{ route('physical.roam') }}">{{ $settings['roam_title']->value ?? 'Joytel' }}</a>
                                              </li>
@@ -115,13 +131,23 @@
                                      <i class="fa-solid fa-user-check"></i>
                                      {{ \Illuminate\Support\Str::limit($customer->name, 16) }}
                                  </a>
-                                 <div class="dropdown-menu dropdown-menu-right customer-dropdown"
+                                 <div class="dropdown-menu dropdown-menu-end customer-dropdown mt-4"
                                      aria-labelledby="customerMenu">
+                                     <!-- Header -->
                                      <div class="dropdown-header">
-                                         <small class="text-muted d-block">Signed in as</small>
-                                         <strong class="d-block text-truncate">{{ $customer->name }}</strong>
+                                         <small class="text-muted d-block">Welcome back!</small>
                                      </div>
+
+                                     <!-- My Profile -->
+                                     <a href="{{ route('customer.profile.index') }}" class="dropdown-item">
+                                         <i class="ti ti-user-circle me-2 fs-17 align-middle"></i>
+                                         <span class="dropdown-item-label align-middle">Profile</span>
+                                     </a>
+
+                                     <!-- Divider -->
                                      <div class="dropdown-divider"></div>
+
+                                     <!-- Logout -->
                                      <form method="POST" action="{{ route('customer.logout') }}" class="m-0">
                                          @csrf
                                          <button type="submit"

@@ -28,7 +28,7 @@
 
 
                         <div class="d-flex align-items-center gap-2">
-                            <span class="me-2 fw-semibold">Filter By:</span>
+                            {{-- <span class="me-2 fw-semibold">Filter By:</span>
 
                             <!-- Role Type Filter -->
                             <div class="app-search">
@@ -38,7 +38,7 @@
                                     <option value="Editor">Editor</option>
                                 </select>
                                 <i data-lucide="shield" class="app-search-icon text-muted"></i>
-                            </div>
+                            </div> --}}
 
                             <!-- Status Filter -->
                             <div class="app-search">
@@ -81,35 +81,48 @@
                             </thead>
                             <tbody>
                                 <!-- Row 1 -->
-                                <tr>
-                                    <td class="ps-3"><input
-                                            class="form-check-input form-check-input-light fs-14 file-item-check mt-0"
-                                            type="checkbox" value="option"></td>
-                                    <td>
-                                        <h5 class="m-0"><a href="#" class="link-reset">1</a>
-                                        </h5>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex align-items-center gap-2">
-                                            <div>
-                                                <h5 class="fs-base mb-0"><a data-sort="user" href="#"
-                                                        class="link-reset">Carlos Méndez</a></h5>
+                                @forelse ($customers as $customer)
+                                    <tr>
+                                        <td class="ps-3"><input
+                                                class="form-check-input form-check-input-light fs-14 file-item-check mt-0"
+                                                type="checkbox" value="option"></td>
+                                        <td>
+                                            <h5 class="m-0"><a href="#"
+                                                    class="link-reset">{{ $loop->iteration }}</a>
+                                            </h5>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex align-items-center gap-2">
+                                                <div>
+                                                    <h5 class="fs-base mb-0"><a data-sort="user" href="#"
+                                                            class="link-reset">{{ $customer->name }}</a></h5>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </td>
-                                    <td>carlos@gmail.com</td>
-                                    <td>18 Apr, 2025 <small class="text-muted">9:45 AM</small></td>
-                                    <td><span class="badge badge-soft-success text-success badge-label">Active</span>
-                                    </td>
-                                    <td>
-                                        <div class="d-flex justify-content-center gap-1">
-                                            <a href="#" class="btn btn-light btn-icon btn-sm rounded-circle"><i
-                                                    class="ti ti-eye fs-lg"></i></a>
-                                            <a href="#" class="btn btn-light btn-icon btn-sm rounded-circle"><i
-                                                    class="ti ti-edit fs-lg"></i></a>
-                                        </div>
-                                    </td>
-                                </tr>
+                                        </td>
+                                        <td>{{ $customer->email }}</td>
+                                        <td>{{ $customer->created_at->format('d M, Y') }} <small
+                                                class="text-muted">{{ $customer->created_at->format('h:i A') }}</small>
+                                        </td>
+                                        <td><span
+                                                class="badge {{ $customer->status == 1 ? 'badge-soft-success text-success' : 'badge-soft-danger text-danger' }} badge-label">{{ $customer->status == 1 ? 'Active' : 'Inactive' }}</span>
+                                        </td>
+                                        <td>
+                                            <div class="d-flex justify-content-center gap-1">
+                                                <a href="#" class="btn btn-light btn-icon btn-sm rounded-circle"><i
+                                                        class="ti ti-eye fs-lg"></i></a>
+                                                <a href="#" class="btn btn-light btn-icon btn-sm rounded-circle"><i
+                                                        class="ti ti-edit fs-lg"></i></a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td>
+                                            <p class="text-center">Nothing Found.</p>
+                                        </td>
+                                    </tr>
+                                @endforelse
+
                             </tbody>
                         </table>
                     </div>

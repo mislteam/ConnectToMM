@@ -493,10 +493,10 @@
                 <div class="dropdown">
                     <a class="topbar-link dropdown-toggle drop-arrow-none px-2" data-bs-toggle="dropdown"
                         data-bs-offset="0,16" href="#!" aria-haspopup="false" aria-expanded="false">
-                        <img src="{{ asset('assets/images/user-3.jpg') }}" width="32"
-                            class="rounded-circle me-lg-2 d-flex" alt="user-image">
+                        <img src="{{ auth()->user()->profile_image ? asset('storage/profile_images/' . auth()->user()->profile_image) : asset('assets/images/user-3.jpg') }}"
+                            width="32" class="rounded-circle me-lg-2 d-flex" alt="user-image">
                         <div class="d-lg-flex align-items-center gap-1 d-none">
-                            <h5 class="my-0">Admin</h5>
+                            <h5 class="my-0">{{ auth()->user()->name }}</h5>
                             <i class="ti ti-chevron-down align-middle"></i>
                         </div>
                     </a>
@@ -507,13 +507,13 @@
                         </div>
 
                         <!-- My Profile -->
-                        <a href="pages-profile.html" class="dropdown-item">
+                        <a href="{{ route('view.admin', auth()->user()->id) }}" class="dropdown-item">
                             <i class="ti ti-user-circle me-2 fs-17 align-middle"></i>
                             <span class="align-middle">Profile</span>
                         </a>
 
                         <!-- Settings -->
-                        <a href="javascript:void(0);" class="dropdown-item">
+                        <a href="{{ route('admin.edit', auth()->user()->id) }}" class="dropdown-item">
                             <i class="ti ti-settings-2 me-2 fs-17 align-middle"></i>
                             <span class="align-middle">Account Settings</span>
                         </a>

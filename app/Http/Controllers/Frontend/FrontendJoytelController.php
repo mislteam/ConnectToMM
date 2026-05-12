@@ -36,8 +36,53 @@ class FrontendJoytelController extends Controller
         return $this->renderPackages('frontend.joytel.physical.packages', 'recharge', $request);
     }
 
+    // jotel add to cart
+    public function cart(Joytel $joytel, Request $request)
+    {
+        $request->validate([
+            'sday' => 'required',
+            'sdata' => 'required',
+            'display_price' => 'required',
+            'qty' => 'required',
+        ]);
+        $cart = [
+            'joytel' => $joytel->id,
+            'service_day' => $request->sday,
+            'service_data' => $request->sdata,
+            'qty' => $request->qty,
+            'price' => $request->display_price
+        ];
+
+        session(['joytel_cart' => $cart]);
+
+        return view('frontend.joytel.cart', [
+            'joytel' => $joytel,
+            'service_day' => $request->sday,
+            'service_data' => $request->sdata,
+            'qty' => $request->qty,
+            'price' => $request->display_price
+        ]);
+    }
+
+    // joytel checkout
+    public function checkout()
+    {
+        $cart = session('joytel_cart');
+        if (!$cart) {
+            return redirect()->back()->with('error', 'Cart is Empty!');
+        }
+        $joytel = Joytel::findOrFail($cart['joytel']);
+        return view('frontend.joytel.check-out', [
+            'joytel' => $joytel,
+            'service_day' => $cart['service_day'],
+            'service_data' => $cart['service_data'],
+            'qty' => $cart['qty'],
+            'price' => $cart['price']
+        ]);
+    }
+
     // show each package
-    public function packageView(Joytel $joytel)
+    public function packageView(Joytel $joytel, Request $request)
     {
         // Determine SIM type
         $type = $joytel->product_type;
