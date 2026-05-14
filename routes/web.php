@@ -68,7 +68,7 @@ Route::middleware('guest:customers')->group(function () {
 
     Route::get('/customer/email/verify', [CustomerAuthController::class, 'showVerificationNotice'])->name('verification.notice');
     Route::post('/customer/email/verify', [CustomerAuthController::class, 'verifyEmailOtp'])->name('verification.verify.otp');
-    Route::post('/customer/email/resend', [CustomerAuthController::class, 'resendEmailOtp'])->name('verification.resend.otp');
+    Route::delete('/customer/email/resend', [CustomerAuthController::class, 'resendEmailOtp'])->name('verification.resend.otp');
 });
 
 Route::middleware('auth:customers')->group(function () {
@@ -79,11 +79,25 @@ Route::middleware('auth:customers')->group(function () {
     Route::get('/joytel-package/checkout', [FrontendJoytelController::class, 'checkout'])->name('joytelpackage.checkout');
 
     // roam checkout
-    Route::post('/roam-package/cart/{skuId}', [ESimController::class, 'cart'])->name('roam.cart');
-    Route::get('/roam-package/checkout', [ESimController::class, 'checkout'])->name('roam.checkout');
+    Route::prefix('roam')->group(function () {
+        Route::post('/esim/cart', [ESimController::class, 'cart'])->name('roam.esim.cart');
+        Route::get('/esim/checkout', [ESimController::class, 'checkout'])->name('roam.esim.checkout');
+
+        Route::post('/physical/cart', [PhysicalSimController::class, 'cart'])->name('roam.physical.cart');
+        Route::get('/physical/checkout', [PhysicalSimController::class, 'checkout'])->name('roam.physical.checkout');
+
+        Route::post('/physical/remove-order', [PhysicalSimController::class, 'removeOrder'])->name('roam.physical.remove');
+
+        // web.php
+
+        Route::delete('/physical/remove-cart/{key}', [PhysicalSimController::class, 'removeCart']);
+    });
 
     Route::get('/customer/profile', [HomeController::class, 'customerProfile'])->name('customer.profile.index');
     Route::post('/customer/edit/{customer}/{edit_type}', [HomeController::class, 'customerEdit'])->name('customer.edit');
+
+    // order detail page
+    Route::get('/customer/order-detail', [HomeController::class, 'orderDetail'])->name('customer.order.detail');
 });
 
 // e-sim

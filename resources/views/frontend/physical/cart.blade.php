@@ -1,6 +1,27 @@
 @extends('frontend.layouts.index')
 @section('title', 'Connect To Myanmar')
 @section('content')
+    <style>
+        .text-size-14 {
+            font-size: 14px;
+            line-height: 24px;
+        }
+
+        .quantity-wrapper {
+            min-width: 100px;
+            max-width: 110px;
+        }
+
+        .custom-close {
+            filter: invert(14%) sepia(87%) saturate(7186%) hue-rotate(359deg) brightness(97%) contrast(114%);
+            width: 20px;
+            height: 20px;
+        }
+
+        .trash-bin {
+            color: var(--e-global-color-accent);
+        }
+    </style>
     <!-- Sub-Banner -->
     <x-banner key="order" />
     <!--Services section-->
@@ -21,38 +42,45 @@
                             <table class="table">
                                 <thead>
                                     <tr>
+                                        <th class="px-0"></th>
                                         <th>
-                                            <p class="mb-0 text-size-16 font-weight-bold text-dark">Product </p>
+                                            <p class="mb-0 text-size-14 font-weight-bold text-dark pl-2">Product </p>
                                         </th>
                                         <th>
-                                            <p class="mb-0 text-size-16 font-weight-bold text-dark">Amount</p>
+                                            <p class="mb-0 text-size-14 font-weight-bold text-dark">Amount</p>
                                         </th>
                                         <th>
-                                            <p class="mb-0 text-size-16 font-weight-bold text-dark">Qty</p>
+                                            <p class="mb-0 text-size-14 font-weight-bold text-dark">Qty</p>
                                         </th>
                                         <th>
-                                            <p class="mb-0 text-size-16 font-weight-bold text-dark">Total Amount</p>
-                                        </th>
-                                        <th>
-                                            <p class="mb-0 text-size-16 font-weight-bold text-dark">Action</p>
+                                            <p class="mb-0 text-size-14 font-weight-bold text-dark">Subtotal</p>
                                         </th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (session()->get('roam_order_cart', []) as $order)
+                                    @foreach (session()->get('roam_order_cart', []) as $key => $order)
                                         <tr>
-                                            <td>
-                                                <h6 style="text-transform: none;">{{ $order['country_name'] }}</h6>
-                                                <label>Service Day :
-                                                    {{ $order['service_day'] > 1 ? $order['service_day'] . ' days' : $order['service_day'] . ' day' }}</label><br>
-                                                <label>Data : {{ $order['service_data'] }}</label><br>
-                                                @if ($order['iccid_exist'])
-                                                    <label>ICCID No: {{ $order['iccid_no'] ?? '-' }}</label><br>
-                                                @endif
+                                            <td class="px-0">
+                                                <a href="#" data-key="{{ $key }}"
+                                                    class="trash-bin d-inline-flex text-decoration-none"><i
+                                                        class="fa-solid fa-trash"></i></a>
                                             </td>
 
                                             <td>
-                                                <p class="mb-0 text-size-16 item-price"
+                                                <h6 class="font-weight-bold" style="text-transform: none;">
+                                                    {{ $order['country_name'] }}</h6>
+                                                <label>Service Day :
+                                                    {{ $order['service_day'] > 1 ? $order['service_day'] . ' days' : $order['service_day'] . ' day' }}</label><br>
+                                                <label>Data : {{ $order['service_data'] }}</label><br>
+                                                <label>SIM Type : {{ Str::headline($order['sim_type']) }}</label><br>
+                                                @if ($order['iccid_exist'])
+                                                    <label>ICCID No: {{ $order['iccid_no'] ?? '-' }}</label><br>
+                                                @endif
+
+                                            </td>
+
+                                            <td>
+                                                <p class="mb-0 text-size-14 item-price"
                                                     data-price="{{ $order['ori_price'] }}">
                                                     {{ number_format((int) $order['ori_price']) . ' MMK' }}
                                                 </p>
@@ -69,13 +97,9 @@
                                                 </div>
                                             </td>
                                             <td>
-                                                <p class="mb-0 text-size-16 total-price">
+                                                <p class="mb-0 text-size-14 total-price">
                                                     {{ number_format((int) $order['price']) }} MMK
                                                 </p>
-                                            </td>
-
-                                            <td>
-                                                <button class="btn btn-primary">Delete</button>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -146,9 +170,9 @@
             </div>
         </div>
     </section>
+    {{-- @dd(session()->get('roam_order_cart', [])) --}}
     <script>
         document.querySelectorAll('.quantity-wrapper').forEach(wrapper => {
-
             let minus = wrapper.querySelector('.qty-minus');
             let plus = wrapper.querySelector('.qty-plus');
             let input = wrapper.querySelector('input');
@@ -182,6 +206,37 @@
                     input.value = currentQty - 1;
                     updatePrice();
                 }
+            });
+        });
+
+        document.querySelectorAll('.trash-bin').forEach(button => {
+
+            button.addEventListener('click', async function(e) {
+
+                e.preventDefault();
+
+                let key = this.dataset.key;
+
+                let row = this.closest('tr');
+
+                let response = await fetch(`/roam/physical/remove-cart/${key}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector(
+                            'meta[name="csrf-token"]'
+                        ).content,
+                        'Accept': 'application/json'
+                    }
+                });
+
+                let data = await response.json();
+
+                console.log(data);
+
+                if (data.success) {
+                    row.remove();
+                }
+
             });
 
         });

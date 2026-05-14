@@ -94,8 +94,6 @@ class AdminController extends Controller
 
             $user->profile_image = $imageName;
             $user->save();
-        } else {
-            return 'fail';
         }
 
         $user->name = $request->name;

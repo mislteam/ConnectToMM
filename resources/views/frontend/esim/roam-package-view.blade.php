@@ -35,16 +35,16 @@
                     <!-- <div id="productGlleryIndicators" class="carousel slide" data-ride="carousel"> -->
                     <div id="productGlleryIndicators" class="" data-ride="carousel">
                         <!-- <ol class="carousel-indicators">
-                                                                                                                                                                                                                                                                                                                                <li data-target="#productGlleryIndicators" data-slide-to="0" class="active">
-                                                                                                                                                                                                                                                                                                                                    <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
-                                                                                                                                                                                                                                                                                                                                </li>
-                                                                                                                                                                                                                                                                                                                                <li data-target="#productGlleryIndicators" data-slide-to="1">
-                                                                                                                                                                                                                                                                                                                                    <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
-                                                                                                                                                                                                                                                                                                                                </li>
-                                                                                                                                                                                                                                                                                                                                <li data-target="#productGlleryIndicators" data-slide-to="2">
-                                                                                                                                                                                                                                                                                                                                    <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
-                                                                                                                                                                                                                                                                                                                                </li>
-                                                                                                                                                                                                                                                                                                                              </ol> -->
+                                                                                                                                                                                                                                                                                                                                                                                                                    <li data-target="#productGlleryIndicators" data-slide-to="0" class="active">
+                                                                                                                                                                                                                                                                                                                                                                                                                        <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
+                                                                                                                                                                                                                                                                                                                                                                                                                    </li>
+                                                                                                                                                                                                                                                                                                                                                                                                                    <li data-target="#productGlleryIndicators" data-slide-to="1">
+                                                                                                                                                                                                                                                                                                                                                                                                                        <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
+                                                                                                                                                                                                                                                                                                                                                                                                                    </li>
+                                                                                                                                                                                                                                                                                                                                                                                                                    <li data-target="#productGlleryIndicators" data-slide-to="2">
+                                                                                                                                                                                                                                                                                                                                                                                                                        <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
+                                                                                                                                                                                                                                                                                                                                                                                                                    </li>
+                                                                                                                                                                                                                                                                                                                                                                                                                  </ol> -->
                         <div class="carousel-inner">
                             <div class="carousel-item active">
                                 <img class="d-block w-100"
@@ -60,13 +60,13 @@
                             </div>
                         </div>
                         <!-- <a class="carousel-control-prev" href="#productGlleryIndicators" role="button" data-slide="prev">
-                                                                                                                                                                                                                                                                                                                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                                                                                                                                                                                                                                                                                                                <span class="sr-only">Previous</span>
-                                                                                                                                                                                                                                                                                                                              </a>
-                                                                                                                                                                                                                                                                                                                              <a class="carousel-control-next" href="#productGlleryIndicators" role="button" data-slide="next">
-                                                                                                                                                                                                                                                                                                                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                                                                                                                                                                                                                                                                                                                <span class="sr-only">Next</span>
-                                                                                                                                                                                                                                                                                                                              </a> -->
+                                                                                                                                                                                                                                                                                                                                                                                                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                                                                                                                                                                                                                                                                                                                                                                                                    <span class="sr-only">Previous</span>
+                                                                                                                                                                                                                                                                                                                                                                                                                  </a>
+                                                                                                                                                                                                                                                                                                                                                                                                                  <a class="carousel-control-next" href="#productGlleryIndicators" role="button" data-slide="next">
+                                                                                                                                                                                                                                                                                                                                                                                                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                                                                                                                                                                                                                                                                                                                                                                                                    <span class="sr-only">Next</span>
+                                                                                                                                                                                                                                                                                                                                                                                                                  </a> -->
                     </div>
                 </div>
                 <div class="col-lg-6 col-md-6">
@@ -141,12 +141,10 @@
 
                         $validPackages = collect($activePackages)
                             ->filter(function ($plan) use ($validPriceListCodes) {
-                                $apiCode = $plan['apiCode'] ?? $plan['api_code'] ?? null;
+                                $apiCode = $plan['apiCode'] ?? ($plan['api_code'] ?? null);
                                 $legacyCode = $plan['priceid'] ?? null;
-                                return (
-                                    ($apiCode !== null && in_array($apiCode, $validPriceListCodes)) ||
-                                    ($legacyCode !== null && in_array($legacyCode, $validPriceListCodes))
-                                );
+                                return ($apiCode !== null && in_array($apiCode, $validPriceListCodes)) ||
+                                    ($legacyCode !== null && in_array($legacyCode, $validPriceListCodes));
                             })
                             ->values();
 
@@ -172,8 +170,9 @@
                                 : $validPackages->pluck('days')->unique()->sort()->values();
                     @endphp
                     @if ($hasValidPlans)
-                        <form class="form-design" action="{{ route('roam.cart', $sku->sku_id) }}" method="POST">
+                        <form class="form-design" action="{{ route('roam.esim.cart') }}" method="POST">
                             @csrf
+                            <input type="hidden" name="skuid" value="{{ $sku->sku_id }}">
                             <div class="form-group">
                                 <label class="font-weight-bold">Type of Plan</label>
                                 <div id="trafficType" class="btn-group btn-group-toggle d-flex flex-wrap"
@@ -228,19 +227,21 @@
                                                 data-day="{{ $plan['days'] }}" data-price="{{ $portalPrice }}"
                                                 data-apicode="{{ $apiCode }}">
                                             {{ $flow }}
+
                                         </label>
                                     @endforeach
                                 </div>
                             </div>
-
+                            <input type="hidden" name="original_selected_price" value="">
 
                             <!-- Qty Field -->
                             <div class="form-group">
                                 <label class="font-weight-bold">Quantity</label>
                                 <div class="input-group quantity-wrapper">
                                     <button class="btn btn-outline-secondary qty-minus" type="button">-</button>
-                                    <input type="number" id="qty" name="qty" class="form-control text-center"
-                                        value="1" min="1" max="100">
+                                    <input type="number" id="qty" name="qty"
+                                        class="form-control text-center text-dark" value="1" min="1"
+                                        max="100">
                                     <button class="btn btn-outline-secondary qty-plus" type="button">+</button>
                                 </div>
                             </div>
@@ -255,9 +256,9 @@
 
                             <!-- Price Display -->
                             <!-- <div class="form-group">
-                                                                                                                                                                                                                                                                                                                                    <label class="font-weight-bold">Price</label>
-                                                                                                                                                                                                                                                                                                                                    <p id="priceDisplay" class="h5 text-success mb-0">Select a plan</p>
-                                                                                                                                                                                                                                                                                                                                </div> -->
+                                                                                                                                                                                                                                                                                                                                                                                                                        <label class="font-weight-bold">Price</label>
+                                                                                                                                                                                                                                                                                                                                                                                                                        <p id="priceDisplay" class="h5 text-success mb-0">Select a plan</p>
+                                                                                                                                                                                                                                                                                                                                                                                                                    </div> -->
                             <!-- Add to Cart -->
                             <input type="hidden" name="display_price" id="display_price" value>
                             <button type="submit" id="addToCartBtn" class="button_text">Add To Cart</button>
@@ -288,12 +289,17 @@
                                 $lowestPrice = collect($itemRoam->packages)
                                     ->filter(fn($pkg) => ($pkg['status'] ?? 0) == 1)
                                     ->map(function ($pkg) use ($priceMap) {
-                                        $apiCode = $pkg['apiCode'] ?? $pkg['api_code'] ?? null;
+                                        $apiCode = $pkg['apiCode'] ?? ($pkg['api_code'] ?? null);
                                         $legacyCode = $pkg['priceid'] ?? null;
-                                        $rate = ($apiCode !== null && isset($priceMap[$apiCode]))
-                                            ? $priceMap[$apiCode]
-                                            : (($legacyCode !== null && isset($priceMap[$legacyCode])) ? $priceMap[$legacyCode] : null);
-                                        if ($rate === null) return null;
+                                        $rate =
+                                            $apiCode !== null && isset($priceMap[$apiCode])
+                                                ? $priceMap[$apiCode]
+                                                : ($legacyCode !== null && isset($priceMap[$legacyCode])
+                                                    ? $priceMap[$legacyCode]
+                                                    : null);
+                                        if ($rate === null) {
+                                            return null;
+                                        }
                                         $portalPrice = ($pkg['price'] ?? 0) + ($pkg['openCardFee'] ?? 0);
                                         return $portalPrice * $rate;
                                     })
@@ -358,6 +364,7 @@
             const displayPriceInput = document.getElementById('display_price');
             const qtyInput = document.getElementById('qty');
             const trafficTypeBox = document.getElementById('trafficType');
+            let oriSelectedPrice = document.querySelector('input[name="original_selected_price"]');
 
             function getPackageCodes(pkg) {
                 return [...new Set([
@@ -651,6 +658,7 @@
                 const qty = parseInt(qtyInput.value) || 1;
 
                 if (selectedData) {
+                    oriSelectedPrice.value = selectedData.dataset.price;
                     const total = parseFloat(selectedData.dataset.price || 0) * qty;
                     total_price.innerText = `Total Price: ${total.toLocaleString()} MMK`;
                     if (displayPriceInput) displayPriceInput.value = total;

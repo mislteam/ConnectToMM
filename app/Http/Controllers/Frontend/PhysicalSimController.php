@@ -8,6 +8,7 @@ use App\Models\RoamPhysicalSku;
 use Illuminate\Http\Request;
 use App\Models\PriceList;
 use App\Models\GeneralSetting;
+use App\Models\RoamSku;
 
 class PhysicalSimController extends Controller
 {
@@ -61,7 +62,12 @@ class PhysicalSimController extends Controller
 
     public function roamPhysicalSearch(Request $request)
     {
-        session(['iccid_no' => $request->iccid_number]);
+        session([
+            'sim_type' => $request->type ?? null,
+            'iccid_exist' => true,
+            'iccid_no' => $request->iccid_number ?? null
+        ]);
+
         $validated = $request->validate([
             'countryname'   => 'required|array',
             'countryname.*' => 'string'
@@ -92,8 +98,14 @@ class PhysicalSimController extends Controller
         return view('frontend.physical.roam-physical-package', compact('logo', 'title', 'packages', 'skus', 'priceList'));
     }
 
-    public function roamPhysicalView($skuid)
+    public function roamPhysicalView($skuid, Request $request)
     {
+        if ($request->list_view) {
+            session([
+                'iccid_exist' => true,
+                'iccid_no' => null
+            ]);
+        }
         $roam = RoamPhysical::where('sku_id', $skuid)->first();
 
         $packages = $roam->packages;
@@ -150,5 +162,87 @@ class PhysicalSimController extends Controller
             'hasValidPlans',
             'randomSkus'
         ));
+    }
+
+    public function cart(Request $request)
+    {
+        // session()->forget('roam_order_cart');
+        $sim_type = session()->get('sim_type');
+        $request->validate([
+            'skuid' => 'required',
+            'sday' => 'required',
+            'sdata' => 'required',
+            'display_price' => 'required',
+            'qty' => 'required',
+            'original_selected_price' => 'required'
+        ]);
+        $sku = RoamSku::where('sku_id', $request->skuid)->first();
+        $iccid_no = session()->get('iccid_no');
+        $iccid_exist = session()->get('iccid_exist');
+
+        $roamCart = session()->get('roam_order_cart', []);
+        $found = false;
+        foreach ($roamCart as &$item) {
+            if ($item['country_name'] == $sku->country_name && $item['service_day'] == $request->sday && $item['service_data'] == $request->sdata && $item['iccid_no'] == $iccid_no && $item['iccid_exist'] == $iccid_exist && $item['sim_type'] == $sim_type) {
+                $item['qty'] += $request->qty;
+                $item['price'] += $request->display_price;
+                $found = true;
+                break;
+            }
+        }
+
+        if (!$found) {
+            $roamCart[] = [
+                'sku_id' => $sku->id,
+                'sim_type' => $sim_type,
+                'country_name' => $sku->country_name,
+                'service_day' => $request->sday,
+                'service_data' => $request->sdata,
+                'qty' => $request->qty,
+                'price' => $request->display_price,
+                'iccid_no' => $iccid_no,
+                'iccid_exist' => $iccid_exist,
+                'ori_price' => $request->original_selected_price
+            ];
+        }
+
+        session(['roam_order_cart' => $roamCart]);
+        return view('frontend.physical.cart');
+    }
+
+    // joytel checkout
+    public function checkout()
+    {
+        $cart = session('roam_cart');
+        if (!$cart) {
+            return redirect()->back()->with('error', 'Cart is Empty!');
+        }
+        $sku = RoamSku::findOrFail($cart['sku']);
+        return view('frontend.physical.checkout', [
+            'sku' => $sku,
+            'service_day' => $cart['service_day'],
+            'service_data' => $cart['service_data'],
+            'qty' => $cart['qty'],
+            'price' => $cart['price']
+        ]);
+    }
+
+    public function removeCart($key)
+    {
+        $cart = session()->get('roam_order_cart', []);
+
+        if (isset($cart[$key])) {
+
+            unset($cart[$key]);
+
+            // re-index array
+            $cart = array_values($cart);
+
+            session()->put('roam_order_cart', $cart);
+        }
+
+        return response()->json([
+            'success' => true
+        ]);
     }
 }

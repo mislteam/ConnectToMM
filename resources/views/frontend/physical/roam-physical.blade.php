@@ -41,6 +41,8 @@
                         <div class="panel-body">
                             <div class="message_content" data-aos="fade-up">
                                 <form method="get" action="{{ route('physical.roamsearch') }}">
+                                    <!-- type -->
+                                    <input type="hidden" name="type" value="recharge_physical">
                                     <div class="row">
                                         <div class="col-12">
                                             <div class="form-group mb-0">
@@ -95,10 +97,6 @@
             </figure>
             <div class="services-data mt-4">
                 <div class="form-design tabs-container">
-                    <!-- <ul class="nav" role="tablist">
-                                                                                                                                                                                                            <li><a class="nav-link active" data-toggle="tab" href="#roam-new-esim-package"> New eSIM</a></li>
-                                                                                                                                                                                                            <li><a class="nav-link" data-toggle="tab" href="#roam-recharge-package">Recharge</a></li>
-                                                                                                                                                                                                        </ul> -->
                     <div class="tab-content mt-4 shadow-none p-0">
                         <div role="tabpanel" id="roam-new-physical-package" class="tab-pane active">
                             <div class="panel-body">
@@ -120,12 +118,17 @@
                                                 $lowestPrice = collect($pkg->packages)
                                                     ->filter(fn($p) => ($p['status'] ?? 0) == 1)
                                                     ->map(function ($p) use ($priceMap) {
-                                                        $apiCode = $p['apiCode'] ?? $p['api_code'] ?? null;
+                                                        $apiCode = $p['apiCode'] ?? ($p['api_code'] ?? null);
                                                         $legacyCode = $p['priceid'] ?? null;
-                                                        $rate = ($apiCode !== null && isset($priceMap[$apiCode]))
-                                                            ? $priceMap[$apiCode]
-                                                            : (($legacyCode !== null && isset($priceMap[$legacyCode])) ? $priceMap[$legacyCode] : null);
-                                                        if ($rate === null) return null;
+                                                        $rate =
+                                                            $apiCode !== null && isset($priceMap[$apiCode])
+                                                                ? $priceMap[$apiCode]
+                                                                : ($legacyCode !== null && isset($priceMap[$legacyCode])
+                                                                    ? $priceMap[$legacyCode]
+                                                                    : null);
+                                                        if ($rate === null) {
+                                                            return null;
+                                                        }
                                                         $portalPrice = ($p['price'] ?? 0) + ($p['openCardFee'] ?? 0);
                                                         return $portalPrice * $rate;
                                                     })
@@ -149,7 +152,7 @@
                                                         @else
                                                             <p class="text-size-16 text-danger">Not available</p>
                                                         @endif
-                                                        <a href="{{ route('physical.roampackageview', ['id' => $package->sku_id]) }}"
+                                                        <a href="{{ route('physical.roampackageview', ['id' => $package->sku_id, 'list_view' => '1']) }}"
                                                             class="more">View Offer</a>
                                                     </div>
                                                 </div>

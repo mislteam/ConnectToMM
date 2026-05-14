@@ -21,17 +21,17 @@
                         <form>
                             <div class="form-group mb-0">
                                 <label>Full Name <span class="required" aria-hidden="true">*</span></label>
-                                <input type="text" class="form_style" placeholder="Enter Your Full Name"
+                                <input type="text" class="form_style text-dark" placeholder="Enter Your Full Name"
                                     value="{{ auth()->user()->name }}">
                             </div>
                             <div class="form-group mb-0">
                                 <label>E-Mail Address <span class="required" aria-hidden="true">*</span></label>
-                                <input type="text" class="form_style" placeholder="Enter Your Email"
+                                <input type="text" class="form_style text-dark" placeholder="Enter Your Email"
                                     value="{{ auth()->user()->email }}">
                             </div>
                             <div class="form-group mb-0">
                                 <label>Phone Number</label>
-                                <input type="text" class="form_style" placeholder="Enter Your Phone Number"
+                                <input type="text" class="form_style text-dark" placeholder="Enter Your Phone Number"
                                     value="{{ auth()->user()->phone }}">
                             </div>
 

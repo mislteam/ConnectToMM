@@ -46,14 +46,16 @@ class FrontendJoytelController extends Controller
             'qty' => 'required',
         ]);
         $cart = [
-            'joytel' => $joytel->id,
+            'joytel' => $joytel->product_name,
             'service_day' => $request->sday,
             'service_data' => $request->sdata,
             'qty' => $request->qty,
             'price' => $request->display_price
         ];
 
-        session(['joytel_cart' => $cart]);
+        $joytelCart = session()->get('joytel_cart', []);
+        $joytelCart[] = $cart;
+        session(['joytel_cart' => $joytelCart]);
 
         return view('frontend.joytel.cart', [
             'joytel' => $joytel,
@@ -85,6 +87,7 @@ class FrontendJoytelController extends Controller
     public function packageView(Joytel $joytel, Request $request)
     {
         // Determine SIM type
+        // session()->forget('joytel_cart');
         $type = $joytel->product_type;
 
         if (stripos($type, 'eSIM') !== false) {

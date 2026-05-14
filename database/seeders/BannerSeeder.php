@@ -90,6 +90,13 @@ class BannerSeeder extends Seeder
                 'banner_type' => 'checkout',
                 'status' => 0
             ],
+            [
+                'page' => 'Order Detail',
+                'title' => 'Order Detail',
+                'subtitle' => 'Order Detail Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+                'banner_type' => 'order_detail',
+                'status' => 0
+            ],
 
         ];
         foreach ($banners as $banner) {

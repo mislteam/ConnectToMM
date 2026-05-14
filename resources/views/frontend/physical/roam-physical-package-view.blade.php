@@ -35,6 +35,7 @@
                 <div class="col-lg-6 col-md-6 mb-5">
                     <!-- <div id="productGlleryIndicators" class="carousel slide" data-ride="carousel"> -->
                     <div id="productGlleryIndicators" class="" data-ride="carousel">
+<<<<<<< Updated upstream
                         <!-- <ol class="carousel-indicators">
                             <<<<<<< Updated upstream
                                                                                                                                                                                                 <li data-target="#productGlleryIndicators" data-slide-to="0" class="active">
@@ -62,6 +63,8 @@
                         </li>
                         </ol> -->
                         >>>>>>> Stashed changes --}}
+=======
+>>>>>>> Stashed changes
                         <div class="carousel-inner">
                             <div class="carousel-item active">
                                 <img class="d-block w-100"
@@ -76,6 +79,7 @@
                                     src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
                             </div>
                         </div>
+<<<<<<< Updated upstream
                         <!-- <a class="carousel-control-prev" href="#productGlleryIndicators" role="button" data-slide="prev">
                                                                                                                                                                                                 <span class="carousel-control-prev-icon" aria-hidden="true"></span>
                                                                                                                                                                                                 <span class="sr-only">Previous</span>
@@ -84,6 +88,8 @@
                                                                                                                                                                                                 <span class="carousel-control-next-icon" aria-hidden="true"></span>
                                                                                                                                                                                                 <span class="sr-only">Next</span>
                                                                                                                                                                                               </a> -->
+=======
+>>>>>>> Stashed changes
                     </div>
                 </div>
                 <div class="col-lg-6 col-md-6">
@@ -187,8 +193,9 @@
                                 : $validPackages->pluck('days')->unique()->sort()->values();
                     @endphp
                     @if ($hasValidPlans)
-                        <form action="{{ route('roam.cart', $sku->sku_id) }}" class="form-design" method="POST">
+                        <form action="{{ route('roam.physical.cart') }}" class="form-design" method="POST">
                             @csrf
+                            <input type="hidden" name="skuid" value="{{ $sku->sku_id }}">
                             <div class="form-group">
                                 <label class="font-weight-bold">Type of Plan</label>
                                 <div id="trafficType" class="btn-group btn-group-toggle d-flex flex-wrap"
@@ -248,14 +255,16 @@
                                 </div>
                             </div>
 
+                            <input type="hidden" name="original_selected_price" value="">
 
                             <!-- Qty Field -->
                             <div class="form-group">
                                 <label class="font-weight-bold">Quantity</label>
                                 <div class="input-group quantity-wrapper">
                                     <button class="btn btn-outline-secondary qty-minus" type="button">-</button>
-                                    <input name="qty" type="number" id="qty" class="form-control text-center"
-                                        value="1" min="1" max="100">
+                                    <input name="qty" type="number" id="qty"
+                                        class="form-control text-center text-dark" value="1" min="1"
+                                        max="100">
                                     <button class="btn btn-outline-secondary qty-plus" type="button">+</button>
                                 </div>
                             </div>
@@ -268,6 +277,7 @@
                                 <p id="priceDisplay" class="h5"></p>
                             </div>
                             <input type="hidden" name="display_price" id="display_price" value>
+<<<<<<< Updated upstream
                             <!-- Price Display -->
                             <!-- <div class="form-group">
                             <<<<<<< Updated upstream
@@ -279,6 +289,9 @@
                             <p id="priceDisplay" class="h5 text-success mb-0">Select a plan</p>
                 </div> -->
                 >>>>>>> Stashed changes --}}
+=======
+
+>>>>>>> Stashed changes
                             <!-- Add to Cart -->
                             <button type="submit" id="addToCartBtn" class="button_text">Add To Cart</button>
                         </form>
@@ -383,6 +396,7 @@
             const displayPriceInput = document.getElementById('display_price');
             const qtyInput = document.getElementById('qty');
             const trafficTypeBox = document.getElementById('trafficType');
+            let oriSelectedPrice = document.querySelector('input[name="original_selected_price"]');
 
             function getPackageCodes(pkg) {
                 return [...new Set([
@@ -668,6 +682,7 @@
                 const qty = parseInt(qtyInput.value) || 1;
 
                 if (selectedData) {
+                    oriSelectedPrice.value = selectedData.dataset.price;
                     const total = parseFloat(selectedData.dataset.price || 0) * qty;
                     total_price.innerText = `Total Price: ${total.toLocaleString()} MMK`;
                     if (displayPriceInput) displayPriceInput.value = total;
