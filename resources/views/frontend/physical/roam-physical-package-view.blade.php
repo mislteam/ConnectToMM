@@ -293,9 +293,6 @@
                     @forelse ($randomSkus as $package)
                         @php
                             $itemRoam = App\Models\RoamPhysical::where('sku_id', $package->sku_id)->first();
-                            $itemPriceList = App\Models\PriceList::where('plan', $package->sku_id)
-                                ->where('dp_status', 1)
-                                ->first();
                             $recommendedImage = $itemRoam->image ?? null;
 
                             $lowestPrice = null;
@@ -303,6 +300,9 @@
                             if ($itemRoam && !empty($itemRoam->packages)) {
                                 $priceMap = App\Models\PriceList::where('plan', $package->sku_id)
                                     ->where('dp_status', 1)
+                                    ->when($selectedDpInfo ?? null, function ($query) use ($selectedDpInfo) {
+                                        $query->where('dp_info', $selectedDpInfo);
+                                    })
                                     ->pluck('exchange_rate', 'product_code');
 
                                 $lowestPrice = collect($itemRoam->packages)
