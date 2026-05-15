@@ -141,22 +141,20 @@ class PhysicalSimController extends Controller
                 'sim_type' => 'recharge_physical'
             ]);
         }
-        $roam = RoamPhysical::where('sku_id', $skuid)->first();
+        $sku = RoamPhysicalSku::where('sku_id', $skuid)->firstOrFail();
+        $selectedDpInfo = (int) ($sku->dp_id ?? 0);
 
+        $roam = RoamPhysical::where('sku_id', $skuid)->firstOrFail();
         $packages = $roam->packages;
         //$activePackages = collect($packages)->where('status', 1)->values();
-
-        $sku = RoamPhysicalSku::where('sku_id', $skuid)->first();
 
         $pricelists = PriceList::where('dp_status', 1)
             ->whereNotNull('dp_info')
             ->where('plan', $skuid)
+            ->when($selectedDpInfo, function ($query) use ($selectedDpInfo) {
+                $query->where('dp_info', $selectedDpInfo);
+            })
             ->get();
-
-        $selectedDpInfo = $pricelists->pluck('dp_info')
-            ->filter()
-            ->unique()
-            ->first();
 
         $priceListCodes = $pricelists->pluck('product_code')->toArray();
 
@@ -214,6 +212,77 @@ class PhysicalSimController extends Controller
             'randomSkus',
             'selectedDpInfo'
         ));
+    }
+
+    private function getLowestPhysicalPrice(string|int $skuId, $priceList = null, ?int $dpInfo = null): ?float
+    {
+        $priceList = $priceList ?? PriceList::where('dp_status', 1)
+            ->whereNotNull('dp_info')
+            ->when($dpInfo, function ($query) use ($dpInfo) {
+                $query->where('dp_info', $dpInfo);
+            })
+            ->where('plan', $skuId)
+            ->get();
+
+        $priceMap = $priceList->pluck('exchange_rate', 'product_code');
+
+        $roam = RoamPhysical::where('sku_id', $skuId)->first();
+        if (!$roam || empty($roam->packages)) {
+            return null;
+        }
+
+        $lowestPrice = collect($roam->packages)
+            ->filter(fn($pkg) => ($pkg['status'] ?? 0) == 1)
+            ->map(function ($pkg) use ($priceMap) {
+                $apiCode = $pkg['apiCode'] ?? $pkg['api_code'] ?? null;
+                $legacyCode = $pkg['priceid'] ?? null;
+
+                $rate = ($apiCode !== null && isset($priceMap[$apiCode]))
+                    ? $priceMap[$apiCode]
+                    : (($legacyCode !== null && isset($priceMap[$legacyCode])) ? $priceMap[$legacyCode] : null);
+
+                if ($rate === null || (float) $rate <= 0) {
+                    return null;
+                }
+
+                $portalPrice = (float) ($pkg['price'] ?? 0) + (float) ($pkg['openCardFee'] ?? 0);
+                if ($portalPrice <= 0) {
+                    return null;
+                }
+
+                return $portalPrice * (float) $rate;
+            })
+            ->filter(fn($price) => $price > 0)
+            ->min();
+
+        return $lowestPrice !== null ? (float) $lowestPrice : null;
+    }
+
+    private function getPackagePlanPrice(string|int $skuId, array $pkg): ?float
+    {
+        $priceList = PriceList::where('dp_status', 1)
+            ->whereNotNull('dp_info')
+            ->where('plan', $skuId)
+            ->get();
+
+        $priceMap = $priceList->pluck('exchange_rate', 'product_code');
+        $apiCode = $pkg['apiCode'] ?? $pkg['api_code'] ?? null;
+        $legacyCode = $pkg['priceid'] ?? null;
+
+        $rate = ($apiCode !== null && isset($priceMap[$apiCode]))
+            ? $priceMap[$apiCode]
+            : (($legacyCode !== null && isset($priceMap[$legacyCode])) ? $priceMap[$legacyCode] : null);
+
+        if ($rate === null || (float) $rate <= 0) {
+            return null;
+        }
+
+        $portalPrice = (float) ($pkg['price'] ?? 0) + (float) ($pkg['openCardFee'] ?? 0);
+        if ($portalPrice <= 0) {
+            return null;
+        }
+
+        return $portalPrice * (float) $rate;
     }
 
     public function cart(Request $request)
