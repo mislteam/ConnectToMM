@@ -196,7 +196,8 @@
                         <button type="submit" class="btn btn-primary mb-0">Sign Up</button>
                         <div class="text-center my-3 social-login-label">Or continue with</div>
                         <div class="social-auth-row">
-                            <a href="{{ route('customer.google.redirect', ['flow' => 'login']) }}" class="social-auth-btn">
+                            <a href="{{ route('customer.google.redirect', ['flow' => 'register']) }}"
+                                class="social-auth-btn">
                                 <span class="social-auth-icon google">
                                     <i class="fa-brands fa-google"></i>
                                 </span>

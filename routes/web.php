@@ -63,8 +63,9 @@ Route::middleware('guest:customers')->group(function () {
     Route::get('/forgot-password', [CustomerAuthController::class, 'showForgotPassword'])->name('customer.password.request');
     Route::post('/forgot-password', [CustomerAuthController::class, 'sendPasswordResetOtp'])->name('customer.password.email');
 
-    Route::get('/customer/google/redirect', [CustomerAuthController::class, 'googleRedirect'])->name('customer.google.redirect');
+   Route::get('/customer/google/redirect', [CustomerAuthController::class, 'googleRedirect'])->name('customer.google.redirect');
     Route::get('/customer/google/callback', [CustomerAuthController::class, 'googleCallback'])->name('customer.google.callback');
+    Route::get('/auth/google/call-back', [CustomerAuthController::class, 'googleCallback']);
 
     Route::get('/customer/email/verify', [CustomerAuthController::class, 'showVerificationNotice'])->name('verification.notice');
     Route::post('/customer/email/verify', [CustomerAuthController::class, 'verifyEmailOtp'])->name('verification.verify.otp');

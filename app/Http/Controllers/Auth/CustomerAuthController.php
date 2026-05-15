@@ -145,7 +145,6 @@ class CustomerAuthController extends Controller
         }
 
         $verificationCode = $this->latestPendingVerificationCode($customer, $purpose);
-
         if (! $verificationCode) {
             return redirect()->route('verification.notice')->with([
                 'error' => 'Your code expired. Please request a new one.',
@@ -469,7 +468,15 @@ class CustomerAuthController extends Controller
                 ->with('error', 'Unable to read your Google profile.');
         }
 
-        $customer = $this->resolveGoogleCustomer($profileResponse->json());
+        try {
+            $customer = $this->resolveGoogleCustomer($profileResponse->json());
+        } catch (Throwable $e) {
+            report($e);
+
+            return redirect()
+                ->route($this->googleFlowLandingRoute($flow))
+                ->with('error', 'Unable to save your Google account. Please try again.');
+        }
 
         if (! $customer) {
             return redirect()
@@ -477,13 +484,30 @@ class CustomerAuthController extends Controller
                 ->with('error', 'Google did not return a verified email address.');
         }
 
-        Auth::guard('customers')->login($customer);
-        $customer->forceFill(['last_login_at' => now()])->save();
-        $request->session()->regenerate();
+        try {
+            $verificationCode = $this->issueVerificationCode($customer, $request);
+        } catch (Throwable $e) {
+            report($e);
+
+            return redirect()
+                ->route($this->googleFlowLandingRoute($flow))
+                ->with('error', 'Account saved, but we could not send the verification code. Please try again.');
+        }
+
+        $request->session()->put('verification_customer_id', $customer->id);
+        $request->session()->put('verification_email', $customer->email);
+        $request->session()->put('verification_code_id', $verificationCode->id);
+        $request->session()->put('verification_purpose', self::OTP_PURPOSE_EMAIL_VERIFICATION);
 
         return redirect()
-            ->to($this->customerRedirectUrl($request))
-            ->with('success', 'Welcome back!');
+            ->route('verification.notice')
+            ->with([
+                'success' => 'We sent a verification code to your email.',
+                'verification_customer_id' => $customer->id,
+                'verification_email' => $customer->email,
+                'verification_code_id' => $verificationCode->id,
+                'verification_purpose' => self::OTP_PURPOSE_EMAIL_VERIFICATION,
+            ]);
     }
 
     private function resolveGoogleCustomer(array $googleUser): ?Customer
@@ -514,7 +538,8 @@ class CustomerAuthController extends Controller
 
             $customer->name = $googleUser['name'] ?? $email ?? 'Google Customer';
             $customer->email = $email;
-            $customer->profile_image = $googleUser['picture'] ?? $customer->profile_image;
+            // $customer->profile_image = $googleUser['picture'] ?? $customer->profile_image;
+            $customer->profile_image = null;
             $customer->auth_provider = 'google';
             $customer->provider_user_id = $googleId;
             $customer->meta = array_merge($customer->meta ?? [], [
@@ -523,8 +548,8 @@ class CustomerAuthController extends Controller
                 'picture' => $googleUser['picture'] ?? null,
             ]);
             $customer->role = 'customer';
-            $customer->markActive();
-            $customer->email_verified_at = now();
+            $customer->status = Customer::STATUS_PENDING;
+            $customer->email_verified_at = null;
             $customer->save();
 
             return $customer;
