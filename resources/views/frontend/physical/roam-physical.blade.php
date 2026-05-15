@@ -125,160 +125,168 @@
                     <div class="tab-content mt-4 shadow-none p-0">
                         <div role="tabpanel" id="roam-new-physical-package" class="tab-pane active">
                             <div class="panel-body">
-                                    @php
-                                        $globalValidCount = 0;
-                                    @endphp
-                                    <div class="package-group" data-package-group="global"
-                                        style="display: {{ $selectedDpId === 9 ? 'block' : 'none' }};">
-                                        <div class="row" id="package-list-global">
-                                            @foreach ($globalSkupackages as $package)
-                                                @php
-                                                    $pkg = App\Models\RoamPhysical::where('sku_id', $package->sku_id)->first();
+                                @php
+                                    $globalValidCount = 0;
+                                @endphp
+                                <div class="package-group" data-package-group="global"
+                                    style="display: {{ $selectedDpId === 9 ? 'block' : 'none' }};">
+                                    <div class="row" id="package-list-global">
+                                        @foreach ($globalSkupackages as $package)
+                                            @php
+                                                $pkg = App\Models\RoamPhysical::where(
+                                                    'sku_id',
+                                                    $package->sku_id,
+                                                )->first();
 
-                                                    $lowestPrice = null;
+                                                $lowestPrice = null;
 
-                                                    if ($pkg && !empty($pkg->packages)) {
-                                                        $priceMap = $priceList
-                                                            ->where('plan', $package->sku_id)
-                                                            ->pluck('exchange_rate', 'product_code');
+                                                if ($pkg && !empty($pkg->packages)) {
+                                                    $priceMap = $priceList
+                                                        ->where('plan', $package->sku_id)
+                                                        ->pluck('exchange_rate', 'product_code');
 
-                                                        $lowestPrice = collect($pkg->packages)
-                                                            ->filter(fn($p) => ($p['status'] ?? 0) == 1)
-                                                            ->map(function ($p) use ($priceMap) {
-                                                                $apiCode = $p['apiCode'] ?? ($p['api_code'] ?? null);
-                                                                $legacyCode = $p['priceid'] ?? null;
-                                                                $rate =
-                                                                    $apiCode !== null && isset($priceMap[$apiCode])
-                                                                        ? $priceMap[$apiCode]
-                                                                        : ($legacyCode !== null &&
-                                                                        isset($priceMap[$legacyCode])
-                                                                            ? $priceMap[$legacyCode]
-                                                                            : null);
-                                                                if ($rate === null) {
-                                                                    return null;
-                                                                }
-                                                                $portalPrice = ($p['price'] ?? 0) + ($p['openCardFee'] ?? 0);
-                                                                return $portalPrice * $rate;
-                                                            })
-                                                            ->filter()
-                                                            ->min();
-                                                    }
-                                                @endphp
+                                                    $lowestPrice = collect($pkg->packages)
+                                                        ->filter(fn($p) => ($p['status'] ?? 0) == 1)
+                                                        ->map(function ($p) use ($priceMap) {
+                                                            $apiCode = $p['apiCode'] ?? ($p['api_code'] ?? null);
+                                                            $legacyCode = $p['priceid'] ?? null;
+                                                            $rate =
+                                                                $apiCode !== null && isset($priceMap[$apiCode])
+                                                                    ? $priceMap[$apiCode]
+                                                                    : ($legacyCode !== null &&
+                                                                    isset($priceMap[$legacyCode])
+                                                                        ? $priceMap[$legacyCode]
+                                                                        : null);
+                                                            if ($rate === null) {
+                                                                return null;
+                                                            }
+                                                            $portalPrice =
+                                                                ($p['price'] ?? 0) + ($p['openCardFee'] ?? 0);
+                                                            return $portalPrice * $rate;
+                                                        })
+                                                        ->filter()
+                                                        ->min();
+                                                }
+                                            @endphp
 
-                                                @if (!empty($pkg) && $lowestPrice)
-                                                    @php $globalValidCount++; @endphp
-                                                    <div class="col-lg-4 col-md-4 col-sm-12 col-12 package-card"
-                                                        data-package-card="global">
-                                                        <div class="service-box">
-                                                            <figure class="img img2 mb-3">
-                                                                <img src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}"
-                                                                    alt="" class="img-fluid">
-                                                            </figure>
-                                                            <div class="content">
-                                                                <h4>{{ $package->country_name }}</h4>
-                                                                @if ($lowestPrice)
-                                                                    <p class="text-size-16">From
-                                                                        {{ number_format($lowestPrice) }} MMK</p>
-                                                                @else
-                                                                    <p class="text-size-16 text-danger">Not available</p>
-                                                                @endif
-                                                                <a href="{{ route('physical.roampackageview', ['id' => $package->sku_id]) }}"
-                                                                    class="more">View Offer</a>
-                                                            </div>
+                                            @if (!empty($pkg) && $lowestPrice)
+                                                @php $globalValidCount++; @endphp
+                                                <div class="col-lg-4 col-md-4 col-sm-12 col-12 package-card"
+                                                    data-package-card="global">
+                                                    <div class="service-box">
+                                                        <figure class="img img2 mb-3">
+                                                            <img src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}"
+                                                                alt="" class="img-fluid">
+                                                        </figure>
+                                                        <div class="content">
+                                                            <h4>{{ $package->country_name }}</h4>
+                                                            @if ($lowestPrice)
+                                                                <p class="text-size-16">From
+                                                                    {{ number_format($lowestPrice) }} MMK</p>
+                                                            @else
+                                                                <p class="text-size-16 text-danger">Not available</p>
+                                                            @endif
+                                                            <a href="{{ route('physical.roampackageview', ['id' => $package->sku_id, 'list_view' => '1']) }}"
+                                                                class="more">View Offer</a>
                                                         </div>
                                                     </div>
-                                                @endif
-                                            @endforeach
-                                        </div>
-
-                                        @if ($globalValidCount > 6)
-                                            <div class="text-center mt-4">
-                                                <button id="showMoreBtn-global" class="btn btn-primary px-4 py-2"
-                                                    data-show-more="global">Show More</button>
-                                            </div>
-                                        @endif
+                                                </div>
+                                            @endif
+                                        @endforeach
                                     </div>
 
-                                    @php
-                                        $asiaValidCount = 0;
-                                    @endphp
-                                    <div class="package-group" data-package-group="asia"
-                                        style="display: {{ $selectedDpId === 21 ? 'block' : 'none' }};">
-                                        <div class="row" id="package-list-asia">
-                                            @foreach ($asiaSkupackages as $package)
-                                                @php
-                                                    $pkg = App\Models\RoamPhysical::where('sku_id', $package->sku_id)->first();
+                                    @if ($globalValidCount > 6)
+                                        <div class="text-center mt-4">
+                                            <button id="showMoreBtn-global" class="btn btn-primary px-4 py-2"
+                                                data-show-more="global">Show More</button>
+                                        </div>
+                                    @endif
+                                </div>
 
-                                                    $lowestPrice = null;
+                                @php
+                                    $asiaValidCount = 0;
+                                @endphp
+                                <div class="package-group" data-package-group="asia"
+                                    style="display: {{ $selectedDpId === 21 ? 'block' : 'none' }};">
+                                    <div class="row" id="package-list-asia">
+                                        @foreach ($asiaSkupackages as $package)
+                                            @php
+                                                $pkg = App\Models\RoamPhysical::where(
+                                                    'sku_id',
+                                                    $package->sku_id,
+                                                )->first();
 
-                                                    if ($pkg && !empty($pkg->packages)) {
-                                                        $priceMap = $priceList
-                                                            ->where('plan', $package->sku_id)
-                                                            ->pluck('exchange_rate', 'product_code');
+                                                $lowestPrice = null;
 
-                                                        $lowestPrice = collect($pkg->packages)
-                                                            ->filter(fn($p) => ($p['status'] ?? 0) == 1)
-                                                            ->map(function ($p) use ($priceMap) {
-                                                                $apiCode = $p['apiCode'] ?? ($p['api_code'] ?? null);
-                                                                $legacyCode = $p['priceid'] ?? null;
-                                                                $rate =
-                                                                    $apiCode !== null && isset($priceMap[$apiCode])
-                                                                        ? $priceMap[$apiCode]
-                                                                        : ($legacyCode !== null &&
-                                                                        isset($priceMap[$legacyCode])
-                                                                            ? $priceMap[$legacyCode]
-                                                                            : null);
-                                                                if ($rate === null) {
-                                                                    return null;
-                                                                }
-                                                                $portalPrice = ($p['price'] ?? 0) + ($p['openCardFee'] ?? 0);
-                                                                return $portalPrice * $rate;
-                                                            })
-                                                            ->filter()
-                                                            ->min();
-                                                    }
-                                                @endphp
+                                                if ($pkg && !empty($pkg->packages)) {
+                                                    $priceMap = $priceList
+                                                        ->where('plan', $package->sku_id)
+                                                        ->pluck('exchange_rate', 'product_code');
 
-                                                @if (!empty($pkg) && $lowestPrice)
-                                                    @php $asiaValidCount++; @endphp
-                                                    <div class="col-lg-4 col-md-4 col-sm-12 col-12 package-card"
-                                                        data-package-card="asia">
-                                                        <div class="service-box">
-                                                            <figure class="img img2 mb-3">
-                                                                <img src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}"
-                                                                    alt="" class="img-fluid">
-                                                            </figure>
-                                                            <div class="content">
-                                                                <h4>{{ $package->country_name }}</h4>
-                                                                @if ($lowestPrice)
-                                                                    <p class="text-size-16">From
-                                                                        {{ number_format($lowestPrice) }} MMK</p>
-                                                                @else
-                                                                    <p class="text-size-16 text-danger">Not available</p>
-                                                                @endif
-                                                                <a href="{{ route('physical.roampackageview', ['id' => $package->sku_id]) }}"
-                                                                    class="more">View Offer</a>
-                                                            </div>
+                                                    $lowestPrice = collect($pkg->packages)
+                                                        ->filter(fn($p) => ($p['status'] ?? 0) == 1)
+                                                        ->map(function ($p) use ($priceMap) {
+                                                            $apiCode = $p['apiCode'] ?? ($p['api_code'] ?? null);
+                                                            $legacyCode = $p['priceid'] ?? null;
+                                                            $rate =
+                                                                $apiCode !== null && isset($priceMap[$apiCode])
+                                                                    ? $priceMap[$apiCode]
+                                                                    : ($legacyCode !== null &&
+                                                                    isset($priceMap[$legacyCode])
+                                                                        ? $priceMap[$legacyCode]
+                                                                        : null);
+                                                            if ($rate === null) {
+                                                                return null;
+                                                            }
+                                                            $portalPrice =
+                                                                ($p['price'] ?? 0) + ($p['openCardFee'] ?? 0);
+                                                            return $portalPrice * $rate;
+                                                        })
+                                                        ->filter()
+                                                        ->min();
+                                                }
+                                            @endphp
+
+                                            @if (!empty($pkg) && $lowestPrice)
+                                                @php $asiaValidCount++; @endphp
+                                                <div class="col-lg-4 col-md-4 col-sm-12 col-12 package-card"
+                                                    data-package-card="asia">
+                                                    <div class="service-box">
+                                                        <figure class="img img2 mb-3">
+                                                            <img src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}"
+                                                                alt="" class="img-fluid">
+                                                        </figure>
+                                                        <div class="content">
+                                                            <h4>{{ $package->country_name }}</h4>
+                                                            @if ($lowestPrice)
+                                                                <p class="text-size-16">From
+                                                                    {{ number_format($lowestPrice) }} MMK</p>
+                                                            @else
+                                                                <p class="text-size-16 text-danger">Not available</p>
+                                                            @endif
+                                                            <a href="{{ route('physical.roampackageview', ['id' => $package->sku_id, 'list_view' => '1']) }}"
+                                                                class="more">View Offer</a>
                                                         </div>
                                                     </div>
-                                                @endif
-                                            @endforeach
-                                        </div>
-
-                                        @if ($asiaValidCount > 6)
-                                            <div class="text-center mt-4">
-                                                <button id="showMoreBtn-asia" class="btn btn-primary px-4 py-2"
-                                                    data-show-more="asia">Show More</button>
-                                            </div>
-                                        @endif
+                                                </div>
+                                            @endif
+                                        @endforeach
                                     </div>
+
+                                    @if ($asiaValidCount > 6)
+                                        <div class="text-center mt-4">
+                                            <button id="showMoreBtn-asia" class="btn btn-primary px-4 py-2"
+                                                data-show-more="asia">Show More</button>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
-                            <figure class="element2 mb-0">
-                                <img src="{{ asset('assets/images/what-we-do-icon-2.png') }}" class="img-fluid"
-                                    alt="">
-                            </figure>
                         </div>
+                        <figure class="element2 mb-0">
+                            <img src="{{ asset('assets/images/what-we-do-icon-2.png') }}" class="img-fluid"
+                                alt="">
+                        </figure>
+                    </div>
     </section>
     <!-- need more help? -->
     <section class="need-section">
