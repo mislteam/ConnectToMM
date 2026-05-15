@@ -152,13 +152,13 @@
                                         <p class="mb-0 text-size-16"> Total</p>
                                     </td>
                                     <td>
-                                        <p class="mb-0 text-size-16 total"> 5,000 MMK</p>
+                                        <p class="mb-0 text-size-16 total"></p>
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
                         <div class="mt-4 text-center">
-                            <a href="{{ route('roam.esim.checkout') }}" class="button_text">Proceed To Checkout</a>
+                            <a href="{{ route('roam.physical.checkout') }}" class="button_text">Proceed To Checkout</a>
                         </div>
                     </div>
                 </div>
@@ -239,7 +239,7 @@
 
                 let row = this.closest('tr');
 
-                let response = await fetch(`/roam/esim/remove-cart/${key}`, {
+                let response = await fetch(`/roam/physical/remove-cart/${key}`, {
                     method: 'DELETE',
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector(

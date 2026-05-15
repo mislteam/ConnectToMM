@@ -67,10 +67,17 @@ class ESimController extends Controller
     //for roam
     public function roamSearch(Request $request)
     {
-        if ($request->filled('iccid_number')) {
-            session(['iccid_no' => $request->iccid_number]);
+        session(['sim_type' => $request->type ?? null]);
+        if ($request->iccid_exist === "1") {
+            session([
+                'iccid_exist' => true,
+                'iccid_no' => $request->iccid_number ?? null
+            ]);
         } else {
-            session()->forget('iccid_no');
+            session()->forget([
+                'iccid_exist',
+                'iccid_no'
+            ]);
         }
         $validated = $request->validate([
             'countryname'   => 'required|array',
@@ -109,45 +116,11 @@ class ESimController extends Controller
         return view('frontend.esim.roam-package', compact('logo', 'title', 'packages', 'skus', 'priceList'));
     }
 
-
-    // public function roamView($skuid,$skus)
-    // {
-
-    //     $roam=Roam::where('sku_id',$skuid)->first();
-
-    //     $packages =$roam->packages;
-    //     $activePackages = collect($packages)->where('status', 1)->values()->all();
-    //     // dd($activePackages);
-    //     $sku=RoamSku::where('sku_id',$skuid)->first();
-
-    //     $skus = json_decode($skus, true);
-    //     $skus = array_filter($skus, fn($s) => $s != $skuid);
-    //     $skupackages = RoamSku::whereIn('sku_id', $skus)->where('status',1)->get();
-
-    //     $currencies = Currency::all(); 
-    //     $pricelists = PriceList::all(); 
-    //     $usd_exchange_rate = Currency::where('name', 'usd')->value('value');
-    //     $profit = Currency::where('name', 'profit')->value('value');
-
-
-
-    //     // Example: take the first active package price
-    //     // $basePrice = $activePackages[0]['price'] ?? 0;
-
-    //     // $currency = $currencies->first(function ($c) use ($basePrice) {
-    //     //     return $basePrice >= $c->mini_amount && $basePrice <= $c->max_amount;
-    //     // });
-
-    //     // $mmk_price = $currency ? $basePrice * $currency->mmk : 0;
-
-
-    //     return view('frontend.esim.roam-package-view',compact('usd_exchange_rate','profit','skupackages','skus','activePackages','sku','roam','pricelists','currencies'));
-    // }
-
     public function roamView($skuid, Request $request)
     {
         if ($request->has('list_view')) {
-            session()->forget('iccid_no');
+            session()->forget(['iccid_exist', 'iccid_no']);
+            session(['sim_type' => 'new_esim']);
         }
         $roam = Roam::where('sku_id', $skuid)->first();
 
@@ -208,30 +181,54 @@ class ESimController extends Controller
         ));
     }
 
-    public function cart($skuid, Request $request)
+    public function cart(Request $request)
     {
-        $sku = RoamSku::where('sku_id', $skuid)->first();
+        // session()->forget('roam_order_cart');
+        // dd('hi');
+        $sim_type = session()->get('sim_type');
         $request->validate([
+            'skuid' => 'required',
             'sday' => 'required',
             'sdata' => 'required',
             'display_price' => 'required',
             'qty' => 'required',
+            'original_selected_price' => 'required'
         ]);
-        $cart = [
-            'sku' => $sku->id,
-            'service_day' => $request->sday,
-            'service_data' => $request->sdata,
-            'qty' => $request->qty,
-            'price' => $request->display_price
-        ];
-        session(['roam_cart' => $cart]);
-        return view('frontend.esim.cart', [
-            'sku' => $sku,
-            'service_day' => $request->sday,
-            'service_data' => $request->sdata,
-            'qty' => request()->qty,
-            'price' => request()->display_price,
-        ]);
+
+        $sku = RoamSku::where('sku_id', $request->skuid)->first();
+        // dd(session()->all());
+        $iccid_no = session()->get('iccid_no');
+        $iccid_exist = session()->get('iccid_exist');
+
+        $roamCart = session()->get('roam_order_cart', []);
+        $found = false;
+        foreach ($roamCart as &$item) {
+            if ($item['country_name'] == $sku->country_name && $item['service_day'] == $request->sday && $item['service_data'] == $request->sdata && $item['iccid_no'] == $iccid_no && $item['iccid_exist'] == $iccid_exist && $item['sim_type'] == $sim_type) {
+                $item['qty'] += $request->qty;
+                $item['price'] += $request->display_price;
+                $found = true;
+                break;
+            }
+        }
+
+        if (!$found) {
+            $roamCart[] = [
+                'sku_id' => $sku->id,
+                'sim_type' => $sim_type,
+                'country_name' => $sku->country_name,
+                'service_day' => $request->sday,
+                'service_data' => $request->sdata,
+                'qty' => $request->qty,
+                'price' => $request->display_price,
+                'iccid_no' => $iccid_no,
+                'iccid_exist' => $iccid_exist,
+                'ori_price' => $request->original_selected_price
+            ];
+        }
+
+        session(['roam_order_cart' => $roamCart]);
+
+        return redirect()->route('roam.esim.cartpage');
     }
 
     // joytel checkout
@@ -248,6 +245,30 @@ class ESimController extends Controller
             'service_data' => $cart['service_data'],
             'qty' => $cart['qty'],
             'price' => $cart['price']
+        ]);
+    }
+
+    public function cartPage()
+    {
+        return view('frontend.esim.cart');
+    }
+
+    public function removeCart($key)
+    {
+        $cart = session()->get('roam_order_cart', []);
+
+        if (isset($cart[$key])) {
+
+            unset($cart[$key]);
+
+            // re-index array
+            $cart = array_values($cart);
+
+            session()->put('roam_order_cart', $cart);
+        }
+
+        return response()->json([
+            'success' => true
         ]);
     }
 }

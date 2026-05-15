@@ -183,8 +183,9 @@
                         $hasValidPlans = $allPlans->isNotEmpty();
                     @endphp
                     @if ($hasValidPlans)
-                        <form class="form-design" action="{{ route('joytelpackage.cart', $joytel->id) }}"
-                            method="POST">
+                        <form class="form-design">
+                            {{-- <form class="form-design" action="{{ route('joytelpackage.cart', $joytel->id) }}"
+                            method="POST"> --}}
                             @csrf
                             <!-- Traffic Types -->
                             <div class="form-group">
@@ -375,8 +376,8 @@
                                 <label class="font-weight-bold">Quantity</label>
                                 <div class="input-group quantity-wrapper">
                                     <button class="btn btn-outline-secondary qty-minus" type="button">-</button>
-                                    <input type="number" id="qty" class="form-control text-center" value="1"
-                                        min="1" max="100" name="qty">
+                                    <input type="number" id="qty" class="form-control text-center text-dark"
+                                        value="1" min="1" max="100" name="qty">
                                     <button class="btn btn-outline-secondary qty-plus" type="button">+</button>
                                 </div>
                             </div>
@@ -473,6 +474,7 @@
             const total_price = document.getElementById('priceDisplay');
             const des = document.getElementById('plan-description');
             const displayPriceInput = document.getElementById('display_price');
+            const qtyInput = document.getElementById('qty');
 
             // Data from Blade
             const trafficTypesData = {
@@ -738,6 +740,9 @@
 
                 setSelectedDataPlan(label);
             });
+
+            qtyInput.addEventListener('input', updatePriceDisplay);
+            qtyInput.addEventListener('change', updatePriceDisplay);
 
             ['.qty-plus', '.qty-minus'].forEach(selector => {
                 document.querySelector(selector).addEventListener('click', updatePriceDisplay);

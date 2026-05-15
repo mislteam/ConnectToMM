@@ -93,6 +93,7 @@
                                     <th data-table-sort data-column="date">Date</th>
                                     <th data-table-sort>Product Name</th>
                                     <th data-table-sort>Amount</th>
+                                    <th data-table-sort>Payment Method</th>
                                     <th data-table-sort data-column="payment-status">Status</th>
                                     <th class="text-center" style="width: 1%;">Actions</th>
                                 </tr>
@@ -103,6 +104,7 @@
                                     <td>9 May, 2025 <small class="text-muted">10:10 AM</small></td>
                                     <td>eSim-AIS-SIM2FLY399</td>
                                     <td>$129.45</td>
+                                    <td>UAB Pay</td>
                                     <td class="text-success fw-semibold"><i class="ti ti-point-filled fs-sm"></i> Paid
                                     </td>
                                     <td>
@@ -118,11 +120,13 @@
                                     <td>9 May, 2025 <small class="text-muted">10:10 AM</small></td>
                                     <td>eSim-AIS-SIM2FLY399</td>
                                     <td>$129.45</td>
+                                    <td>Direct Transfer</td>
                                     <td class="text-success fw-semibold"><i class="ti ti-point-filled fs-sm"></i> Paid
                                     </td>
                                     <td>
                                         <div class="d-flex justify-content-center gap-1">
-                                            <a href="#" class="btn btn-light btn-icon btn-sm rounded-circle"><i
+                                            <a href="{{ route('customer.order.detail') }}"
+                                                class="btn btn-light btn-icon btn-sm rounded-circle"><i
                                                     class="fa-solid fa-eye"></i></a>
                                         </div>
                                     </td>
@@ -234,90 +238,6 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         <button type="submit" class="btn btn-primary">Save</button>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <div class="modal fade" id="viewOrderModal" tabindex="-1" aria-labelledby="viewOrderModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog">
-            <form class="profile-edit-form" action="">
-
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="viewOrderModalLabel">Order Detail</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="table-responsive">
-                            <table class="table">
-                                <tbody>
-                                    <tr>
-                                        <td class="text-start border-0">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <strong>Order ID</strong>
-                                            </div>
-                                        </td>
-                                        <td class="text-end border-0">#JOYTEL-20100</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-start border-0">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <strong>Product Name</strong>
-                                            </div>
-                                        </td>
-                                        <td class="text-end border-0">eSim-AIS-SIM2FLY399</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-start border-0">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <strong>Price</strong>
-                                            </div>
-                                        </td>
-                                        <td class="text-end border-0">1000 MMK</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-start border-0">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <strong>Qty</strong>
-                                            </div>
-                                        </td>
-                                        <td class="text-end border-0">1</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-start border-0">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <strong>Data</strong>
-                                            </div>
-                                        </td>
-                                        <td class="text-end border-0">1GB</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-start border-0">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <strong>Valid Days</strong>
-                                            </div>
-                                        </td>
-                                        <td class="text-end border-0">30 Days</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="text-start border-0">
-                                            <div class="d-flex align-items-center gap-2">
-                                                <strong>ICCID Number:</strong>
-                                            </div>
-                                        </td>
-                                        <td class="text-end border-0">8988303000000614227</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Renew</button>
                     </div>
                 </div>
             </form>

@@ -41,27 +41,14 @@
                         <div class="panel-body">
                             <div class="message_content" data-aos="fade-up">
                                 <form method="get" action="{{ route('physical.roamsearch') }}">
-                                    <div class="physical-search-frame">
-                                        <div class="row">
-                                            <div class="col-12">
-                                                <div class="physical-dp-switch-wrap">
-                                                <div class="physical-dp-switch-title">Choose package region</div>
-                                                <div class="physical-dp-switch">
-                                                    <label class="dp-pill {{ $selectedDpId === 9 ? 'active' : '' }}">
-                                                        <input type="radio" name="dp_id" value="9"
-                                                            {{ $selectedDpId === 9 ? 'checked' : '' }}>
-                                                        <span class="dp-pill__text">
-                                                            <strong>Global Packages</strong>
-                                                        </span>
-                                                    </label>
-                                                    <label class="dp-pill {{ $selectedDpId === 21 ? 'active' : '' }}">
-                                                        <input type="radio" name="dp_id" value="21"
-                                                            {{ $selectedDpId === 21 ? 'checked' : '' }}>
-                                                        <span class="dp-pill__text">
-                                                            <strong>Asia Packages</strong>
-                                                        </span>
-                                                    </label>
-                                                </div>
+                                    <!-- type -->
+                                    <input type="hidden" name="type" value="recharge_physical">
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <div class="form-group mb-0">
+                                                <h4>SIM ICCID Number</h4>
+                                                <input type="text" name="iccid_number" class="form_style"
+                                                    placeholder="Enter Your SIM ICCID No.">
                                             </div>
                                             </div>
                                             <div class="col-12">
@@ -122,6 +109,60 @@
                     <div class="tab-content mt-4 shadow-none p-0">
                         <div role="tabpanel" id="roam-new-physical-package" class="tab-pane active">
                             <div class="panel-body">
+                                <div class="row" id="package-list">
+                                    @php
+                                        $validCount = 0;
+                                    @endphp
+                                    @foreach ($skupackages as $package)
+                                        @php
+                                            $pkg = App\Models\RoamPhysical::where('sku_id', $package->sku_id)->first();
+
+                                            $lowestPrice = null;
+
+                                            if ($pkg && !empty($pkg->packages)) {
+                                                $priceMap = $priceList
+                                                    ->where('plan', $package->sku_id)
+                                                    ->pluck('exchange_rate', 'product_code');
+
+                                                $lowestPrice = collect($pkg->packages)
+                                                    ->filter(fn($p) => ($p['status'] ?? 0) == 1)
+                                                    ->map(function ($p) use ($priceMap) {
+                                                        $apiCode = $p['apiCode'] ?? ($p['api_code'] ?? null);
+                                                        $legacyCode = $p['priceid'] ?? null;
+                                                        $rate =
+                                                            $apiCode !== null && isset($priceMap[$apiCode])
+                                                                ? $priceMap[$apiCode]
+                                                                : ($legacyCode !== null && isset($priceMap[$legacyCode])
+                                                                    ? $priceMap[$legacyCode]
+                                                                    : null);
+                                                        if ($rate === null) {
+                                                            return null;
+                                                        }
+                                                        $portalPrice = ($p['price'] ?? 0) + ($p['openCardFee'] ?? 0);
+                                                        return $portalPrice * $rate;
+                                                    })
+                                                    ->filter()
+                                                    ->min();
+                                            }
+                                        @endphp
+                                        @if (!empty($pkg) && $lowestPrice)
+                                            @php $validCount++; @endphp
+                                            <div class="col-lg-4  col-md-4 col-sm-12 col-12">
+                                                <div class="service-box">
+                                                    <figure class="img img2 mb-3">
+                                                        <img src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}"
+                                                            alt="" class="img-fluid">
+                                                    </figure>
+                                                    <div class="content">
+                                                        <h4>{{ $package->country_name }} </h4>
+                                                        @if ($lowestPrice)
+                                                            <p class="text-size-16">From
+                                                                {{ number_format($lowestPrice) }} MMK</p>
+                                                        @else
+                                                            <p class="text-size-16 text-danger">Not available</p>
+                                                        @endif
+                                                        <a href="{{ route('physical.roampackageview', ['id' => $package->sku_id, 'list_view' => '1']) }}"
+                                                            class="more">View Offer</a>
                                 @php
                                     $globalValidCount = 0;
                                 @endphp

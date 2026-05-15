@@ -36,21 +36,25 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <td>
-                                            <h6>{{ $joytel->product_name }}</h6>
-                                            <label>Service Day :
-                                                {{ (int) $service_day > 1 ? $service_day . ' days' : $service_day . ' day' }}</label><br>
-                                            <label>Data : {{ $service_data }}</label><br>
-                                        </td>
-                                        <td>{{ $qty }}</td>
-                                        <td>
-                                            <p class="mb-0 text-size-16">{{ number_format($price) . ' MMK' }}</p>
-                                        </td>
-                                        <td>
-                                            <p class="mb-0 text-size-16">{{ number_format($price) . ' MMK' }}</p>
-                                        </td>
-                                    </tr>
+                                    @foreach (session()->get('joytel_cart', []) as $order)
+                                        <tr>
+                                            <td>
+                                                <h6 style="text-transform: none;">{{ $order['joytel'] }}</h6>
+                                                <label>Service Day :
+                                                    {{ (int) $order['service_day'] > 1 ? $order['service_day'] . ' days' : $order['service_day'] . ' day' }}</label><br>
+                                                <label>Data : {{ $order['service_data'] }}</label><br>
+                                            </td>
+                                            <td>{{ $qty }}</td>
+                                            <td>
+                                                <p class="mb-0 text-size-16">{{ number_format($order['price']) . ' MMK' }}
+                                                </p>
+                                            </td>
+                                            <td>
+                                                <p class="mb-0 text-size-16">{{ number_format($order['price']) . ' MMK' }}
+                                                </p>
+                                            </td>
+                                        </tr>
+                                    @endforeach
                                     <tr>
                                         <td colspan ="4">
                                             <div class="form-design message_content">

@@ -92,4 +92,9 @@ class HomeController extends Controller
             return redirect()->route('user.login');
         }
     }
+
+    public function orderDetail()
+    {
+        return view('frontend.user.order-detail');
+    }
 }

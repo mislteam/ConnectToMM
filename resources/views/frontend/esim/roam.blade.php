@@ -42,6 +42,8 @@
                         <div class="panel-body">
                             <div class="message_content" data-aos="fade-up">
                                 <form method="get" action="{{ route('esim.roamsearch') }}">
+                                    <!-- type -->
+                                    <input type="hidden" name="type" value="new_esim">
                                     <div class="row">
                                         <div class="col-12">
                                             <div class="form-group mb-0">
@@ -65,83 +67,52 @@
                                         </div>
                                     </div>
                                 </form>
-                                <!-- <form method="POST">
-                                                                                                                                                                                                                                                                                                                                                            <div class="row">
-                                                                                                                                                                                                                                                                                                                                                                <div class="col-12">
-                                                                                                                                                                                                                                                                                                                                                                    <div class="form-group mb-0">
-                                                                                                                                                                                                                                                                                                                                                                        <h4>Shop for the best eSIM offers:</h4>
-                                                                                                                                                                                                                                                                                                                                                                        <select class="select2_design form-control" multiple="multiple">
-                                                                                                                                                                                                                                                                                                                                                                            <option value="Mayotte">Mayotte</option>
-                                                                                                                                                                                                                                                                                                                                                                            <option value="Mexico">Mexico</option>
-                                                                                                                                                                                                                                                                                                                                                                            <option value="Micronesia, Federated States of">Micronesia, Federated
-                                                                                                                                                                                                                                                                                                                                                                                States of</option>
-                                                                                                                                                                                                                                                                                                                                                                            <option value="Moldova, Republic of">Moldova, Republic of</option>
-                                                                                                                                                                                                                                                                                                                                                                            <option value="Monaco">Monaco</option>
-                                                                                                                                                                                                                                                                                                                                                                            <option value="Mongolia">Mongolia</option>
-                                                                                                                                                                                                                                                                                                                                                                            <option value="Montenegro">Montenegro</option>
-                                                                                                                                                                                                                                                                                                                                                                            <option value="Montserrat">Montserrat</option>
-                                                                                                                                                                                                                                                                                                                                                                            <option value="Morocco">Morocco</option>
-                                                                                                                                                                                                                                                                                                                                                                            <option value="Mozambique">Mozambique</option>
-                                                                                                                                                                                                                                                                                                                                                                            <option value="Myanmar">Myanmar</option>
-                                                                                                                                                                                                                                                                                                                                                                            <option value="Namibia">Namibia</option>
-                                                                                                                                                                                                                                                                                                                                                                            <option value="Nauru">Nauru</option>
-                                                                                                                                                                                                                                                                                                                                                                            <option value="Nepal">Nepal</option>
-                                                                                                                                                                                                                                                                                                                                                                            <option value="Netherlands">Netherlands</option>
-                                                                                                                                                                                                                                                                                                                                                                            <option value="New Caledonia">New Caledonia</option>
-                                                                                                                                                                                                                                                                                                                                                                            <option value="New Zealand">New Zealand</option>
-                                                                                                                                                                                                                                                                                                                                                                            <option value="Nicaragua">Nicaragua</option>
-                                                                                                                                                                                                                                                                                                                                                                        </select>
-                                                                                                                                                                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                                                                                                                <div class="col-12">
-                                                                                                                                                                                                                                                                                                                                                                    <div class="mt-4 text-center">
-                                                                                                                                                                                                                                                                                                                                                                        <a href="{{ route('esim.roamsearch') }}" class="button_text">Continue Search</a>
-                                                                                                                                                                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                                                                                                        </form> -->
                             </div>
                         </div>
                     </div>
                     <div role="tabpanel" id="roam-recharge" class="tab-pane">
-                        <div class="panel-body">
+                        <div class="panel-bo
                             <div class="message_content" data-aos="fade-up">
-                                <form method="get" action="{{ route('esim.roamsearch') }}">
-                                    <div class="row">
-                                        <div class="col-12">
-                                            <div class="form-group mb-0">
-                                                <h4>SIM ICCID Number</h4>
-                                                <input type="text" name="iccid_number" class="form_style"
-                                                    placeholder="Enter Your SIM ICCID No.">
-                                            </div>
-                                        </div>
-                                        <div class="col-12">
-                                            <div class="form-group mb-0">
-                                                <h4>Shop for the best eSIM offers:</h4>
-                                                <select class="select2_design form-control" multiple="multiple"
-                                                    name="countryname[]" data-placeholder="Search for destination...">
-                                                    <option></option>
-                                                    @foreach ($countrys as $countryname)
-                                                        <option value="{{ $countryname }}">{{ $countryname }}</option>
-                                                    @endforeach
-                                                </select>
-                                                @error('countryname[]')
-                                                    <small class="text-danger">{{ $message }}</small>
-                                                @enderror
-                                            </div>
-                                        </div>
-                                        <div class="col-12">
-                                            <div class="mt-4 text-center">
-                                                <button type="submit" class="button_text">Continue Search</button>
-                                            </div>
+                            <form method="get" action="{{ route('esim.roamsearch') }}">
+                                <!-- type -->
+                                <input type="hidden" name="type" value="recharge_esim">
+                                <!-- iccid no -->
+                                <input type="hidden" name="iccid_exist" value="1">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="form-group mb-0">
+                                            <h4>SIM ICCID Number</h4>
+                                            <input type="text" name="iccid_number" class="form_style"
+                                                placeholder="Enter Your SIM ICCID No.">
                                         </div>
                                     </div>
-                                </form>
-                            </div>
+                                    <div class="col-12">
+                                        <div class="form-group mb-0">
+                                            <h4>Shop for the best eSIM offers:</h4>
+                                            <select class="select2_design form-control" multiple="multiple"
+                                                name="countryname[]" data-placeholder="Search for destination...">
+                                                <option></option>
+                                                @foreach ($countrys as $countryname)
+                                                    <option value="{{ $countryname }}">{{ $countryname }}</option>
+                                                @endforeach
+                                            </select>
+                                            @error('countryname[]')
+                                                <small class="text-danger">{{ $message }}</small>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="mt-4 text-center">
+                                            <button type="submit" class="button_text">Continue Search</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
                         </div>
                     </div>
                 </div>
             </div>
+        </div>
         </div>
     </section>
     <!--Services section-->
@@ -163,9 +134,9 @@
             <div class="services-data mt-4">
                 <div class="form-design tabs-container">
                     <!-- <ul class="nav" role="tablist">
-                                                                                                                                                                                                                                                                                                                                                <li><a class="nav-link active" data-toggle="tab" href="#roam-new-esim-package"> New eSIM</a></li>
-                                                                                                                                                                                                                                                                                                                                                <li><a class="nav-link" data-toggle="tab" href="#roam-recharge-package">Recharge</a></li>
-                                                                                                                                                                                                                                                                                                                                            </ul> -->
+                                                                                                                                                                                                                                                                                                                                                                                                                    <li><a class="nav-link active" data-toggle="tab" href="#roam-new-esim-package"> New eSIM</a></li>
+                                                                                                                                                                                                                                                                                                                                                                                                                    <li><a class="nav-link" data-toggle="tab" href="#roam-recharge-package">Recharge</a></li>
+                                                                                                                                                                                                                                                                                                                                                                                                                </ul> -->
                     <div class="tab-content mt-4 shadow-none p-0">
                         <div role="tabpanel" id="roam-new-esim-package" class="tab-pane active">
                             <div class="panel-body">
@@ -187,12 +158,17 @@
                                                 $lowestPrice = collect($pkg->packages)
                                                     ->filter(fn($p) => ($p['status'] ?? 0) == 1)
                                                     ->map(function ($p) use ($priceMap) {
-                                                        $apiCode = $p['apiCode'] ?? $p['api_code'] ?? null;
+                                                        $apiCode = $p['apiCode'] ?? ($p['api_code'] ?? null);
                                                         $legacyCode = $p['priceid'] ?? null;
-                                                        $rate = ($apiCode !== null && isset($priceMap[$apiCode]))
-                                                            ? $priceMap[$apiCode]
-                                                            : (($legacyCode !== null && isset($priceMap[$legacyCode])) ? $priceMap[$legacyCode] : null);
-                                                        if ($rate === null) return null;
+                                                        $rate =
+                                                            $apiCode !== null && isset($priceMap[$apiCode])
+                                                                ? $priceMap[$apiCode]
+                                                                : ($legacyCode !== null && isset($priceMap[$legacyCode])
+                                                                    ? $priceMap[$legacyCode]
+                                                                    : null);
+                                                        if ($rate === null) {
+                                                            return null;
+                                                        }
                                                         $portalPrice = ($p['price'] ?? 0) + ($p['openCardFee'] ?? 0);
                                                         return $portalPrice * $rate;
                                                     })
