@@ -3,10 +3,7 @@
 
 <head>
     <title>Home | Connect To Myanmar</title>
-<<<<<<< Updated upstream
-=======
     <meta name="csrf-token" content="{{ csrf_token() }}">
->>>>>>> Stashed changes
     <!-- /SEO Ultimate -->
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
     <meta charset="utf-8">
@@ -39,12 +36,8 @@
     <!-- Font Awesome link -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
     <!-- StyleSheet link CSS -->
-<<<<<<< Updated upstream
     <link href="{{ asset('assets/css/style.css') }}?v{{ filemtime(public_path('assets/css/style.css')) }}"
         rel="stylesheet" type="text/css">
-=======
-    <link href="{{ asset('assets/css/style.css') }}" rel="stylesheet" type="text/css">
->>>>>>> Stashed changes
     <link href="{{ asset('assets/css/responsive.css') }}" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="{{ asset('assets/css/custom-style.css') }}" type="text/css">
     <link rel="stylesheet" href="{{ asset('assets/css/special-classes.css') }}" type="text/css">

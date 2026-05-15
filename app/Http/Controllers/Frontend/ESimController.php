@@ -120,6 +120,7 @@ class ESimController extends Controller
     {
         if ($request->has('list_view')) {
             session()->forget(['iccid_exist', 'iccid_no']);
+            session(['sim_type' => 'new_esim']);
         }
         $roam = Roam::where('sku_id', $skuid)->first();
 
@@ -227,7 +228,7 @@ class ESimController extends Controller
 
         session(['roam_order_cart' => $roamCart]);
 
-        return view('frontend.esim.cart');
+        return redirect()->route('roam.esim.cartpage');
     }
 
     // joytel checkout
@@ -244,6 +245,30 @@ class ESimController extends Controller
             'service_data' => $cart['service_data'],
             'qty' => $cart['qty'],
             'price' => $cart['price']
+        ]);
+    }
+
+    public function cartPage()
+    {
+        return view('frontend.esim.cart');
+    }
+
+    public function removeCart($key)
+    {
+        $cart = session()->get('roam_order_cart', []);
+
+        if (isset($cart[$key])) {
+
+            unset($cart[$key]);
+
+            // re-index array
+            $cart = array_values($cart);
+
+            session()->put('roam_order_cart', $cart);
+        }
+
+        return response()->json([
+            'success' => true
         ]);
     }
 }

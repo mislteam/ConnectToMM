@@ -82,15 +82,13 @@ Route::middleware('auth:customers')->group(function () {
     // roam checkout
     Route::prefix('roam')->group(function () {
         Route::post('/esim/cart', [ESimController::class, 'cart'])->name('roam.esim.cart');
+        Route::get('/esim/cart/page', [ESimController::class, 'cartPage'])->name('roam.esim.cartpage');
         Route::get('/esim/checkout', [ESimController::class, 'checkout'])->name('roam.esim.checkout');
+        Route::delete('/esim/remove-cart/{key}', [ESimController::class, 'removeCart']);
 
         Route::post('/physical/cart', [PhysicalSimController::class, 'cart'])->name('roam.physical.cart');
+        Route::get('/physical/cart/page', [PhysicalSimController::class, 'cartPage'])->name('roam.physical.cartpage');
         Route::get('/physical/checkout', [PhysicalSimController::class, 'checkout'])->name('roam.physical.checkout');
-
-        Route::post('/physical/remove-order', [PhysicalSimController::class, 'removeOrder'])->name('roam.physical.remove');
-
-        // web.php
-
         Route::delete('/physical/remove-cart/{key}', [PhysicalSimController::class, 'removeCart']);
     });
 

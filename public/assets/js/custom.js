@@ -24,7 +24,7 @@ function makeTabActive() {
             jQuery(".nav-tabs li a").removeClass("active");
 
             jQuery(".nav-tabs li a[href='#" + activeTab + "']").addClass(
-                "active"
+                "active",
             );
         }
     }
@@ -61,7 +61,7 @@ $("#qty")
                 variationData[selectedType][selectedData][selectedDay];
             const totalPrice = pricePerItem * qty;
             $("#price-display").text(
-                `Price: ${pricePerItem} MMK x ${qty} = ${totalPrice} MMK`
+                `Price: ${pricePerItem} MMK x ${qty} = ${totalPrice} MMK`,
             );
         }
     });
@@ -87,11 +87,12 @@ const priceMap = {
 
 // Function to calculate price
 function calculatePrice() {
+    const priceDisplay = document.getElementById("priceDisplay");
     const trafficType = document.getElementById("#trafficType")?.value;
     const serviceDay = document.querySelector('input[name="sday"]:checked')
         ?.dataset.day;
     const dataPlan = document.querySelector(
-        'input[name="sdata"]:checked'
+        'input[name="sdata"]:checked',
     )?.value;
 
     let basePrice = priceMap[trafficType]?.[dataPlan] || 0;
@@ -99,9 +100,9 @@ function calculatePrice() {
     // For demo: multiply base price by number of service days
     const totalPrice = basePrice * parseInt(serviceDay || 1);
 
-    document.getElementById(
-        "priceDisplay"
-    ).textContent = `Total Price: $${totalPrice}`;
+    if (priceDisplay) {
+        priceDisplay.textContent = `Total Price: $${totalPrice}`;
+    }
 }
 // console.log("trafficType =", trafficType);
 // console.log("days =", serviceDay);
@@ -112,7 +113,7 @@ function calculatePrice() {
 // Event Listeners
 document
     .querySelectorAll(
-        'input[name="tType"], input[name="sday"], input[name="sdata"]'
+        'input[name="tType"], input[name="sday"], input[name="sdata"]',
     )
     .forEach((el) => {
         el.addEventListener("change", calculatePrice);

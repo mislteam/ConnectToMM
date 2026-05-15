@@ -103,7 +103,8 @@ class PhysicalSimController extends Controller
         if ($request->list_view) {
             session([
                 'iccid_exist' => true,
-                'iccid_no' => null
+                'iccid_no' => null,
+                'sim_type' => 'recharge_physical'
             ]);
         }
         $roam = RoamPhysical::where('sku_id', $skuid)->first();
@@ -207,7 +208,7 @@ class PhysicalSimController extends Controller
         }
 
         session(['roam_order_cart' => $roamCart]);
-        return view('frontend.physical.cart');
+        return redirect()->route('roam.physical.cartpage');
     }
 
     // joytel checkout
@@ -244,5 +245,10 @@ class PhysicalSimController extends Controller
         return response()->json([
             'success' => true
         ]);
+    }
+
+    public function cartPage()
+    {
+        return view('frontend.physical.cart');
     }
 }

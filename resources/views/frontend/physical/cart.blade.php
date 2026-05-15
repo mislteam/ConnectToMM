@@ -17,10 +17,6 @@
             width: 20px;
             height: 20px;
         }
-
-        .trash-bin {
-            color: var(--e-global-color-accent);
-        }
     </style>
     <!-- Sub-Banner -->
     <x-banner key="order" />
@@ -61,9 +57,8 @@
                                     @foreach (session()->get('roam_order_cart', []) as $key => $order)
                                         <tr>
                                             <td class="px-0">
-                                                <a href="#" data-key="{{ $key }}"
-                                                    class="trash-bin d-inline-flex text-decoration-none"><i
-                                                        class="fa-solid fa-trash"></i></a>
+                                                <button data-key="{{ $key }}"
+                                                    class="btn-close trash-bin custom-close"></button>
                                             </td>
 
                                             <td>
@@ -141,7 +136,7 @@
                                         <p class="mb-0 text-size-16"> Subtotal</p>
                                     </td>
                                     <td>
-                                        {{-- <p class="mb-0 text-size-16">{{ number_format($price) . ' MMK' }}</p> --}}
+                                        <p class="mb-0 text-size-14 subtotal"></p>
                                     </td>
                                 </tr>
                                 <tr>
@@ -157,22 +152,44 @@
                                         <p class="mb-0 text-size-16"> Total</p>
                                     </td>
                                     <td>
-                                        <p class="mb-0 text-size-16"> 5,000 MMK</p>
+                                        <p class="mb-0 text-size-16 total"></p>
                                     </td>
                                 </tr>
                             </tbody>
                         </table>
                         <div class="mt-4 text-center">
-                            <a href="{{ route('roam.esim.checkout') }}" class="button_text">Proceed To Checkout</a>
+                            <a href="{{ route('roam.physical.checkout') }}" class="button_text">Proceed To Checkout</a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </section>
-    {{-- @dd(session()->get('roam_order_cart', [])) --}}
+
     <script>
+        let subtotalElement = document.querySelector('.subtotal');
+        let totalElement = document.querySelector('.total');
+
+        function updateSubtotal() {
+
+            let subtotal = 0;
+
+            document.querySelectorAll('.total-price').forEach(item => {
+
+                let priceText = item.innerText
+                    .replace('MMK', '')
+                    .replace(/,/g, '')
+                    .trim();
+
+                subtotal += parseInt(priceText) || 0;
+            });
+
+            subtotalElement.innerText = subtotal.toLocaleString() + ' MMK';
+            totalElement.innerText = subtotal.toLocaleString() + ' MMK';
+        }
+
         document.querySelectorAll('.quantity-wrapper').forEach(wrapper => {
+
             let minus = wrapper.querySelector('.qty-minus');
             let plus = wrapper.querySelector('.qty-plus');
             let input = wrapper.querySelector('input');
@@ -191,6 +208,8 @@
                 let total = originalPrice * qty;
 
                 totalPrice.innerText = total.toLocaleString() + ' MMK';
+
+                updateSubtotal();
             }
 
             input.addEventListener('change', updatePrice);
@@ -206,13 +225,14 @@
                     input.value = currentQty - 1;
                     updatePrice();
                 }
+
             });
         });
 
+        updateSubtotal();
+
         document.querySelectorAll('.trash-bin').forEach(button => {
-
             button.addEventListener('click', async function(e) {
-
                 e.preventDefault();
 
                 let key = this.dataset.key;
@@ -231,14 +251,11 @@
 
                 let data = await response.json();
 
-                console.log(data);
-
                 if (data.success) {
                     row.remove();
+                    updateSubtotal();
                 }
-
             });
-
         });
     </script>
 @endsection
