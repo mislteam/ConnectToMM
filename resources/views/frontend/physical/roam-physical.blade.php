@@ -41,45 +41,61 @@
                         <div class="panel-body">
                             <div class="message_content" data-aos="fade-up">
                                 <form method="get" action="{{ route('physical.roamsearch') }}">
-                                    <!-- type -->
-                                    <input type="hidden" name="type" value="recharge_physical">
-                                    <div class="row">
-                                        <div class="col-12">
-                                            <div class="form-group mb-0">
-                                                <h4>SIM ICCID Number</h4>
-                                                <input type="text" name="iccid_number" class="form_style"
-                                                    placeholder="Enter Your SIM ICCID No.">
-                                            </div>
-                                            </div>
+                                    <div class="physical-search-frame">
+                                        <div class="row">
                                             <div class="col-12">
-                                                <div class="form-group mb-0">
-                                                    <h4>SIM ICCID Number</h4>
-                                                    <input type="text" name="iccid_number" class="form_style"
-                                                        placeholder="Enter Your SIM ICCID No.">
+                                                <div class="physical-dp-switch-wrap">
+                                                    <div class="physical-dp-switch-title">Choose package region</div>
+                                                    <div class="physical-dp-switch">
+                                                        <label class="dp-pill {{ $selectedDpId === 9 ? 'active' : '' }}">
+                                                            <input type="radio" name="dp_id" value="9"
+                                                                {{ $selectedDpId === 9 ? 'checked' : '' }}>
+                                                            <span class="dp-pill__text">
+                                                                <strong>Global Packages</strong>
+                                                            </span>
+                                                        </label>
+                                                        <label class="dp-pill {{ $selectedDpId === 21 ? 'active' : '' }}">
+                                                            <input type="radio" name="dp_id" value="21"
+                                                                {{ $selectedDpId === 21 ? 'checked' : '' }}>
+                                                            <span class="dp-pill__text">
+                                                                <strong>Asia Packages</strong>
+                                                            </span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <!-- type -->
+                                                <input type="hidden" name="type" value="recharge_physical">
+                                                <div class="row">
+                                                    <div class="col-12">
+                                                        <div class="form-group mb-0">
+                                                            <h4>SIM ICCID Number</h4>
+                                                            <input type="text" name="iccid_number" class="form_style"
+                                                                placeholder="Enter Your SIM ICCID No.">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <div class="form-group mb-0">
+                                                            <h4>Shop for the best Physical SIM offers</h4>
+                                                            <select class="select2_design form-control" multiple="multiple"
+                                                                name="countryname[]">
+                                                                @foreach ($countrys as $countryname)
+                                                                    <option value="{{ $countryname }}">{{ $countryname }}
+                                                                    </option>
+                                                                @endforeach
+                                                            </select>
+                                                            @error('countryname[]')
+                                                                <small class="text-danger">{{ $message }}</small>
+                                                            @enderror
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-12">
+                                                        <div class="mt-4 text-center">
+                                                            <button type="submit" class="button_text">Continue
+                                                                Search</button>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div class="col-12">
-                                                <div class="form-group mb-0">
-                                                    <h4>Shop for the best Physical SIM offers</h4>
-                                                    <select class="select2_design form-control" multiple="multiple"
-                                                        name="countryname[]">
-                                                        @foreach ($countrys as $countryname)
-                                                            <option value="{{ $countryname }}">{{ $countryname }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                    @error('countryname[]')
-                                                        <small class="text-danger">{{ $message }}</small>
-                                                    @enderror
-                                                </div>
-                                            </div>
-                                            <div class="col-12">
-                                                <div class="mt-4 text-center">
-                                                    <button type="submit" class="button_text">Continue Search</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
                                 </form>
                             </div>
                         </div>
@@ -109,224 +125,160 @@
                     <div class="tab-content mt-4 shadow-none p-0">
                         <div role="tabpanel" id="roam-new-physical-package" class="tab-pane active">
                             <div class="panel-body">
-                                <div class="row" id="package-list">
                                     @php
-                                        $validCount = 0;
+                                        $globalValidCount = 0;
                                     @endphp
-                                    @foreach ($skupackages as $package)
-                                        @php
-                                            $pkg = App\Models\RoamPhysical::where('sku_id', $package->sku_id)->first();
+                                    <div class="package-group" data-package-group="global"
+                                        style="display: {{ $selectedDpId === 9 ? 'block' : 'none' }};">
+                                        <div class="row" id="package-list-global">
+                                            @foreach ($globalSkupackages as $package)
+                                                @php
+                                                    $pkg = App\Models\RoamPhysical::where('sku_id', $package->sku_id)->first();
 
-                                            $lowestPrice = null;
+                                                    $lowestPrice = null;
 
-                                            if ($pkg && !empty($pkg->packages)) {
-                                                $priceMap = $priceList
-                                                    ->where('plan', $package->sku_id)
-                                                    ->pluck('exchange_rate', 'product_code');
+                                                    if ($pkg && !empty($pkg->packages)) {
+                                                        $priceMap = $priceList
+                                                            ->where('plan', $package->sku_id)
+                                                            ->pluck('exchange_rate', 'product_code');
 
-                                                $lowestPrice = collect($pkg->packages)
-                                                    ->filter(fn($p) => ($p['status'] ?? 0) == 1)
-                                                    ->map(function ($p) use ($priceMap) {
-                                                        $apiCode = $p['apiCode'] ?? ($p['api_code'] ?? null);
-                                                        $legacyCode = $p['priceid'] ?? null;
-                                                        $rate =
-                                                            $apiCode !== null && isset($priceMap[$apiCode])
-                                                                ? $priceMap[$apiCode]
-                                                                : ($legacyCode !== null && isset($priceMap[$legacyCode])
-                                                                    ? $priceMap[$legacyCode]
-                                                                    : null);
-                                                        if ($rate === null) {
-                                                            return null;
-                                                        }
-                                                        $portalPrice = ($p['price'] ?? 0) + ($p['openCardFee'] ?? 0);
-                                                        return $portalPrice * $rate;
-                                                    })
-                                                    ->filter()
-                                                    ->min();
-                                            }
-                                        @endphp
-                                        @if (!empty($pkg) && $lowestPrice)
-                                            @php $validCount++; @endphp
-                                            <div class="col-lg-4  col-md-4 col-sm-12 col-12">
-                                                <div class="service-box">
-                                                    <figure class="img img2 mb-3">
-                                                        <img src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}"
-                                                            alt="" class="img-fluid">
-                                                    </figure>
-                                                    <div class="content">
-                                                        <h4>{{ $package->country_name }} </h4>
-                                                        @if ($lowestPrice)
-                                                            <p class="text-size-16">From
-                                                                {{ number_format($lowestPrice) }} MMK</p>
-                                                        @else
-                                                            <p class="text-size-16 text-danger">Not available</p>
-                                                        @endif
-                                                        <a href="{{ route('physical.roampackageview', ['id' => $package->sku_id, 'list_view' => '1']) }}"
-                                                            class="more">View Offer</a>
-                                @php
-                                    $globalValidCount = 0;
-                                @endphp
-                                <div class="package-group" data-package-group="global"
-                                    style="display: {{ $selectedDpId === 9 ? 'block' : 'none' }};">
-                                    <div class="row" id="package-list-global">
-                                        @foreach ($globalSkupackages as $package)
-                                            @php
-                                                $pkg = App\Models\RoamPhysical::where(
-                                                    'sku_id',
-                                                    $package->sku_id,
-                                                )->first();
+                                                        $lowestPrice = collect($pkg->packages)
+                                                            ->filter(fn($p) => ($p['status'] ?? 0) == 1)
+                                                            ->map(function ($p) use ($priceMap) {
+                                                                $apiCode = $p['apiCode'] ?? ($p['api_code'] ?? null);
+                                                                $legacyCode = $p['priceid'] ?? null;
+                                                                $rate =
+                                                                    $apiCode !== null && isset($priceMap[$apiCode])
+                                                                        ? $priceMap[$apiCode]
+                                                                        : ($legacyCode !== null &&
+                                                                        isset($priceMap[$legacyCode])
+                                                                            ? $priceMap[$legacyCode]
+                                                                            : null);
+                                                                if ($rate === null) {
+                                                                    return null;
+                                                                }
+                                                                $portalPrice = ($p['price'] ?? 0) + ($p['openCardFee'] ?? 0);
+                                                                return $portalPrice * $rate;
+                                                            })
+                                                            ->filter()
+                                                            ->min();
+                                                    }
+                                                @endphp
 
-                                                $lowestPrice = null;
-
-                                                if ($pkg && !empty($pkg->packages)) {
-                                                    $priceMap = $priceList
-                                                        ->where('plan', $package->sku_id)
-                                                        ->pluck('exchange_rate', 'product_code');
-
-                                                    $lowestPrice = collect($pkg->packages)
-                                                        ->filter(fn($p) => ($p['status'] ?? 0) == 1)
-                                                        ->map(function ($p) use ($priceMap) {
-                                                            $apiCode = $p['apiCode'] ?? ($p['api_code'] ?? null);
-                                                            $legacyCode = $p['priceid'] ?? null;
-                                                            $rate =
-                                                                $apiCode !== null && isset($priceMap[$apiCode])
-                                                                    ? $priceMap[$apiCode]
-                                                                    : ($legacyCode !== null &&
-                                                                    isset($priceMap[$legacyCode])
-                                                                        ? $priceMap[$legacyCode]
-                                                                        : null);
-                                                            if ($rate === null) {
-                                                                return null;
-                                                            }
-                                                            $portalPrice =
-                                                                ($p['price'] ?? 0) + ($p['openCardFee'] ?? 0);
-                                                            return $portalPrice * $rate;
-                                                        })
-                                                        ->filter()
-                                                        ->min();
-                                                }
-                                            @endphp
-
-                                            @if (!empty($pkg) && $lowestPrice)
-                                                @php $globalValidCount++; @endphp
-                                                <div class="col-lg-4 col-md-4 col-sm-12 col-12 package-card"
-                                                    data-package-card="global">
-                                                    <div class="service-box">
-                                                        <figure class="img img2 mb-3">
-                                                            <img src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}"
-                                                                alt="" class="img-fluid">
-                                                        </figure>
-                                                        <div class="content">
-                                                            <h4>{{ $package->country_name }}</h4>
-                                                            @if ($lowestPrice)
-                                                                <p class="text-size-16">From
-                                                                    {{ number_format($lowestPrice) }} MMK</p>
-                                                            @else
-                                                                <p class="text-size-16 text-danger">Not available</p>
-                                                            @endif
-                                                            <a href="{{ route('physical.roampackageview', ['id' => $package->sku_id]) }}"
-                                                                class="more">View Offer</a>
+                                                @if (!empty($pkg) && $lowestPrice)
+                                                    @php $globalValidCount++; @endphp
+                                                    <div class="col-lg-4 col-md-4 col-sm-12 col-12 package-card"
+                                                        data-package-card="global">
+                                                        <div class="service-box">
+                                                            <figure class="img img2 mb-3">
+                                                                <img src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}"
+                                                                    alt="" class="img-fluid">
+                                                            </figure>
+                                                            <div class="content">
+                                                                <h4>{{ $package->country_name }}</h4>
+                                                                @if ($lowestPrice)
+                                                                    <p class="text-size-16">From
+                                                                        {{ number_format($lowestPrice) }} MMK</p>
+                                                                @else
+                                                                    <p class="text-size-16 text-danger">Not available</p>
+                                                                @endif
+                                                                <a href="{{ route('physical.roampackageview', ['id' => $package->sku_id]) }}"
+                                                                    class="more">View Offer</a>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            @endif
-                                        @endforeach
+                                                @endif
+                                            @endforeach
+                                        </div>
+
+                                        @if ($globalValidCount > 6)
+                                            <div class="text-center mt-4">
+                                                <button id="showMoreBtn-global" class="btn btn-primary px-4 py-2"
+                                                    data-show-more="global">Show More</button>
+                                            </div>
+                                        @endif
                                     </div>
 
-                                    @if ($globalValidCount > 6)
-                                        <div class="text-center mt-4">
-                                            <button id="showMoreBtn-global" class="btn btn-primary px-4 py-2"
-                                                data-show-more="global">Show More</button>
-                                        </div>
-                                    @endif
-                                </div>
+                                    @php
+                                        $asiaValidCount = 0;
+                                    @endphp
+                                    <div class="package-group" data-package-group="asia"
+                                        style="display: {{ $selectedDpId === 21 ? 'block' : 'none' }};">
+                                        <div class="row" id="package-list-asia">
+                                            @foreach ($asiaSkupackages as $package)
+                                                @php
+                                                    $pkg = App\Models\RoamPhysical::where('sku_id', $package->sku_id)->first();
 
-                                @php
-                                    $asiaValidCount = 0;
-                                @endphp
-                                <div class="package-group" data-package-group="asia"
-                                    style="display: {{ $selectedDpId === 21 ? 'block' : 'none' }};">
-                                    <div class="row" id="package-list-asia">
-                                        @foreach ($asiaSkupackages as $package)
-                                            @php
-                                                $pkg = App\Models\RoamPhysical::where(
-                                                    'sku_id',
-                                                    $package->sku_id,
-                                                )->first();
+                                                    $lowestPrice = null;
 
-                                                $lowestPrice = null;
+                                                    if ($pkg && !empty($pkg->packages)) {
+                                                        $priceMap = $priceList
+                                                            ->where('plan', $package->sku_id)
+                                                            ->pluck('exchange_rate', 'product_code');
 
-                                                if ($pkg && !empty($pkg->packages)) {
-                                                    $priceMap = $priceList
-                                                        ->where('plan', $package->sku_id)
-                                                        ->pluck('exchange_rate', 'product_code');
+                                                        $lowestPrice = collect($pkg->packages)
+                                                            ->filter(fn($p) => ($p['status'] ?? 0) == 1)
+                                                            ->map(function ($p) use ($priceMap) {
+                                                                $apiCode = $p['apiCode'] ?? ($p['api_code'] ?? null);
+                                                                $legacyCode = $p['priceid'] ?? null;
+                                                                $rate =
+                                                                    $apiCode !== null && isset($priceMap[$apiCode])
+                                                                        ? $priceMap[$apiCode]
+                                                                        : ($legacyCode !== null &&
+                                                                        isset($priceMap[$legacyCode])
+                                                                            ? $priceMap[$legacyCode]
+                                                                            : null);
+                                                                if ($rate === null) {
+                                                                    return null;
+                                                                }
+                                                                $portalPrice = ($p['price'] ?? 0) + ($p['openCardFee'] ?? 0);
+                                                                return $portalPrice * $rate;
+                                                            })
+                                                            ->filter()
+                                                            ->min();
+                                                    }
+                                                @endphp
 
-                                                    $lowestPrice = collect($pkg->packages)
-                                                        ->filter(fn($p) => ($p['status'] ?? 0) == 1)
-                                                        ->map(function ($p) use ($priceMap) {
-                                                            $apiCode = $p['apiCode'] ?? ($p['api_code'] ?? null);
-                                                            $legacyCode = $p['priceid'] ?? null;
-                                                            $rate =
-                                                                $apiCode !== null && isset($priceMap[$apiCode])
-                                                                    ? $priceMap[$apiCode]
-                                                                    : ($legacyCode !== null &&
-                                                                    isset($priceMap[$legacyCode])
-                                                                        ? $priceMap[$legacyCode]
-                                                                        : null);
-                                                            if ($rate === null) {
-                                                                return null;
-                                                            }
-                                                            $portalPrice =
-                                                                ($p['price'] ?? 0) + ($p['openCardFee'] ?? 0);
-                                                            return $portalPrice * $rate;
-                                                        })
-                                                        ->filter()
-                                                        ->min();
-                                                }
-                                            @endphp
-
-                                            @if (!empty($pkg) && $lowestPrice)
-                                                @php $asiaValidCount++; @endphp
-                                                <div class="col-lg-4 col-md-4 col-sm-12 col-12 package-card"
-                                                    data-package-card="asia">
-                                                    <div class="service-box">
-                                                        <figure class="img img2 mb-3">
-                                                            <img src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}"
-                                                                alt="" class="img-fluid">
-                                                        </figure>
-                                                        <div class="content">
-                                                            <h4>{{ $package->country_name }}</h4>
-                                                            @if ($lowestPrice)
-                                                                <p class="text-size-16">From
-                                                                    {{ number_format($lowestPrice) }} MMK</p>
-                                                            @else
-                                                                <p class="text-size-16 text-danger">Not available</p>
-                                                            @endif
-                                                            <a href="{{ route('physical.roampackageview', ['id' => $package->sku_id]) }}"
-                                                                class="more">View Offer</a>
+                                                @if (!empty($pkg) && $lowestPrice)
+                                                    @php $asiaValidCount++; @endphp
+                                                    <div class="col-lg-4 col-md-4 col-sm-12 col-12 package-card"
+                                                        data-package-card="asia">
+                                                        <div class="service-box">
+                                                            <figure class="img img2 mb-3">
+                                                                <img src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}"
+                                                                    alt="" class="img-fluid">
+                                                            </figure>
+                                                            <div class="content">
+                                                                <h4>{{ $package->country_name }}</h4>
+                                                                @if ($lowestPrice)
+                                                                    <p class="text-size-16">From
+                                                                        {{ number_format($lowestPrice) }} MMK</p>
+                                                                @else
+                                                                    <p class="text-size-16 text-danger">Not available</p>
+                                                                @endif
+                                                                <a href="{{ route('physical.roampackageview', ['id' => $package->sku_id]) }}"
+                                                                    class="more">View Offer</a>
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            @endif
-                                        @endforeach
-                                    </div>
-
-                                    @if ($asiaValidCount > 6)
-                                        <div class="text-center mt-4">
-                                            <button id="showMoreBtn-asia" class="btn btn-primary px-4 py-2"
-                                                data-show-more="asia">Show More</button>
+                                                @endif
+                                            @endforeach
                                         </div>
-                                    @endif
+
+                                        @if ($asiaValidCount > 6)
+                                            <div class="text-center mt-4">
+                                                <button id="showMoreBtn-asia" class="btn btn-primary px-4 py-2"
+                                                    data-show-more="asia">Show More</button>
+                                            </div>
+                                        @endif
+                                    </div>
                                 </div>
                             </div>
+                            <figure class="element2 mb-0">
+                                <img src="{{ asset('assets/images/what-we-do-icon-2.png') }}" class="img-fluid"
+                                    alt="">
+                            </figure>
                         </div>
-                    </div>
-                </div>
-            </div>
-            <figure class="element2 mb-0">
-                <img src="{{ asset('assets/images/what-we-do-icon-2.png') }}" class="img-fluid" alt="">
-            </figure>
-        </div>
     </section>
     <!-- need more help? -->
     <section class="need-section">

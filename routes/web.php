@@ -17,6 +17,7 @@ use App\Http\Controllers\Backend\JoytelController;
 use App\Http\Controllers\Backend\JoyUsageLocationController;
 use App\Http\Controllers\Backend\OrderController;
 use App\Http\Controllers\Backend\PageController;
+use App\Http\Controllers\Backend\RoamOrderController;
 use App\Http\Controllers\Backend\RoamController;
 use App\Http\Controllers\Backend\RoamPhysicalController;
 use App\Http\Controllers\Backend\SubCategoryController;
@@ -63,7 +64,7 @@ Route::middleware('guest:customers')->group(function () {
     Route::get('/forgot-password', [CustomerAuthController::class, 'showForgotPassword'])->name('customer.password.request');
     Route::post('/forgot-password', [CustomerAuthController::class, 'sendPasswordResetOtp'])->name('customer.password.email');
 
-   Route::get('/customer/google/redirect', [CustomerAuthController::class, 'googleRedirect'])->name('customer.google.redirect');
+    Route::get('/customer/google/redirect', [CustomerAuthController::class, 'googleRedirect'])->name('customer.google.redirect');
     Route::get('/customer/google/callback', [CustomerAuthController::class, 'googleCallback'])->name('customer.google.callback');
     Route::get('/auth/google/call-back', [CustomerAuthController::class, 'googleCallback']);
 
@@ -194,6 +195,16 @@ Route::middleware(['auth'])->group(function () {
 
         //Api Credentials
         Route::post('/roam-api/store', [RoamController::class, 'store'])->name('roam-api.store');
+
+        Route::prefix('orders')->group(function () {
+            Route::get('/', [RoamOrderController::class, 'index'])->name('roam.orders.index');
+            Route::get('/create', [RoamOrderController::class, 'create'])->name('roam.orders.create');
+            Route::post('/', [RoamOrderController::class, 'store'])->name('roam.orders.store');
+            Route::get('/{roamOrder}', [RoamOrderController::class, 'show'])->name('roam.orders.show');
+            Route::post('/{roamOrder}/sync', [RoamOrderController::class, 'sync'])->name('roam.orders.sync');
+            Route::post('/{roamOrder}/transition', [RoamOrderController::class, 'transition'])->name('roam.orders.transition');
+            Route::post('/{roamOrder}/send-pdf', [RoamOrderController::class, 'sendPdf'])->name('roam.orders.send-pdf');
+        });
 
 
         //manage status

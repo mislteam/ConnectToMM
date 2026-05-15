@@ -51,6 +51,16 @@ class Customer extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(CustomerVerificationCode::class);
     }
 
+    public function joytelOrders(): HasMany
+    {
+        return $this->hasMany(JoytelOrder::class);
+    }
+
+    public function roamOrders(): HasMany
+    {
+        return $this->hasMany(RoamOrder::class);
+    }
+
     public function isActive(): bool
     {
         return (int) $this->status === self::STATUS_ACTIVE;

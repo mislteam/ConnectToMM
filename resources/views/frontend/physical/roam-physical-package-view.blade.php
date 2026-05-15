@@ -290,7 +290,6 @@
                                         alt="{{ $package->country_name ?? 'Package' }}" class="img-fluid">
                                 </figure>
                                 <div class="content">
-
                                     <h4>{{ $package->country_name ?? 'Unnamed Package' }}</h4>
                                     @if ($lowestPrice)
                                         <p class="text-size-16">From {{ number_format($lowestPrice) }} MMK</p>
@@ -307,7 +306,6 @@
                             <p>No packages found for the selected countries.</p>
                         </div>
                     @endforelse
-
                 </div>
             </div>
         </div>
