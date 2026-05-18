@@ -94,7 +94,7 @@ Route::middleware('auth:customers')->group(function () {
     });
 
     Route::get('/customer/profile', [HomeController::class, 'customerProfile'])->name('customer.profile.index');
-    Route::post('/customer/edit/{customer}/{edit_type}', [HomeController::class, 'customerEdit'])->name('customer.edit');
+    Route::post('/customer/profile/edit/{customer}/{edit_type}', [HomeController::class, 'customerEdit'])->name('frontend.customer.edit');
 
     // order detail page
     Route::get('/customer/order-detail', [HomeController::class, 'orderDetail'])->name('customer.order.detail');
@@ -135,9 +135,23 @@ Route::middleware(['auth'])->group(function () {
 
     // customer
     Route::get('/all-customer', [CustomerController::class, 'index'])->name('customer.index');
+    Route::get('/customer/show/{customer}', [CustomerController::class, 'show'])->name('customer.show');
+    Route::get('/customer/edit/{customer}', [CustomerController::class, 'edit'])->name('customer.edit');
+    Route::post('/customer/update/{id}', [CustomerController::class, 'update'])->name('customer.update');
+    Route::post('/customer/change-password', [CustomerController::class, 'changePassword'])->name('customer.change-password');
 
     // order
     Route::get('/all-orders', [OrderController::class, 'index'])->name('order.index');
+
+    // coupons
+    Route::prefix('coupon')->group(function () {
+        Route::get('/', [CouponController::class, 'index'])->name('coupon.index');
+        Route::get('/create', [CouponController::class, 'create'])->name('coupon.create');
+        Route::post('/store', [CouponController::class, 'store'])->name('coupon.store');
+        Route::get('/show/{coupon}', [CouponController::class, 'show'])->name('coupon.show');
+        Route::get('/edit/{coupon}', [CouponController::class, 'edit'])->name('coupon.edit');
+        Route::patch('/update/{coupon}', [CouponController::class, 'update'])->name('coupon.update');
+    });
 
     // All Admin Users
     Route::get('/show', [AdminController::class, 'index'])->name('show.admin');
