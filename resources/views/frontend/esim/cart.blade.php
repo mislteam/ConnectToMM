@@ -67,7 +67,8 @@
                                                 <label>Service Day :
                                                     {{ $order['service_day'] > 1 ? $order['service_day'] . ' days' : $order['service_day'] . ' day' }}</label><br>
                                                 <label>Data : {{ $order['service_data'] }}</label><br>
-                                                <label>SIM Type : {{ Str::headline($order['sim_type']) }}</label><br>
+                                                <label>SIM Type :
+                                                    {{ $order['sim_type_label'] ?? Str::headline($order['sim_type']) }}</label><br>
                                                 @if ($order['iccid_exist'])
                                                     <label>ICCID No: {{ $order['iccid_no'] ?? '-' }}</label><br>
                                                 @endif

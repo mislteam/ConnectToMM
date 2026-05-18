@@ -33,12 +33,13 @@
                                 <label>Phone Number</label>
                                 <input type="text" class="form_style text-dark" placeholder="Enter Your Phone Number">
                             </div>
-                            @if (session('iccid_no'))
+                            @if (session('iccid_no') || ($requires_iccid ?? false))
                                 <div class="form-group mb-0">
-                                    <label>ICCID No <span class="required" aria-hidden="true">*</span></label>
-                                    <select class="select2_design form-control">
-                                        <option>{{ session('iccid_no') }}</option>
-                                    </select>
+                                    <label>{{ $iccid_label ?? 'ICCID No' }}
+                                        <span class="required" aria-hidden="true">*</span></label>
+                                    <input type="text" name="iccid_number" class="form_style text-dark"
+                                        placeholder="Enter Your {{ $iccid_label ?? 'ICCID No' }}"
+                                        value="{{ old('iccid_number', session('iccid_no')) }}">
                                 </div>
                             @endif
                         </form>
@@ -57,8 +58,8 @@
                                     <td>
                                         <label>{{ $sku->country_name }}</label><br>
                                         <label>{{ ($service_day > 1 ? $service_day . ' Days/ ' : $service_day . ' Day/ ') . $service_data }}</label><br>
-                                        @if (session('iccid_no'))
-                                            <label>ICCID No: {{ session('iccid_no') }}</label>
+                                        @if (session('iccid_no') || ($requires_iccid ?? false))
+                                            <label>{{ $iccid_label ?? 'ICCID No' }}: {{ session('iccid_no') ?? '-' }}</label>
                                         @endif
                                     </td>
                                     <td><label> {{ number_format($price) . ' MMK' }}</label></td>

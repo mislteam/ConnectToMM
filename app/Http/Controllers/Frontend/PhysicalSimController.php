@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use App\Models\PriceList;
 use App\Models\GeneralSetting;
 use App\Models\RoamSku;
+use Illuminate\Support\Facades\Auth;
 
 class PhysicalSimController extends Controller
 {
@@ -293,16 +294,30 @@ class PhysicalSimController extends Controller
             'sdata' => 'required',
             'display_price' => 'required',
             'qty' => 'required',
-            'original_selected_price' => 'required'
+            'original_selected_price' => 'required',
+            'api_code' => 'nullable|string'
         ]);
         $sku = RoamSku::where('sku_id', $request->skuid)->first();
         $iccid_no = session()->get('iccid_no');
         $iccid_exist = session()->get('iccid_exist');
+        $service_type = $this->resolveServiceType($sim_type);
+        $order_type = $this->resolveOrderType($sim_type);
+        $apiCode = $this->normalizeApiCode($request->input('api_code'));
 
         $roamCart = session()->get('roam_order_cart', []);
         $found = false;
         foreach ($roamCart as &$item) {
-            if ($item['country_name'] == $sku->country_name && $item['service_day'] == $request->sday && $item['service_data'] == $request->sdata && $item['iccid_no'] == $iccid_no && $item['iccid_exist'] == $iccid_exist && $item['sim_type'] == $sim_type) {
+            if (
+                $item['country_name'] == $sku->country_name
+                && $item['service_day'] == $request->sday
+                && $item['service_data'] == $request->sdata
+                && $this->normalizeApiCode($item['api_code'] ?? null) === $apiCode
+                && $item['iccid_no'] == $iccid_no
+                && $item['iccid_exist'] == $iccid_exist
+                && ($item['sim_type'] ?? null) == $sim_type
+                && ($item['service_type'] ?? null) == $service_type
+                && ($item['order_type'] ?? null) == $order_type
+            ) {
                 $item['qty'] += $request->qty;
                 $item['price'] += $request->display_price;
                 $found = true;
@@ -312,8 +327,12 @@ class PhysicalSimController extends Controller
 
         if (!$found) {
             $roamCart[] = [
+                'sku' => $sku->id,
                 'sku_id' => $sku->id,
                 'sim_type' => $sim_type,
+                'service_type' => $service_type,
+                'order_type' => $order_type,
+                'api_code' => $apiCode,
                 'country_name' => $sku->country_name,
                 'service_day' => $request->sday,
                 'service_data' => $request->sdata,
@@ -330,19 +349,60 @@ class PhysicalSimController extends Controller
     }
 
     // joytel checkout
-    public function checkout()
+    public function checkout(Request $request)
     {
-        $cart = session('roam_cart');
-        if (!$cart) {
+        $cart = session('roam_order_cart', []);
+        $cartItems = (is_array($cart) && (array_key_exists('sku_id', $cart) || array_key_exists('sku', $cart)))
+            ? collect([$cart])
+            : collect($cart)->values();
+
+        if ($cartItems->isEmpty()) {
             return redirect()->back()->with('error', 'Cart is Empty!');
         }
-        $sku = RoamSku::findOrFail($cart['sku']);
+
+        Auth::shouldUse('customers');
+        $customer = auth()->user();
+
+        $serviceItems = $cartItems
+            ->filter(fn($item) => $this->getCartServiceType($item) === 'physical')
+            ->values();
+
+        if ($serviceItems->isEmpty()) {
+            return redirect()->back()->with('error', 'No physical SIM items found in cart!');
+        }
+
+        $simType = session('sim_type');
+        $typedItems = $simType
+            ? $serviceItems->filter(fn($item) => (string) ($item['sim_type'] ?? '') === (string) $simType)->values()
+            : collect();
+        $itemsToUse = $typedItems->isNotEmpty() ? $typedItems : $serviceItems;
+        $primaryItem = $itemsToUse->last() ?: $itemsToUse->first();
+        $skuId = $primaryItem['sku_id'] ?? $primaryItem['sku'] ?? null;
+
+        if (!$skuId) {
+            return redirect()->back()->with('error', 'Cart data is invalid!');
+        }
+
+        $sku = RoamSku::findOrFail($skuId);
+        $price = (float) ($primaryItem['price'] ?? 0);
+
+        $request->merge([
+            'price' => $price,
+        ]);
+
         return view('frontend.physical.checkout', [
             'sku' => $sku,
-            'service_day' => $cart['service_day'],
-            'service_data' => $cart['service_data'],
-            'qty' => $cart['qty'],
-            'price' => $cart['price']
+            'cart' => $primaryItem,
+            'cartItems' => $cartItems->values()->all(),
+            'selectedCartItems' => $itemsToUse->all(),
+            'service_day' => $primaryItem['service_day'] ?? null,
+            'service_data' => $primaryItem['service_data'] ?? null,
+            'qty' => $primaryItem['qty'] ?? 1,
+            'price' => $price,
+            'customer' => $customer,
+            'subtotal' => $serviceItems->sum(fn($item) => (float) ($item['price'] ?? 0)),
+            'requires_iccid' => $this->requiresIccid($primaryItem),
+            'iccid_label' => $this->buildIccidLabel($primaryItem, (string) $sku->country_name),
         ]);
     }
 
@@ -368,5 +428,52 @@ class PhysicalSimController extends Controller
     public function cartPage()
     {
         return view('frontend.physical.cart');
+    }
+
+    private function resolveServiceType(?string $simType): string
+    {
+        $simType = strtolower((string) $simType);
+
+        return str_contains($simType, 'physical') ? 'physical' : 'esim';
+    }
+
+    private function resolveOrderType(?string $simType): string
+    {
+        return 'recharge';
+    }
+
+    private function requiresIccid(array $cartItem): bool
+    {
+        return true;
+    }
+
+    private function getCartServiceType(array $cartItem): string
+    {
+        $serviceType = strtolower((string) ($cartItem['service_type'] ?? ''));
+        if ($serviceType !== '') {
+            return $serviceType;
+        }
+
+        $simType = strtolower((string) ($cartItem['sim_type'] ?? ''));
+
+        return str_contains($simType, 'physical') ? 'physical' : 'esim';
+    }
+
+    private function normalizeApiCode(?string $apiCode): ?string
+    {
+        $apiCode = trim((string) $apiCode);
+
+        return $apiCode !== '' ? $apiCode : null;
+    }
+
+    private function buildIccidLabel(array $cartItem, string $countryName): string
+    {
+        $serviceType = strtolower((string) ($cartItem['service_type'] ?? ''));
+
+        if ($serviceType === 'physical') {
+            return 'ICCID No For ' . $countryName . ' Recharge Physical';
+        }
+
+        return 'ICCID No For ' . $countryName . ' Recharge';
     }
 }
