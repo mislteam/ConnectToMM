@@ -61,13 +61,9 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-start text-left">
                                 <div class="d-flex justify-content-start gap-2">
-                                    <div class="d-flex justify-content-start align-items-center">
-                                        <img src="{{ auth()->user()->profile_image ? asset('storage/profile_images/' . auth()->user()->profile_image) : asset('assets/images/user-3.jpg') }}"
-                                            alt="avatar-2" class="img-fluid rounded-circle w-25 mr-2">
-                                        <div>
-                                            <h4 class="text-nowrap fw-bold mb-1">{{ auth()->user()->name }}</h4>
-                                            <span class="fw-medium text-size-16">{{ auth()->user()->email }}</span>
-                                        </div>
+                                    <div>
+                                        <h4 class="text-nowrap fw-bold mb-1">{{ auth()->user()->name }}</h4>
+                                        <span class="fw-medium text-size-16">{{ auth()->user()->email }}</span>
                                     </div>
                                 </div>
                                 <div class="d-flex gap-3">
@@ -145,10 +141,8 @@
 
     <div class="modal fade" id="userEditModal" tabindex="-1" aria-labelledby="userEditModalLabel" aria-hidden="true">
         <div class="modal-dialog">
-            <form
-                action="{{ route('frontend.customer.edit', ['customer' => auth()->user()->id, 'edit_type' => 'profile']) }}"
-                method="POST" enctype="multipart/form-data">
-                @csrf
+            <form action="{{ route('customer.edit', ['customer' => auth()->user()->id, 'edit_type' => 'profile']) }}"
+                method="POST">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="userEditModalLabel">Edit Profile</h5>
@@ -167,17 +161,6 @@
                             <input type="email" class="form-control" id="email" name="email"
                                 value="{{ auth()->user()->email }}">
                         </div>
-                        <div class="mb-3">
-                            <label for="email" class="col-form-label">Photo:</label>
-                            <input type="file" accept="image/jpg,image/jpeg,image/png" class="form-control"
-                                id="file" name="file">
-                            @if (auth()->user()->profile_image)
-                                <div class="mt-2">
-                                    <a class="text-primary" target="_blank"
-                                        href="{{ asset('storage/profile_images/' . auth()->user()->profile_image) }}">{{ asset('storage/profile_images/' . auth()->user()->profile_image) }}</a>
-                                </div>
-                            @endif
-                        </div>
 
                     </div>
                     <div class="modal-footer">
@@ -192,7 +175,7 @@
     <div class="modal fade" id="pwdEditModal" tabindex="-1" aria-labelledby="pwdEditModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <form class="profile-edit-form"
-                action="{{ route('frontend.customer.edit', ['customer' => auth()->user()->id, 'edit_type' => 'password']) }}"
+                action="{{ route('customer.edit', ['customer' => auth()->user()->id, 'edit_type' => 'password']) }}"
                 method="POST">
                 @csrf
                 <div class="modal-content">

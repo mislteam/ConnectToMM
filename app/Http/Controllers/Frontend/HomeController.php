@@ -69,19 +69,10 @@ class HomeController extends Controller
         if ($edit_type === 'profile') {
             $request->validate([
                 'name' => 'required|string|max:255',
-                'email' => 'required|email',
-                'file' => 'nullable|image|mimes:jpeg,jpg,png'
+                'email' => 'required|email'
             ]);
             $customer->name = $request->name;
             $customer->email = $request->email;
-            if ($request->hasFile('file')) {
-                $file = $request->file('file');
-                $fileName = time() . '_' . $file->getClientOriginalName();
-                $file->storeAs('profile_images', $fileName, 'public');
-
-                $customer->profile_image = $fileName;
-                $customer->save();
-            }
             $customer->save();
             return back()->with('success', 'Customer Profile Updated Successfully!');
         } else if ($edit_type === 'password') {
