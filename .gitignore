@@ -18,3 +18,12 @@ yarn-error.log
 /.idea
 /.vscode
 .codex
+app/Console/Commands
+app/Models/Joytel*.php
+app/Models/Roam*.php
+app/Http/Controllers/Backend/RoamOrderController.php
+app/Services
+database/migrations/2026_05_05_000001_create_joytel_orders_table.php
+database/migrations/2026_05_05_000002_create_joytel_order_items_table.php
+database/migrations/2026_05_06_000001_create_roam_orders_table.php
+database/migrations/2026_05_06_000002_create_roam_order_items_table.php

@@ -3,15 +3,12 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
-use App\Models\Customer;
 use App\Models\RoamSku;
 use App\Models\Roam;
-use App\Models\RoamPhysicalSku;
 use App\Models\PriceList;
-use App\Models\RoamOrder;
 use Illuminate\Http\Request;
 use App\Models\GeneralSetting;
-use App\Services\Roam\RoamOrderService;
+use Illuminate\Support\Facades\Auth;
 
 class ESimController extends Controller
 {
@@ -147,7 +144,7 @@ class ESimController extends Controller
 
     public function roamView($skuid, Request $request)
     {
-        if ($request->has('list_view')) {
+        if ($request->has('list_view') && session('sim_type') !== 'recharge_esim') {
             session()->forget(['iccid_exist', 'iccid_no']);
             session(['sim_type' => 'new_esim']);
         }
@@ -231,6 +228,11 @@ class ESimController extends Controller
             })
             ->take(3)
             ->values();
+        $canAdjustQuantity = $this->canAdjustQuantity([
+            'sim_type' => session('sim_type'),
+            'service_type' => 'esim',
+            'order_type' => $this->resolveOrderType(session('sim_type')),
+        ]);
 
         return view('frontend.esim.roam-package-view', compact(
             'logo',
@@ -241,7 +243,8 @@ class ESimController extends Controller
             'validPackages',
             'pricelists',
             'hasValidPlans',
-            'randomSkus'
+            'randomSkus',
+            'canAdjustQuantity'
         ));
     }
 
@@ -256,20 +259,52 @@ class ESimController extends Controller
             'sdata' => 'required',
             'display_price' => 'required',
             'qty' => 'required',
-            'original_selected_price' => 'required'
+            'original_selected_price' => 'required',
+            'api_code' => 'nullable|string'
         ]);
 
         $sku = RoamSku::where('sku_id', $request->skuid)->first();
         // dd(session()->all());
         $iccid_no = session()->get('iccid_no');
         $iccid_exist = session()->get('iccid_exist');
+        $service_type = $this->resolveServiceType($sim_type);
+        $order_type = $this->resolveOrderType($sim_type);
+        $apiCode = $this->normalizeApiCode($request->input('api_code'));
+        $simTypeLabel = $this->buildSimTypeLabel($service_type, $order_type);
+        $canAdjustQuantity = $this->canAdjustQuantity([
+            'sim_type' => $sim_type,
+            'service_type' => $service_type,
+            'order_type' => $order_type,
+        ]);
+        $unitPrice = (float) $request->original_selected_price;
+        $requestedQty = max(1, (int) $request->qty);
+        $qty = $canAdjustQuantity ? $requestedQty : 1;
+        $price = $unitPrice * $qty;
 
         $roamCart = session()->get('roam_order_cart', []);
         $found = false;
         foreach ($roamCart as &$item) {
-            if ($item['country_name'] == $sku->country_name && $item['service_day'] == $request->sday && $item['service_data'] == $request->sdata && $item['iccid_no'] == $iccid_no && $item['iccid_exist'] == $iccid_exist && $item['sim_type'] == $sim_type) {
-                $item['qty'] += $request->qty;
-                $item['price'] += $request->display_price;
+            if (
+                $item['country_name'] == $sku->country_name
+                && $item['service_day'] == $request->sday
+                && $item['service_data'] == $request->sdata
+                && $this->normalizeApiCode($item['api_code'] ?? null) === $apiCode
+                && $item['iccid_no'] == $iccid_no
+                && $item['iccid_exist'] == $iccid_exist
+                && ($item['sim_type'] ?? null) == $sim_type
+                && ($item['service_type'] ?? null) == $service_type
+                && ($item['order_type'] ?? null) == $order_type
+            ) {
+                $itemUnitPrice = (float) ($item['ori_price'] ?? $unitPrice);
+
+                if ($canAdjustQuantity) {
+                    $item['qty'] = (int) ($item['qty'] ?? 0) + $requestedQty;
+                } else {
+                    $item['qty'] = 1;
+                }
+
+                $item['ori_price'] = $itemUnitPrice;
+                $item['price'] = $itemUnitPrice * (int) $item['qty'];
                 $found = true;
                 break;
             }
@@ -277,16 +312,21 @@ class ESimController extends Controller
 
         if (!$found) {
             $roamCart[] = [
+                'sku' => $sku->id,
                 'sku_id' => $sku->id,
                 'sim_type' => $sim_type,
+                'sim_type_label' => $simTypeLabel,
+                'service_type' => $service_type,
+                'order_type' => $order_type,
+                'api_code' => $apiCode,
                 'country_name' => $sku->country_name,
                 'service_day' => $request->sday,
                 'service_data' => $request->sdata,
-                'qty' => $request->qty,
-                'price' => $request->display_price,
+                'qty' => $qty,
+                'price' => $price,
                 'iccid_no' => $iccid_no,
                 'iccid_exist' => $iccid_exist,
-                'ori_price' => $request->original_selected_price
+                'ori_price' => $unitPrice
             ];
         }
 
@@ -295,166 +335,212 @@ class ESimController extends Controller
         return redirect()->route('roam.esim.cartpage');
     }
 
-    // joytel checkout
-    public function checkout()
+    public function checkout(Request $request)
     {
-        $cart = session('roam_cart');
-        if (!$cart) {
+        $cart = session('roam_order_cart', []);
+        $cartItems = (is_array($cart) && (array_key_exists('sku_id', $cart) || array_key_exists('sku', $cart)))
+            ? collect([$cart])
+            : collect($cart)->values();
+
+        if ($cartItems->isEmpty()) {
             return redirect()->back()->with('error', 'Cart is Empty!');
         }
 
-        if ($this->isPhysicalCart($cart)) {
-            return app(PhysicalSimController::class)->checkout();
+        Auth::shouldUse('customers');
+        $customer = auth()->user();
+
+        $serviceItems = $cartItems->values();
+
+        if ($serviceItems->isEmpty()) {
+            return redirect()->back()->with('error', 'No SIM items found in cart!');
         }
 
-        $customer = auth('customers')->user();
-        $sku = RoamSku::findOrFail($cart['sku']);
+        $itemsToUse = $serviceItems->map(function ($item) {
+            $serviceType = (string) ($item['service_type'] ?? $this->resolveServiceType($item['sim_type'] ?? session('sim_type')));
+            $orderType = (string) ($item['order_type'] ?? $this->resolveOrderType($item['sim_type'] ?? session('sim_type')));
+            $canAdjustQuantity = $this->canAdjustQuantity([
+                'sim_type' => $item['sim_type'] ?? session('sim_type'),
+                'service_type' => $serviceType,
+                'order_type' => $orderType,
+            ]);
+
+            if (!$canAdjustQuantity) {
+                $unitPrice = (float) ($item['ori_price'] ?? $item['price'] ?? 0);
+                $item['qty'] = 1;
+                $item['price'] = $unitPrice;
+                $item['ori_price'] = $unitPrice;
+            }
+
+            $item['sim_type_label'] = $item['sim_type_label'] ?? $this->buildSimTypeLabel($serviceType, $orderType);
+            $item['iccid_count'] = $this->getIccidCount($item);
+            $item['iccid_label'] = $this->buildIccidLabel($item, (string) ($item['country_name'] ?? ''));
+
+            return $item;
+        })->values();
+
+        $primaryItem = $itemsToUse->first();
+        $skuId = $primaryItem['sku_id'] ?? $primaryItem['sku'] ?? null;
+
+        if (!$skuId) {
+            return redirect()->back()->with('error', 'Cart data is invalid!');
+        }
+
+        $sku = RoamSku::findOrFail($skuId);
+        $price = (float) ($primaryItem['price'] ?? 0);
+        $iccidCount = $this->getIccidCount($primaryItem);
+        $iccidNumbers = array_values(array_pad(
+            (array) old('iccid_numbers', session('iccid_numbers', [])),
+            $iccidCount,
+            ''
+        ));
+
+        $request->merge([
+            'price' => $price,
+        ]);
+
         return view('frontend.esim.checkout', [
             'sku' => $sku,
-            'cart' => $cart,
-            'service_day' => $cart['service_day'],
-            'service_data' => $cart['service_data'],
-            'qty' => $cart['qty'],
-            'price' => $cart['price'],
+            'cart' => $primaryItem,
+            'cartItems' => $cartItems->values()->all(),
+            'selectedCartItems' => $itemsToUse->all(),
+            'service_day' => $primaryItem['service_day'] ?? null,
+            'service_data' => $primaryItem['service_data'] ?? null,
+            'qty' => $primaryItem['qty'] ?? 1,
+            'price' => $price,
             'customer' => $customer,
+            'subtotal' => $serviceItems->sum(fn($item) => (float) ($item['price'] ?? 0)),
+            'requires_iccid' => $this->requiresIccid($primaryItem),
+            'iccid_label' => $this->buildIccidLabel($primaryItem, (string) $sku->country_name),
+            'iccid_count' => $iccidCount,
+            'iccid_numbers' => $iccidNumbers,
+            'sim_type_label' => $this->buildSimTypeLabel(
+                (string) ($primaryItem['service_type'] ?? ''),
+                (string) ($primaryItem['order_type'] ?? '')
+            ),
         ]);
     }
 
-    public function placeOrder(Request $request, RoamOrderService $service)
+    public function updateCartQuantity(Request $request, $key)
     {
-        $cart = session('roam_cart');
-        if (!$cart) {
-            return redirect()->route('roam.checkout')->with('error', 'Cart is Empty!');
-        }
-
-        if ($this->isPhysicalCart($cart)) {
-            return app(PhysicalSimController::class)->placeOrder($request, $service);
-        }
-
         $validated = $request->validate([
-            'payment_method' => ['required', 'string', 'max:50'],
-            'accept_policy' => ['accepted'],
+            'qty' => ['required', 'integer', 'min:1', 'max:100'],
         ]);
 
-        $customer = auth('customers')->user();
-        abort_unless($customer instanceof Customer, 403, 'You must be logged in to place a Roam order.');
+        $cart = session()->get('roam_order_cart', []);
 
-        $payload = $this->buildPlaceOrderPayload($cart, $customer, $service, $validated['payment_method']);
-        $order = $service->placeOrder($payload, $customer);
+        if (!isset($cart[$key])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cart item not found.',
+            ], 404);
+        }
 
-        session()->forget('roam_cart');
-        session()->put('roam_last_order', [
-            'roam_order_num' => $order->roam_order_num,
-            'outer_order_id' => $order->outer_order_id,
+        if (!$this->canAdjustQuantity($cart[$key])) {
+            $unitPrice = (float) ($cart[$key]['ori_price'] ?? $cart[$key]['price'] ?? 0);
+            $cart[$key]['qty'] = 1;
+            $cart[$key]['price'] = $unitPrice;
+
+            session()->put('roam_order_cart', $cart);
+
+            return response()->json([
+                'success' => true,
+                'qty' => 1,
+                'total' => $cart[$key]['price'],
+            ]);
+        }
+
+        $cart[$key]['qty'] = (int) $validated['qty'];
+
+        $unitPrice = (float) ($cart[$key]['ori_price'] ?? $cart[$key]['price'] ?? 0);
+        $cart[$key]['price'] = $unitPrice * (int) $validated['qty'];
+
+        session()->put('roam_order_cart', $cart);
+
+        return response()->json([
+            'success' => true,
+            'qty' => (int) $validated['qty'],
+            'total' => $cart[$key]['price'],
         ]);
-
-        return redirect()
-            ->route('roam.order.success', $order->roam_order_num)
-            ->with('success', 'Roam order placed successfully.');
     }
 
-    public function success(string $roamOrderNum)
+    public function cartPage()
     {
-        $roamOrder = RoamOrder::with(['customer', 'items'])
-            ->where('roam_order_num', $roamOrderNum)
-            ->firstOrFail();
+        $cart = session()->get('roam_order_cart', []);
+        $normalizedCart = $cart;
 
-        abort_unless((int) $roamOrder->customer_id === (int) auth('customers')->id(), 403);
+        if (is_array($cart) && !empty($cart)) {
+            $normalizedCart = array_map(function (array $item) {
+                $serviceType = (string) ($item['service_type'] ?? $this->resolveServiceType($item['sim_type'] ?? session('sim_type')));
+                $orderType = (string) ($item['order_type'] ?? $this->resolveOrderType($item['sim_type'] ?? session('sim_type')));
+                $canAdjustQuantity = $this->canAdjustQuantity([
+                    'sim_type' => $item['sim_type'] ?? session('sim_type'),
+                    'service_type' => $serviceType,
+                    'order_type' => $orderType,
+                ]);
 
-        if ($this->isPhysicalOrder($roamOrder)) {
-            return app(PhysicalSimController::class)->success($roamOrderNum);
+                $item['service_type'] = $serviceType;
+                $item['order_type'] = $orderType;
+                $item['sim_type_label'] = $item['sim_type_label'] ?? $this->buildSimTypeLabel($serviceType, $orderType);
+                $item['iccid_count'] = $this->getIccidCount($item);
+                $item['can_adjust_quantity'] = $canAdjustQuantity;
+
+                if (!$canAdjustQuantity) {
+                    $unitPrice = (float) ($item['ori_price'] ?? $item['price'] ?? 0);
+                    $item['qty'] = 1;
+                    $item['price'] = $unitPrice;
+                    $item['ori_price'] = $unitPrice;
+                }
+
+                return $item;
+            }, $cart);
+
+            session()->put('roam_order_cart', $normalizedCart);
         }
 
-        return view('frontend.esim.order-success', $this->buildOrderStatusViewData($roamOrder));
+        return view('frontend.esim.cart', [
+            'cartItems' => $normalizedCart,
+        ]);
     }
 
-    public function track(string $roamOrderNum, Request $request, RoamOrderService $service)
+    public function removeCart($key)
     {
-        $roamOrder = RoamOrder::with(['customer', 'items'])
-            ->where('roam_order_num', $roamOrderNum)
-            ->firstOrFail();
+        $cart = session()->get('roam_order_cart', []);
 
-        abort_unless((int) $roamOrder->customer_id === (int) auth('customers')->id(), 403);
+        if (isset($cart[$key])) {
 
-        if ($this->isPhysicalOrder($roamOrder)) {
-            return app(PhysicalSimController::class)->track($roamOrderNum, $request, $service);
+            unset($cart[$key]);
+
+            // re-index array
+            $cart = array_values($cart);
+
+            session()->put('roam_order_cart', $cart);
         }
 
-        if ($request->boolean('refresh')) {
-            $roamOrder = $service->syncByOrderNum($roamOrder->roam_order_num);
-        }
-
-        return view('frontend.esim.order-status', $this->buildOrderStatusViewData($roamOrder));
+        return response()->json([
+            'success' => true
+        ]);
     }
 
-    private function buildPlaceOrderPayload(
-        array $cart,
-        Customer $customer,
-        RoamOrderService $service,
-        string $paymentMethod
-    ): array {
-        $priceList = $this->resolvePriceListRow(
-            (string) ($cart['sku_id'] ?? ''),
-            $cart['api_code'] ?? null,
-            $cart['price_id'] ?? null
-        );
-
-        if (!$priceList) {
-            abort(422, 'Unable to resolve the selected Roam package.');
-        }
-
-        $quantity = max(1, (int) ($cart['qty'] ?? 1));
-        $unitPrice = (float) ($cart['unit_price'] ?? $cart['price'] ?? 0);
-        $totalPrice = (float) ($cart['total_price'] ?? $cart['price'] ?? ($unitPrice * $quantity));
-        $daypassDays = (int) ($cart['daypass_days'] ?? $cart['service_day'] ?? 1);
-
-        return [
-            'customer_id' => $customer->id,
-            'customer_name' => $customer->name,
-            'customer_email' => $customer->email,
-            'customer_phone' => $customer->phone ?? null,
-            'sku_id' => (string) ($cart['sku_id'] ?? ''),
-            'price_id' => (int) $priceList->id,
-            'api_code' => (string) $priceList->product_code,
-            'service_type' => 'esim',
-            'order_type' => 'new',
-            'quantity' => $quantity,
-            'unit_price' => $unitPrice,
-            'total_price' => $totalPrice,
-            'daypass_days' => $daypassDays,
-            'start_date' => null,
-            'end_date' => null,
-            'remark' => trim(sprintf(
-                '%s | %s',
-                (string) ($cart['plan_name'] ?? $cart['service_data'] ?? ''),
-                (string) $customer->email
-            ), ' |'),
-            'outer_order_id' => $service->generateOuterOrderId(),
-            'our_status' => RoamOrder::OUR_STATUS_ON_HOLD,
-            'payment_method' => $paymentMethod,
-            'is_send_email' => true,
-            'back_info' => 1,
-        ];
-    }
-
-    private function buildOrderStatusViewData(RoamOrder $order): array
+    private function resolveServiceType(?string $simType): string
     {
-        $order->loadMissing(['customer', 'items']);
-        $rawResponse = (array) ($order->raw_response ?? []);
-        $requestPayload = data_get($rawResponse, 'request', []);
-        $localRequestPayload = data_get($rawResponse, 'local_request', $requestPayload);
-        $responsePayload = data_get($rawResponse, 'response.data', []);
+        $simType = strtolower((string) $simType);
 
-        return [
-            'order' => $order,
-            'requestPayload' => is_array($requestPayload) ? $requestPayload : [],
-            'localRequestPayload' => is_array($localRequestPayload) ? $localRequestPayload : [],
-            'responsePayload' => is_array($responsePayload) ? $responsePayload : [],
-            'ourStatusLabels' => RoamOrder::OUR_STATUS_LABELS,
-            'roamStatusLabels' => RoamOrder::ROAM_STATUS_LABELS,
-            'currentOurStatusLabel' => RoamOrder::OUR_STATUS_LABELS[(int) $order->our_status] ?? (string) $order->our_status,
-            'currentRoamStatusLabel' => RoamOrder::ROAM_STATUS_LABELS[(int) ($order->roam_status ?? -1)] ?? ($order->roam_status === null ? 'Waiting for upstream update' : (string) $order->roam_status),
-        ];
+        return str_contains($simType, 'physical') ? 'physical' : 'esim';
+    }
+
+    private function resolveOrderType(?string $simType): string
+    {
+        $simType = strtolower((string) $simType);
+
+        return str_contains($simType, 'recharge') ? 'recharge' : 'new';
+    }
+
+    private function canAdjustQuantity(array $cartItem): bool
+    {
+        $serviceType = strtolower((string) ($cartItem['service_type'] ?? $this->resolveServiceType($cartItem['sim_type'] ?? session('sim_type'))));
+        $orderType = strtolower((string) ($cartItem['order_type'] ?? $this->resolveOrderType($cartItem['sim_type'] ?? session('sim_type'))));
+
+        return $serviceType === 'esim' && $orderType === 'new';
     }
 
     private function resolvePriceListRow(string $skuId, ?string $apiCode, ?int $priceId): ?PriceList
@@ -481,43 +567,66 @@ class ESimController extends Controller
         return $query->first();
     }
 
-    private function isPhysicalSku(string|int $skuId): bool
+    private function requiresIccid(array $cartItem): bool
     {
-        return RoamPhysicalSku::where('sku_id', $skuId)->exists();
+        $orderType = strtolower((string) ($cartItem['order_type'] ?? $this->resolveOrderType($cartItem['sim_type'] ?? session('sim_type'))));
+        $simType = strtolower((string) ($cartItem['sim_type'] ?? session('sim_type') ?? ''));
+
+        return (bool) ($cartItem['iccid_exist'] ?? false) || $orderType === 'recharge' || str_contains($simType, 'recharge');
     }
 
-    private function isPhysicalCart(array $cart): bool
+    private function getCartServiceType(array $cartItem): string
     {
-        $skuId = $cart['sku_id'] ?? null;
-        return $skuId !== null && $this->isPhysicalSku($skuId);
-    }
-
-    private function isPhysicalOrder(RoamOrder $order): bool
-    {
-        return (string) ($order->service_type ?? '') === 'physical';
-    }
-
-    public function cartPage()
-    {
-        return view('frontend.esim.cart');
-    }
-
-    public function removeCart($key)
-    {
-        $cart = session()->get('roam_order_cart', []);
-
-        if (isset($cart[$key])) {
-
-            unset($cart[$key]);
-
-            // re-index array
-            $cart = array_values($cart);
-
-            session()->put('roam_order_cart', $cart);
+        $serviceType = strtolower((string) ($cartItem['service_type'] ?? ''));
+        if ($serviceType !== '') {
+            return $serviceType;
         }
 
-        return response()->json([
-            'success' => true
-        ]);
+        $simType = strtolower((string) ($cartItem['sim_type'] ?? ''));
+
+        return str_contains($simType, 'physical') ? 'physical' : 'esim';
+    }
+
+    private function normalizeApiCode(?string $apiCode): ?string
+    {
+        $apiCode = trim((string) $apiCode);
+
+        return $apiCode !== '' ? $apiCode : null;
+    }
+
+    private function buildIccidLabel(array $cartItem, string $countryName): string
+    {
+        $orderType = strtolower((string) ($cartItem['order_type'] ?? ''));
+        $serviceType = strtolower((string) ($cartItem['service_type'] ?? ''));
+
+        if ($orderType === 'recharge' && $serviceType === 'physical') {
+            return 'ICCID No For ' . $countryName . ' Recharge Physical';
+        }
+
+        if ($orderType === 'recharge') {
+            return 'ICCID No For ' . $countryName . ' Recharge';
+        }
+
+        return 'ICCID No';
+    }
+
+    private function getIccidCount(array $cartItem): int
+    {
+        if (!$this->requiresIccid($cartItem)) {
+            return 0;
+        }
+
+        return 1;
+    }
+
+    private function buildSimTypeLabel(string $serviceType, string $orderType): string
+    {
+        $serviceType = strtolower(trim($serviceType));
+        $orderType = strtolower(trim($orderType));
+
+        $prefix = $orderType === 'recharge' ? 'Recharge' : 'New';
+        $suffix = $serviceType === 'physical' ? 'Physical' : 'Esim';
+
+        return trim($prefix . ' ' . $suffix);
     }
 }

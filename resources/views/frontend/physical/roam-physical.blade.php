@@ -68,13 +68,6 @@
                                                 <div class="row">
                                                     <div class="col-12">
                                                         <div class="form-group mb-0">
-                                                            <h4>SIM ICCID Number</h4>
-                                                            <input type="text" name="iccid_number" class="form_style"
-                                                                placeholder="Enter Your SIM ICCID No.">
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-12">
-                                                        <div class="form-group mb-0">
                                                             <h4>Shop for the best Physical SIM offers</h4>
                                                             <select class="select2_design form-control" multiple="multiple"
                                                                 name="countryname[]">
