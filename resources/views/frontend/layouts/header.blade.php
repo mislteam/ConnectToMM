@@ -124,26 +124,12 @@
                          <li class="nav-item {{ request()->routeIs('Contact') ? 'active' : '' }}">
                              <a class="nav-link" href="{{ route('Contact') }}">Contact Us</a>
                          </li>
-
-                         <li
-                             class="nav-item {{ request()->routeIs('roam.esim.*', 'roam.physical.*') ? 'active' : '' }}">
-                             <a class="nav-link position-relative d-inline-block"
-                                 href="{{ route('roam.esim.cartpage') }}">
-                                 <i class="fa-solid fa-cart-arrow-down fs-4"></i>
-                                 <span class="position-absolute text-white badge badge-square bg-primary"
-                                     style="top: -1px; right: -5px;"
-                                     data-order-count="{{ count(session()->get('roam_order_cart', [])) }}"
-                                     id="order_count">
-                                     {{ count(session()->get('roam_order_cart', [])) }}
-                                 </span>
-
-                             </a>
-                         </li>
                          @if ($customer)
                              <li class="nav-item dropdown">
                                  <a class="nav-link dropdown-toggle signup" href="#" id="customerMenu"
                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                      <i class="fa-solid fa-user-check"></i>
+                                     {{ \Illuminate\Support\Str::limit($customer->name, 16) }}
                                  </a>
                                  <div class="dropdown-menu dropdown-menu-end customer-dropdown mt-4"
                                      aria-labelledby="customerMenu">

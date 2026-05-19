@@ -31,145 +31,137 @@
                     </div>
                 </div>
             </div>
-            <div class="row services-data" id="cart-container" data-aos="fade-up">
-                @if (session()->get('roam_order_cart', []))
-                    <div class="col-lg-8 col-md-8 col-sm-12 col-12">
-                        <div class="order-box">
-                            <div class="table-responsive-sm">
-                                <table class="table">
-                                    <thead>
+            <div class="row services-data" data-aos="fade-up">
+                <div class="col-lg-8 col-md-8 col-sm-12 col-12">
+                    <div class="order-box">
+                        <div class="table-responsive-sm">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th class="px-0"></th>
+                                        <th>
+                                            <p class="mb-0 text-size-14 font-weight-bold text-dark pl-2">Product </p>
+                                        </th>
+                                        <th>
+                                            <p class="mb-0 text-size-14 font-weight-bold text-dark">Amount</p>
+                                        </th>
+                                        <th>
+                                            <p class="mb-0 text-size-14 font-weight-bold text-dark">Qty</p>
+                                        </th>
+                                        <th>
+                                            <p class="mb-0 text-size-14 font-weight-bold text-dark">Subtotal</p>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (session()->get('roam_order_cart', []) as $key => $order)
                                         <tr>
-                                            <th class="px-0"></th>
-                                            <th>
-                                                <p class="mb-0 text-size-14 font-weight-bold text-dark pl-2">Product </p>
-                                            </th>
-                                            <th>
-                                                <p class="mb-0 text-size-14 font-weight-bold text-dark">Amount</p>
-                                            </th>
-                                            <th>
-                                                <p class="mb-0 text-size-14 font-weight-bold text-dark">Qty</p>
-                                            </th>
-                                            <th>
-                                                <p class="mb-0 text-size-14 font-weight-bold text-dark">Subtotal</p>
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
+                                            <td class="px-0">
+                                                <button data-key="{{ $key }}"
+                                                    class="btn-close trash-bin custom-close"></button>
+                                            </td>
 
-                                        @foreach (session()->get('roam_order_cart', []) as $key => $order)
-                                            <tr>
-                                                <td class="px-0">
-                                                    <button data-key="{{ $key }}"
-                                                        class="btn-close trash-bin custom-close"></button>
-                                                </td>
+                                            <td>
+                                                <h6 class="font-weight-bold" style="text-transform: none;">
+                                                    {{ $order['country_name'] }}</h6>
+                                                <label>Service Day :
+                                                    {{ $order['service_day'] > 1 ? $order['service_day'] . ' days' : $order['service_day'] . ' day' }}</label><br>
+                                                <label>Data : {{ $order['service_data'] }}</label><br>
+                                                <label>SIM Type : {{ Str::headline($order['sim_type']) }}</label><br>
+                                                @if ($order['iccid_exist'])
+                                                    <label>ICCID No: {{ $order['iccid_no'] ?? '-' }}</label><br>
+                                                @endif
 
-                                                <td>
-                                                    <h6 class="font-weight-bold" style="text-transform: none;">
-                                                        {{ $order['country_name'] }}</h6>
-                                                    <label>Service Day :
-                                                        {{ $order['service_day'] > 1 ? $order['service_day'] . ' days' : $order['service_day'] . ' day' }}</label><br>
-                                                    <label>Data : {{ $order['service_data'] }}</label><br>
-                                                    <label>SIM Type : {{ Str::headline($order['sim_type']) }}</label><br>
-                                                    @if ($order['iccid_exist'])
-                                                        <label>ICCID No: {{ $order['iccid_no'] ?? '-' }}</label><br>
-                                                    @endif
+                                            </td>
 
-                                                </td>
-
-                                                <td>
-                                                    <p class="mb-0 text-size-14 item-price"
-                                                        data-price="{{ $order['ori_price'] }}">
-                                                        {{ number_format((int) $order['ori_price']) . ' MMK' }}
-                                                    </p>
-                                                </td>
-                                                <td>
-                                                    <div class="input-group quantity-wrapper">
-                                                        <button class="btn btn-outline-secondary qty-minus"
-                                                            type="button">-</button>
-                                                        <input type="number" value="{{ $order['qty'] }}"
-                                                            class="form-control text-center text-dark qty-input"
-                                                            value="1" min="1" max="100" name="qty">
-                                                        <button class="btn btn-outline-secondary qty-plus"
-                                                            type="button">+</button>
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    <p class="mb-0 text-size-14 total-price">
-                                                        {{ number_format((int) $order['price']) }} MMK
-                                                    </p>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                        <tr>
-                                            <td colspan ="5">
-                                                <div class="form-design message_content">
-                                                    <form method="POST">
-                                                        <div class="row">
-                                                            <div class="col-lg-8 col-md-8 col-sm-12 col-12">
-                                                                <div class="form-group mb-0">
-                                                                    <label class="mb-2">Do you have copoun code?</label>
-                                                                    <input type="text" class="form_style"
-                                                                        placeholder="Enter Your copoun">
-                                                                </div>
-                                                            </div>
-                                                            <div class="col-lg-4 col-md-4 col-sm-12 col-12">
-                                                                <div class="mt-4 text-center">
-                                                                    <a href="#" class="button_text">Apply</a>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </form>
+                                            <td>
+                                                <p class="mb-0 text-size-14 item-price"
+                                                    data-price="{{ $order['ori_price'] }}">
+                                                    {{ number_format((int) $order['ori_price']) . ' MMK' }}
+                                                </p>
+                                            </td>
+                                            <td>
+                                                <div class="input-group quantity-wrapper">
+                                                    <button class="btn btn-outline-secondary qty-minus"
+                                                        type="button">-</button>
+                                                    <input type="number" value="{{ $order['qty'] }}"
+                                                        class="form-control text-center text-dark qty-input" value="1"
+                                                        min="1" max="100" name="qty">
+                                                    <button class="btn btn-outline-secondary qty-plus"
+                                                        type="button">+</button>
                                                 </div>
                                             </td>
+                                            <td>
+                                                <p class="mb-0 text-size-14 total-price">
+                                                    {{ number_format((int) $order['price']) }} MMK
+                                                </p>
+                                            </td>
                                         </tr>
-
-                                    </tbody>
-                                </table>
-                            </div>
-
-                        </div>
-                    </div>
-                    <div class="col-lg-4 col-md-4 col-sm-12 col-12">
-                        <div class="order-box">
-                            <h3 class="mb-4">Cart Total</h3>
-                            <table class="table">
-                                <tbody>
+                                    @endforeach
                                     <tr>
-                                        <td>
-                                            <p class="mb-0 text-size-16"> Subtotal</p>
-                                        </td>
-                                        <td>
-                                            <p class="mb-0 text-size-14 subtotal"></p>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <p class="mb-0 text-size-16"> Discount</p>
-                                        </td>
-                                        <td>
-                                            <p class="mb-0 text-size-16"> -</p>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-                                            <p class="mb-0 text-size-16"> Total</p>
-                                        </td>
-                                        <td>
-                                            <p class="mb-0 text-size-16 total"> 5,000 MMK</p>
+                                        <td colspan ="5">
+                                            <div class="form-design message_content">
+                                                <form method="POST">
+                                                    <div class="row">
+                                                        <div class="col-lg-8 col-md-8 col-sm-12 col-12">
+                                                            <div class="form-group mb-0">
+                                                                <label class="mb-2">Do you have copoun code?</label>
+                                                                <input type="text" class="form_style"
+                                                                    placeholder="Enter Your copoun">
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-lg-4 col-md-4 col-sm-12 col-12">
+                                                            <div class="mt-4 text-center">
+                                                                <a href="#" class="button_text">Apply</a>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </form>
+                                            </div>
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
-                            <div class="mt-4 text-center">
-                                <a href="{{ route('roam.physical.checkout') }}" class="button_text">Proceed To Checkout</a>
-                            </div>
+                        </div>
+
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-4 col-sm-12 col-12">
+                    <div class="order-box">
+                        <h3 class="mb-4">Cart Total</h3>
+                        <table class="table">
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <p class="mb-0 text-size-16"> Subtotal</p>
+                                    </td>
+                                    <td>
+                                        <p class="mb-0 text-size-14 subtotal"></p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p class="mb-0 text-size-16"> Discount</p>
+                                    </td>
+                                    <td>
+                                        <p class="mb-0 text-size-16"> -</p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <p class="mb-0 text-size-16"> Total</p>
+                                    </td>
+                                    <td>
+                                        <p class="mb-0 text-size-16 total"></p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div class="mt-4 text-center">
+                            <a href="{{ route('roam.physical.checkout') }}" class="button_text">Proceed To Checkout</a>
                         </div>
                     </div>
-                @else
-                    <div class="col-lg-12">
-                        <p class="text-center">Cart is Empty!</p>
-                    </div>
-                @endif
+                </div>
             </div>
         </div>
     </section>
@@ -177,7 +169,6 @@
     <script>
         let subtotalElement = document.querySelector('.subtotal');
         let totalElement = document.querySelector('.total');
-        let headerCartEl = document.getElementById('order_count');
 
         function updateSubtotal() {
 
@@ -262,18 +253,7 @@
 
                 if (data.success) {
                     row.remove();
-                    headerCartEl.innerText = parseInt(headerCartEl.innerText) - 1;
                     updateSubtotal();
-
-                    let remainingItems = document.querySelectorAll('.trash-bin').length;
-
-                    if (remainingItems === 0) {
-                        document.getElementById('cart-container').innerHTML = `
-                        <div class="col-lg-12">
-                            <p class="text-center">Cart is Empty!</p>
-                        </div>
-                    `;
-                    }
                 }
             });
         });
