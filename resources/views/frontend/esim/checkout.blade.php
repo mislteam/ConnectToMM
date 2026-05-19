@@ -6,6 +6,9 @@
     <!--Services section-->
     <section class="order-summary">
         <div class="container">
+            @php(
+    $checkoutItems = collect($selectedCartItems ?? [$cart ?? []])->filter()->values()
+)
             <div class="row mb-3">
                 <div class="col-12 text-center">
                     <div class="subheading" data-aos="fade-right">
@@ -33,15 +36,16 @@
                                 <label>Phone Number</label>
                                 <input type="text" class="form_style text-dark" placeholder="Enter Your Phone Number">
                             </div>
-                            @if (session('iccid_no') || ($requires_iccid ?? false))
-                                <div class="form-group mb-0">
-                                    <label>{{ $iccid_label ?? 'ICCID No' }}
-                                        <span class="required" aria-hidden="true">*</span></label>
-                                    <input type="text" name="iccid_number" class="form_style text-dark"
-                                        placeholder="Enter Your {{ $iccid_label ?? 'ICCID No' }}"
-                                        value="{{ old('iccid_number', session('iccid_no')) }}">
-                                </div>
-                            @endif
+                            @foreach ($checkoutItems as $itemIndex => $item)
+                                @if (($item['iccid_exist'] ?? false) || ($item['order_type'] ?? '') === 'recharge')
+                                    <div class="form-group mb-0">
+                                        <label>{{ $item['country_name'] ?? 'Item' }} ICCID No
+                                            <span class="required" aria-hidden="true">*</span></label>
+                                        <input type="text" name="iccid_numbers[{{ $itemIndex }}][]"
+                                            class="form_style text-dark" placeholder="Enter ICCID No">
+                                    </div>
+                                @endif
+                            @endforeach
                         </form>
                     </div>
                 </div>
@@ -54,19 +58,22 @@
                                     <td><label> Product</label></td>
                                     <td><label> Subtotal</label></td>
                                 </tr>
-                                <tr>
-                                    <td>
-                                        <label>{{ $sku->country_name }}</label><br>
-                                        <label>{{ ($service_day > 1 ? $service_day . ' Days/ ' : $service_day . ' Day/ ') . $service_data }}</label><br>
-                                        @if (session('iccid_no') || ($requires_iccid ?? false))
-                                            <label>{{ $iccid_label ?? 'ICCID No' }}: {{ session('iccid_no') ?? '-' }}</label>
-                                        @endif
-                                    </td>
-                                    <td><label> {{ number_format($price) . ' MMK' }}</label></td>
-                                </tr>
+                                @foreach ($checkoutItems as $item)
+                                    <tr>
+                                        <td>
+                                            <label>{{ $item['country_name'] ?? '-' }}</label><br>
+                                            <label>{{ (($item['service_day'] ?? 1) > 1 ? $item['service_day'] . ' Days/ ' : $item['service_day'] . ' Day/ ') . ($item['service_data'] ?? '') }}</label><br>
+                                            <label>{{ $item['sim_type_label'] ?? Str::headline($item['sim_type'] ?? '') }}</label><br>
+                                            @if (($item['iccid_exist'] ?? false) || ($item['order_type'] ?? '') === 'recharge')
+                                                <label>{{ $item['iccid_label'] ?? 'ICCID No' }}: -</label><br>
+                                            @endif
+                                        </td>
+                                        <td><label> {{ number_format((float) ($item['price'] ?? 0)) . ' MMK' }}</label></td>
+                                    </tr>
+                                @endforeach
                                 <tr>
                                     <td><label> Subtotal</label></td>
-                                    <td><label>{{ (int) request()->price }}</label></td>
+                                    <td><label>{{ number_format((float) ($subtotal ?? 0)) }}</label></td>
                                 </tr>
                                 <tr>
                                     <td><label> Discount</label></td>
@@ -74,7 +81,7 @@
                                 </tr>
                                 <tr>
                                     <td><label> Total</label></td>
-                                    <td><label> 5,000 MMK</label></td>
+                                    <td><label>{{ number_format((float) ($subtotal ?? 0)) }} MMK</label></td>
                                 </tr>
                             </tbody>
                         </table>

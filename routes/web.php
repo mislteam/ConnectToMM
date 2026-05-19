@@ -85,16 +85,18 @@ Route::middleware('auth:customers')->group(function () {
         Route::post('/esim/cart', [ESimController::class, 'cart'])->name('roam.esim.cart');
         Route::get('/esim/cart/page', [ESimController::class, 'cartPage'])->name('roam.esim.cartpage');
         Route::get('/esim/checkout', [ESimController::class, 'checkout'])->name('roam.esim.checkout');
+        Route::patch('/esim/cart/{key}', [ESimController::class, 'updateCartQuantity'])->name('roam.esim.cart.update');
         Route::delete('/esim/remove-cart/{key}', [ESimController::class, 'removeCart']);
 
         Route::post('/physical/cart', [PhysicalSimController::class, 'cart'])->name('roam.physical.cart');
         Route::get('/physical/cart/page', [PhysicalSimController::class, 'cartPage'])->name('roam.physical.cartpage');
         Route::get('/physical/checkout', [PhysicalSimController::class, 'checkout'])->name('roam.physical.checkout');
+        Route::patch('/physical/cart/{key}', [PhysicalSimController::class, 'updateCartQuantity'])->name('roam.physical.cart.update');
         Route::delete('/physical/remove-cart/{key}', [PhysicalSimController::class, 'removeCart']);
     });
 
     Route::get('/customer/profile', [HomeController::class, 'customerProfile'])->name('customer.profile.index');
-    Route::post('/customer/edit/{customer}/{edit_type}', [HomeController::class, 'customerEdit'])->name('customer.edit');
+    Route::post('/customer/profile/edit/{customer}/{edit_type}', [HomeController::class, 'customerEdit'])->name('frontend.customer.edit');
 
     // order detail page
     Route::get('/customer/order-detail', [HomeController::class, 'orderDetail'])->name('customer.order.detail');
@@ -135,6 +137,10 @@ Route::middleware(['auth'])->group(function () {
 
     // customer
     Route::get('/all-customer', [CustomerController::class, 'index'])->name('customer.index');
+    Route::get('/customer/show/{customer}', [CustomerController::class, 'show'])->name('customer.show');
+    Route::get('/customer/edit/{customer}', [CustomerController::class, 'edit'])->name('customer.edit');
+    Route::post('/customer/update/{id}', [CustomerController::class, 'update'])->name('customer.update');
+    Route::post('/customer/change-password', [CustomerController::class, 'changePassword'])->name('customer.change-password');
 
     // order
     Route::get('/all-orders', [OrderController::class, 'index'])->name('order.index');

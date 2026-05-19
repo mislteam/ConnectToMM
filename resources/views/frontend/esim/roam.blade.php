@@ -49,8 +49,9 @@
                                             <div class="form-group mb-0">
                                                 <h4>Shop for the best eSIM offers:</h4>
                                                 <select class="select2_design form-control" multiple="multiple"
-                                                    name="countryname[]" data-placeholder="Search for destination...">
-                                                    <option></option>
+                                                    name="countryname[]" data-placeholder="Search for destination..."
+                                                    aria-label="Search for destination">
+                                                    <option value=""></option>
                                                     @foreach ($countrys as $countryname)
                                                         <option value="{{ $countryname }}">{{ $countryname }}</option>
                                                     @endforeach
@@ -71,43 +72,38 @@
                         </div>
                     </div>
                     <div role="tabpanel" id="roam-recharge" class="tab-pane">
-                        <div class="panel-bo
+                        <div class="panel-body">
                             <div class="message_content" data-aos="fade-up">
-                            <form method="get" action="{{ route('esim.roamsearch') }}">
-                                <!-- type -->
-                                <input type="hidden" name="type" value="recharge_esim">
-                                <!-- iccid no -->
-                                <input type="hidden" name="iccid_exist" value="1">
-                                <div class="row">
-                                    <div class="col-12">
-                                        <div class="form-group mb-0">
-                                            <h4>SIM ICCID Number</h4>
-                                            <input type="text" name="iccid_number" class="form_style"
-                                                placeholder="Enter Your SIM ICCID No.">
+                                <form method="get" action="{{ route('esim.roamsearch') }}">
+                                    <!-- type -->
+                                    <input type="hidden" name="type" value="recharge_esim">
+                                    <!-- iccid no -->
+                                    <input type="hidden" name="iccid_exist" value="1">
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <div class="form-group mb-0">
+                                                <h4>Shop for the best eSIM offers:</h4>
+                                                <select class="select2_design form-control" multiple="multiple"
+                                                    name="countryname[]" data-placeholder="Search for destination..."
+                                                    aria-label="Search for destination">
+                                                    <option value=""></option>
+                                                    @foreach ($countrys as $countryname)
+                                                        <option value="{{ $countryname }}">{{ $countryname }}</option>
+                                                    @endforeach
+                                                </select>
+                                                @error('countryname[]')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="mt-4 text-center">
+                                                <button type="submit" class="button_text">Continue Search</button>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-12">
-                                        <div class="form-group mb-0">
-                                            <h4>Shop for the best eSIM offers:</h4>
-                                            <select class="select2_design form-control" multiple="multiple"
-                                                name="countryname[]" data-placeholder="Search for destination...">
-                                                <option></option>
-                                                @foreach ($countrys as $countryname)
-                                                    <option value="{{ $countryname }}">{{ $countryname }}</option>
-                                                @endforeach
-                                            </select>
-                                            @error('countryname[]')
-                                                <small class="text-danger">{{ $message }}</small>
-                                            @enderror
-                                        </div>
-                                    </div>
-                                    <div class="col-12">
-                                        <div class="mt-4 text-center">
-                                            <button type="submit" class="button_text">Continue Search</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </form>
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -134,9 +130,9 @@
             <div class="services-data mt-4">
                 <div class="form-design tabs-container">
                     <!-- <ul class="nav" role="tablist">
-                                                                                                                                                                                                                                                                                                                                                                                                                        <li><a class="nav-link active" data-toggle="tab" href="#roam-new-esim-package"> New eSIM</a></li>
-                                                                                                                                                                                                                                                                                                                                                                                                                        <li><a class="nav-link" data-toggle="tab" href="#roam-recharge-package">Recharge</a></li>
-                                                                                                                                                                                                                                                                                                                                                                                                                    </ul> -->
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <li><a class="nav-link active" data-toggle="tab" href="#roam-new-esim-package"> New eSIM</a></li>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        <li><a class="nav-link" data-toggle="tab" href="#roam-recharge-package">Recharge</a></li>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    </ul> -->
                     <div class="tab-content mt-4 shadow-none p-0">
                         <div role="tabpanel" id="roam-new-esim-package" class="tab-pane active">
                             <div class="panel-body">
@@ -278,32 +274,43 @@
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
+            // --- Select2 Placeholder Fix for Tabs ---
+            // Initialize visible select elements right away
+            $('.tab-pane.active .select2_design').select2({
+                width: '100%'
+            });
+
+            // Re-initialize select elements when their tab is displayed
+            $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
+                var targetTab = $(e.target).attr("href");
+                $(targetTab).find('.select2_design').select2({
+                    width: '100%'
+                });
+            });
+
+
+            // --- Your Existing Show More Script ---
             const items = document.querySelectorAll('#package-list .col-lg-4');
             const showMoreBtn = document.getElementById('showMoreBtn');
             let visibleCount = 6;
 
-            // If no button or no items, exit
             if (!showMoreBtn || items.length === 0) {
                 if (showMoreBtn) showMoreBtn.style.display = 'none';
                 return;
             }
 
-            // Hide items after first 6
             items.forEach((item, index) => {
                 if (index >= visibleCount) {
                     item.style.display = 'none';
                 }
             });
 
-            // Hide button if total items <= 6
             if (items.length <= visibleCount) {
                 showMoreBtn.style.display = 'none';
             }
 
-            // Show more button click event
             showMoreBtn.addEventListener('click', function() {
                 let revealed = 0;
-
                 items.forEach((item, index) => {
                     if (index >= visibleCount && revealed < 6) {
                         item.style.display = 'block';
@@ -313,7 +320,6 @@
 
                 visibleCount += 6;
 
-                // Hide button if all items are shown
                 if (visibleCount >= items.length) {
                     this.style.display = 'none';
                 }

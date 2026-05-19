@@ -198,6 +198,11 @@ class PhysicalSimController extends Controller
             })
             ->take(3)
             ->values();
+        $canAdjustQuantity = $this->canAdjustQuantity([
+            'sim_type' => session('sim_type'),
+            'service_type' => 'physical',
+            'order_type' => $this->resolveOrderType(session('sim_type')),
+        ]);
 
         return view('frontend.physical.roam-physical-package-view', compact(
             'logo',
@@ -209,7 +214,8 @@ class PhysicalSimController extends Controller
             'pricelists',
             'hasValidPlans',
             'randomSkus',
-            'selectedDpInfo'
+            'selectedDpInfo',
+            'canAdjustQuantity'
         ));
     }
 
@@ -303,6 +309,15 @@ class PhysicalSimController extends Controller
         $service_type = $this->resolveServiceType($sim_type);
         $order_type = $this->resolveOrderType($sim_type);
         $apiCode = $this->normalizeApiCode($request->input('api_code'));
+        $canAdjustQuantity = $this->canAdjustQuantity([
+            'sim_type' => $sim_type,
+            'service_type' => $service_type,
+            'order_type' => $order_type,
+        ]);
+        $unitPrice = (float) $request->original_selected_price;
+        $requestedQty = max(1, (int) $request->qty);
+        $qty = $canAdjustQuantity ? $requestedQty : 1;
+        $price = $unitPrice * $qty;
 
         $roamCart = session()->get('roam_order_cart', []);
         $found = false;
@@ -318,8 +333,16 @@ class PhysicalSimController extends Controller
                 && ($item['service_type'] ?? null) == $service_type
                 && ($item['order_type'] ?? null) == $order_type
             ) {
-                $item['qty'] += $request->qty;
-                $item['price'] += $request->display_price;
+                $itemUnitPrice = (float) ($item['ori_price'] ?? $unitPrice);
+
+                if ($canAdjustQuantity) {
+                    $item['qty'] = (int) ($item['qty'] ?? 0) + $requestedQty;
+                } else {
+                    $item['qty'] = 1;
+                }
+
+                $item['ori_price'] = $itemUnitPrice;
+                $item['price'] = $itemUnitPrice * (int) $item['qty'];
                 $found = true;
                 break;
             }
@@ -336,11 +359,11 @@ class PhysicalSimController extends Controller
                 'country_name' => $sku->country_name,
                 'service_day' => $request->sday,
                 'service_data' => $request->sdata,
-                'qty' => $request->qty,
-                'price' => $request->display_price,
+                'qty' => $qty,
+                'price' => $price,
                 'iccid_no' => $iccid_no,
                 'iccid_exist' => $iccid_exist,
-                'ori_price' => $request->original_selected_price
+                'ori_price' => $unitPrice,
             ];
         }
 
@@ -363,20 +386,36 @@ class PhysicalSimController extends Controller
         Auth::shouldUse('customers');
         $customer = auth()->user();
 
-        $serviceItems = $cartItems
-            ->filter(fn($item) => $this->getCartServiceType($item) === 'physical')
-            ->values();
+        $serviceItems = $cartItems->values();
 
         if ($serviceItems->isEmpty()) {
-            return redirect()->back()->with('error', 'No physical SIM items found in cart!');
+            return redirect()->back()->with('error', 'No SIM items found in cart!');
         }
 
-        $simType = session('sim_type');
-        $typedItems = $simType
-            ? $serviceItems->filter(fn($item) => (string) ($item['sim_type'] ?? '') === (string) $simType)->values()
-            : collect();
-        $itemsToUse = $typedItems->isNotEmpty() ? $typedItems : $serviceItems;
-        $primaryItem = $itemsToUse->last() ?: $itemsToUse->first();
+        $itemsToUse = $serviceItems->map(function ($item) {
+            $serviceType = (string) ($item['service_type'] ?? $this->resolveServiceType($item['sim_type'] ?? session('sim_type')));
+            $orderType = (string) ($item['order_type'] ?? $this->resolveOrderType($item['sim_type'] ?? session('sim_type')));
+            $canAdjustQuantity = $this->canAdjustQuantity([
+                'sim_type' => $item['sim_type'] ?? session('sim_type'),
+                'service_type' => $serviceType,
+                'order_type' => $orderType,
+            ]);
+
+            if (!$canAdjustQuantity) {
+                $unitPrice = (float) ($item['ori_price'] ?? $item['price'] ?? 0);
+                $item['qty'] = 1;
+                $item['price'] = $unitPrice;
+                $item['ori_price'] = $unitPrice;
+            }
+
+            $item['sim_type_label'] = $item['sim_type_label'] ?? $this->buildSimTypeLabel($serviceType, $orderType);
+            $item['iccid_count'] = $this->getIccidCount($item);
+            $item['iccid_label'] = $this->buildIccidLabel($item, (string) ($item['country_name'] ?? ''));
+
+            return $item;
+        })->values();
+
+        $primaryItem = $itemsToUse->first();
         $skuId = $primaryItem['sku_id'] ?? $primaryItem['sku'] ?? null;
 
         if (!$skuId) {
@@ -385,6 +424,12 @@ class PhysicalSimController extends Controller
 
         $sku = RoamSku::findOrFail($skuId);
         $price = (float) ($primaryItem['price'] ?? 0);
+        $iccidCount = $this->getIccidCount($primaryItem);
+        $iccidNumbers = array_values(array_pad(
+            (array) old('iccid_numbers', session('iccid_numbers', [])),
+            $iccidCount,
+            ''
+        ));
 
         $request->merge([
             'price' => $price,
@@ -403,6 +448,51 @@ class PhysicalSimController extends Controller
             'subtotal' => $serviceItems->sum(fn($item) => (float) ($item['price'] ?? 0)),
             'requires_iccid' => $this->requiresIccid($primaryItem),
             'iccid_label' => $this->buildIccidLabel($primaryItem, (string) $sku->country_name),
+            'iccid_count' => $iccidCount,
+            'iccid_numbers' => $iccidNumbers,
+        ]);
+    }
+
+    public function updateCartQuantity(Request $request, $key)
+    {
+        $validated = $request->validate([
+            'qty' => ['required', 'integer', 'min:1', 'max:100'],
+        ]);
+
+        $cart = session()->get('roam_order_cart', []);
+
+        if (!isset($cart[$key])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cart item not found.',
+            ], 404);
+        }
+
+        if (!$this->canAdjustQuantity($cart[$key])) {
+            $unitPrice = (float) ($cart[$key]['ori_price'] ?? $cart[$key]['price'] ?? 0);
+            $cart[$key]['qty'] = 1;
+            $cart[$key]['price'] = $unitPrice;
+
+            session()->put('roam_order_cart', $cart);
+
+            return response()->json([
+                'success' => true,
+                'qty' => 1,
+                'total' => $cart[$key]['price'],
+            ]);
+        }
+
+        $cart[$key]['qty'] = (int) $validated['qty'];
+
+        $unitPrice = (float) ($cart[$key]['ori_price'] ?? $cart[$key]['price'] ?? 0);
+        $cart[$key]['price'] = $unitPrice * (int) $validated['qty'];
+
+        session()->put('roam_order_cart', $cart);
+
+        return response()->json([
+            'success' => true,
+            'qty' => (int) $validated['qty'],
+            'total' => $cart[$key]['price'],
         ]);
     }
 
@@ -427,6 +517,35 @@ class PhysicalSimController extends Controller
 
     public function cartPage()
     {
+        $cart = session()->get('roam_order_cart', []);
+
+        if (is_array($cart) && !empty($cart)) {
+            $normalizedCart = array_map(function (array $item) {
+                $serviceType = (string) ($item['service_type'] ?? $this->resolveServiceType($item['sim_type'] ?? session('sim_type')));
+                $orderType = (string) ($item['order_type'] ?? $this->resolveOrderType($item['sim_type'] ?? session('sim_type')));
+                $canAdjustQuantity = $this->canAdjustQuantity([
+                    'sim_type' => $item['sim_type'] ?? session('sim_type'),
+                    'service_type' => $serviceType,
+                    'order_type' => $orderType,
+                ]);
+
+                $item['sim_type_label'] = $item['sim_type_label'] ?? $this->buildSimTypeLabel($serviceType, $orderType);
+                $item['iccid_count'] = $this->getIccidCount($item);
+                $item['can_adjust_quantity'] = $canAdjustQuantity;
+
+                if (!$canAdjustQuantity) {
+                    $unitPrice = (float) ($item['ori_price'] ?? $item['price'] ?? 0);
+                    $item['qty'] = 1;
+                    $item['price'] = $unitPrice;
+                    $item['ori_price'] = $unitPrice;
+                }
+
+                return $item;
+            }, $cart);
+
+            session()->put('roam_order_cart', $normalizedCart);
+        }
+
         return view('frontend.physical.cart');
     }
 
@@ -439,7 +558,9 @@ class PhysicalSimController extends Controller
 
     private function resolveOrderType(?string $simType): string
     {
-        return 'recharge';
+        $simType = strtolower((string) $simType);
+
+        return str_contains($simType, 'new') ? 'new' : 'recharge';
     }
 
     private function requiresIccid(array $cartItem): bool
@@ -475,5 +596,33 @@ class PhysicalSimController extends Controller
         }
 
         return 'ICCID No For ' . $countryName . ' Recharge';
+    }
+
+    private function buildSimTypeLabel(string $serviceType, string $orderType): string
+    {
+        $serviceType = strtolower(trim($serviceType));
+        $orderType = strtolower(trim($orderType));
+
+        $prefix = $orderType === 'recharge' ? 'Recharge' : 'New';
+        $suffix = $serviceType === 'physical' ? 'Physical' : 'Esim';
+
+        return trim($prefix . ' ' . $suffix);
+    }
+
+    private function canAdjustQuantity(array $cartItem): bool
+    {
+        $serviceType = strtolower((string) ($cartItem['service_type'] ?? $this->resolveServiceType($cartItem['sim_type'] ?? session('sim_type'))));
+        $orderType = strtolower((string) ($cartItem['order_type'] ?? $this->resolveOrderType($cartItem['sim_type'] ?? session('sim_type'))));
+
+        return $serviceType === 'physical' && $orderType === 'new';
+    }
+
+    private function getIccidCount(array $cartItem): int
+    {
+        if (!$this->requiresIccid($cartItem)) {
+            return 0;
+        }
+
+        return 1;
     }
 }

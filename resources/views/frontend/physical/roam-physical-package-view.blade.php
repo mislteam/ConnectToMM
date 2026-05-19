@@ -1,6 +1,20 @@
 @extends('frontend.layouts.index')
 @section('title', 'Roam Physical-SIM Package View')
 @section('content')
+    <style>
+        .quantity-static {
+            min-width: 52px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.375rem 0.75rem;
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            background: #f8f9fa;
+            color: #212529;
+            font-weight: 500;
+        }
+    </style>
 
     <!-- Sub-Banner -->
     <div class="sub-banner">
@@ -219,13 +233,18 @@
                             <!-- Qty Field -->
                             <div class="form-group">
                                 <label class="font-weight-bold">Quantity</label>
-                                <div class="input-group quantity-wrapper">
-                                    <button class="btn btn-outline-secondary qty-minus" type="button">-</button>
-                                    <input name="qty" type="number" id="qty"
-                                        class="form-control text-center text-dark" value="1" min="1"
-                                        max="100">
-                                    <button class="btn btn-outline-secondary qty-plus" type="button">+</button>
-                                </div>
+                                @if ($canAdjustQuantity)
+                                    <div class="input-group quantity-wrapper" data-editable="1">
+                                        <button class="btn btn-outline-secondary qty-minus" type="button">-</button>
+                                        <input name="qty" type="number" id="qty"
+                                            class="form-control text-center text-dark" value="1" min="1"
+                                            max="100">
+                                        <button class="btn btn-outline-secondary qty-plus" type="button">+</button>
+                                    </div>
+                                @else
+                                    <input type="hidden" name="qty" value="1">
+                                    <span class="quantity-static">1</span>
+                                @endif
                             </div>
                             <div class="form-group d-none" id="planDescriptionGroup">
                                 <label class="font-weight-bold">Description</label>
@@ -237,7 +256,8 @@
                             </div>
                             <input type="hidden" name="display_price" id="display_price" value>
                             <!-- Add to Cart -->
-                            <button type="submit" id="addToCartBtn" class="button_text">Add To Cart</button>
+                            <button type="button" id="addToCartBtn" class="button_text"
+                                style="position: relative; z-index: 2;">Add To Cart</button>
                         </form>
                     @else
                         <div class="alert alert-warning">This plan is currently not available for sale.</div>
@@ -318,6 +338,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const hasValidPlans = @json($hasValidPlans);
+            const canAdjustQuantity = @json($canAdjustQuantity);
 
             if (!hasValidPlans) {
                 const elements = ['trafficType', 'serviceDay', 'dataPlan', 'priceDisplay'];
@@ -339,6 +360,14 @@
             const qtyInput = document.getElementById('qty');
             const trafficTypeBox = document.getElementById('trafficType');
             let oriSelectedPrice = document.querySelector('input[name="original_selected_price"]');
+
+            if (!canAdjustQuantity && qtyInput) {
+                qtyInput.value = 1;
+                qtyInput.readOnly = true;
+                document.querySelectorAll('.qty-plus, .qty-minus').forEach(button => {
+                    button.disabled = true;
+                });
+            }
 
             function getPackageCodes(pkg) {
                 return [...new Set([
@@ -620,18 +649,38 @@
             }
 
             function updatePriceDisplay() {
-                const selectedData = dataBox.querySelector('input[name="sdata"]:checked');
-                const qty = parseInt(qtyInput.value) || 1;
+                let selectedData = dataBox.querySelector('input[name="sdata"]:checked');
+                const fallbackData = dataBox.querySelector('input[name="sdata"]');
+                const firstPricedData = Array.from(dataBox.querySelectorAll('input[name="sdata"]'))
+                    .find(input => (parseFloat(input.dataset.price || 0) || 0) > 0);
+
+                if (!selectedData) {
+                    selectedData = firstPricedData || fallbackData;
+                } else if ((parseFloat(selectedData.dataset.price || 0) || 0) <= 0 && firstPricedData) {
+                    selectedData = firstPricedData;
+                }
+
+                const qty = qtyInput ? (parseInt(qtyInput.value, 10) || 1) : 1;
 
                 if (selectedData) {
-                    oriSelectedPrice.value = selectedData.dataset.price;
-                    const total = parseFloat(selectedData.dataset.price || 0) * qty;
+                    if (!selectedData.checked) {
+                        selectedData.checked = true;
+                        const selectedLabel = selectedData.closest('label');
+                        if (selectedLabel) {
+                            dataBox.querySelectorAll('label').forEach(item => item.classList.remove('active'));
+                            selectedLabel.classList.add('active');
+                        }
+                    }
+
+                    const unitPrice = parseFloat(selectedData.dataset.price || 0);
+                    oriSelectedPrice.value = unitPrice;
+                    const total = unitPrice * qty;
                     total_price.innerText = `Total Price: ${total.toLocaleString()} MMK`;
                     if (displayPriceInput) displayPriceInput.value = total;
                     return;
                 }
 
-                total_price.innerText = 'Total Price: 0 MMK';
+                total_price.innerText = 'Total Price: -';
                 if (displayPriceInput) displayPriceInput.value = '';
             }
 
@@ -680,11 +729,30 @@
                 updatePriceDisplay();
             });
 
-            qtyInput.addEventListener('input', updatePriceDisplay);
-            qtyInput.addEventListener('change', updatePriceDisplay);
+            if (canAdjustQuantity) {
+                qtyInput.addEventListener('input', updatePriceDisplay);
+                qtyInput.addEventListener('change', updatePriceDisplay);
 
-            ['.qty-plus', '.qty-minus'].forEach(selector => {
-                document.querySelector(selector).addEventListener('click', updatePriceDisplay);
+                ['.qty-plus', '.qty-minus'].forEach(selector => {
+                    document.querySelector(selector).addEventListener('click', updatePriceDisplay);
+                });
+            }
+
+            const addToCartBtn = document.getElementById('addToCartBtn');
+            const addToCartForm = addToCartBtn?.closest('form');
+            addToCartBtn?.addEventListener('click', function() {
+                updatePriceDisplay();
+
+                if (!addToCartForm) {
+                    return;
+                }
+
+                if (window.requestLoader) {
+                    window.requestLoader.withLoading(() => addToCartForm.requestSubmit());
+                    return;
+                }
+
+                addToCartForm.requestSubmit();
             });
 
             filterTrafficTypes();
