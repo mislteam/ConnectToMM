@@ -709,12 +709,21 @@ class RoamController extends Controller
             'api_url' => 'required|url',
         ]);
 
-        RoamApi::create([
+        $payload = [
             'client_id' => $validated['client_id'],
-            'secret_key' => $validated['client_secret'],  // store as secret_key
+            'secret_key' => $validated['client_secret'],
             'client_key' => $validated['client_key'],
-            'api_url'    => $validated['api_url'],
-        ]);
+            'api_url' => $validated['api_url'],
+        ];
+
+        $api = RoamApi::first();
+
+        if ($api) {
+            $api->fill($payload);
+            $api->save();
+        } else {
+            RoamApi::create($payload);
+        }
 
         return redirect()->back()->with('success', 'Roam API credentials saved successfully!');
     }
