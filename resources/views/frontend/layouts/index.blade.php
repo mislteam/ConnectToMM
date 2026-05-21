@@ -8,7 +8,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
     <meta charset="utf-8">
     <style>
-        body:not(.app-ready),
         body.request-loader-active {
             overflow: hidden;
         }
@@ -29,7 +28,6 @@
             transition: opacity 0.2s ease, visibility 0.2s ease;
         }
 
-        body:not(.app-ready) .request-loader-overlay,
         body.request-loader-active .request-loader-overlay {
             opacity: 1;
             visibility: visible;
@@ -118,7 +116,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/select2/select2-bootstrap4.min.css') }}">
 </head>
 
-<body>
+<body class="app-ready">
     <div class="request-loader-overlay" data-request-loader-overlay aria-hidden="true">
         <div class="request-loader-panel" role="status" aria-live="polite">
             <div class="request-loader-spinner" aria-hidden="true"></div>
@@ -140,7 +138,7 @@
     <script src="{{ asset('assets/js/video_link.js') }}"></script>
     <script src="{{ asset('assets/js/video.js') }}"></script>
     <script src="{{ asset('assets/js/counter.js') }}"></script>
-    <script src="{{ asset('assets/js/custom.js') }}"></script>
+    <script src="{{ asset('assets/js/custom.js') }}?v={{ filemtime(public_path('assets/js/custom.js')) }}"></script>
     <script src="{{ asset('assets/js/animation_links.js') }}"></script>
     <script src="{{ asset('assets/js/animation.js') }}"></script>
     <script src="{{ asset('assets/js/select2/select2.full.min.js') }}"></script>
