@@ -8,6 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
     <meta charset="utf-8">
     <style>
+        body:not(.app-ready),
         body.request-loader-active {
             overflow: hidden;
         }
@@ -28,6 +29,7 @@
             transition: opacity 0.2s ease, visibility 0.2s ease;
         }
 
+        body:not(.app-ready) .request-loader-overlay,
         body.request-loader-active .request-loader-overlay {
             opacity: 1;
             visibility: visible;
@@ -35,28 +37,28 @@
         }
 
         .request-loader-panel {
-            max-width: 380px;
+            max-width: 320px;
             width: 100%;
             text-align: center;
-            padding: 36px 32px;
-            border-radius: 22px;
+            padding: 28px 24px;
+            border-radius: 18px;
             background: rgba(255, 255, 255, 0.96);
             box-shadow: 0 18px 60px rgba(0, 0, 0, 0.18);
         }
 
         .request-loader-spinner {
-            width: 76px;
-            height: 76px;
-            margin: 0 auto 20px;
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 16px;
             border-radius: 50%;
-            border: 7px solid rgba(0, 123, 255, 0.15);
+            border: 6px solid rgba(0, 123, 255, 0.15);
             border-top-color: #0d6efd;
             animation: request-loader-spin 0.9s linear infinite;
         }
 
         .request-loader-title {
-            margin: 0 0 8px;
-            font-size: 1.2rem;
+            margin: 0;
+            font-size: 1.05rem;
             font-weight: 700;
             color: #111827;
         }
@@ -116,7 +118,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/select2/select2-bootstrap4.min.css') }}">
 </head>
 
-<body class="app-ready">
+<body>
     <div class="request-loader-overlay" data-request-loader-overlay aria-hidden="true">
         <div class="request-loader-panel" role="status" aria-live="polite">
             <div class="request-loader-spinner" aria-hidden="true"></div>
