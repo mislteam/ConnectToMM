@@ -48,12 +48,18 @@
         },
     };
 
-    window.addEventListener("load", () => {
+    function markAppReady() {
         if (body) {
             body.classList.add("app-ready");
         }
         syncState();
-    });
+    }
+
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", markAppReady, { once: true });
+    } else {
+        markAppReady();
+    }
 
     document.addEventListener(
         "submit",
