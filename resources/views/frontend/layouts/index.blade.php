@@ -7,6 +7,75 @@
     <!-- /SEO Ultimate -->
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
     <meta charset="utf-8">
+    <style>
+        body:not(.app-ready),
+        body.request-loader-active {
+            overflow: hidden;
+        }
+
+        .request-loader-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: rgba(8, 15, 31, 0.62);
+            backdrop-filter: blur(4px);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+        }
+
+        body:not(.app-ready) .request-loader-overlay,
+        body.request-loader-active .request-loader-overlay {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        .request-loader-panel {
+            max-width: 380px;
+            width: 100%;
+            text-align: center;
+            padding: 36px 32px;
+            border-radius: 22px;
+            background: rgba(255, 255, 255, 0.96);
+            box-shadow: 0 18px 60px rgba(0, 0, 0, 0.18);
+        }
+
+        .request-loader-spinner {
+            width: 76px;
+            height: 76px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            border: 7px solid rgba(0, 123, 255, 0.15);
+            border-top-color: #0d6efd;
+            animation: request-loader-spin 0.9s linear infinite;
+        }
+
+        .request-loader-title {
+            margin: 0 0 8px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .request-loader-text {
+            margin: 0;
+            color: #6b7280;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        @keyframes request-loader-spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
     <link rel="apple-touch-icon" sizes="57x57" href="{{ asset('assets/images/favicon/apple-icon-57x57.png') }}">
     <link rel="apple-touch-icon" sizes="60x60" href="{{ asset('assets/images/favicon/apple-icon-60x60.png') }}">
     <link rel="apple-touch-icon" sizes="72x72" href="{{ asset('assets/images/favicon/apple-icon-72x72.png') }}">
@@ -50,6 +119,12 @@
 </head>
 
 <body>
+    <div class="request-loader-overlay" data-request-loader-overlay aria-hidden="true">
+        <div class="request-loader-panel" role="status" aria-live="polite">
+            <div class="request-loader-spinner" aria-hidden="true"></div>
+            <h2 class="request-loader-title">Loading</h2>
+        </div>
+    </div>
 
     @include('frontend.layouts.header')
     @yield('content')

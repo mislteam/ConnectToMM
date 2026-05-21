@@ -207,7 +207,7 @@ class CustomerAuthController extends Controller
             return redirect()->route('user.login')->with('success', 'Your password has been reset. Please log in again.');
         }
 
-        $remember = (bool) $request->session()->pull('verification_remember', false);
+        $remember = (bool) $request->session()->pull('verification_remember', true);
         Auth::guard('customers')->login($customer, $remember);
         $customer->forceFill(['last_login_at' => now()])->save();
         $request->session()->regenerate();
@@ -339,7 +339,7 @@ class CustomerAuthController extends Controller
         $request->session()->put('verification_customer_id', $customer->id);
         $request->session()->put('verification_email', $customer->email);
         $request->session()->put('verification_purpose', self::OTP_PURPOSE_LOGIN);
-        $request->session()->put('verification_remember', $request->boolean('remember'));
+        $request->session()->put('verification_remember', $request->boolean('remember', true));
 
         return redirect()
             ->route('verification.notice')
@@ -394,6 +394,7 @@ class CustomerAuthController extends Controller
     public function logout(Request $request)
     {
         Auth::guard('customers')->logout();
+        $request->session()->invalidate();
         $request->session()->regenerateToken();
 
         return redirect()->route('user.login')->with('success', 'You have been logged out.');

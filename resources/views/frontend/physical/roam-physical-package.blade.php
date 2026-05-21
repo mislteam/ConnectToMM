@@ -80,7 +80,7 @@
                                     @else
                                         <p class="text-size-16 text-danger">Not available</p>
                                     @endif
-                                    <a href="{{ route('physical.roampackageview', ['id' => $package->sku_id]) }}"
+                                    <a href="{{ route('physical.roampackageview', ['id' => $package->sku_id, 'dp_id' => $package->dp_id ?? null]) }}"
                                         class="more">View Offer</a>
                                 </div>
                             </div>

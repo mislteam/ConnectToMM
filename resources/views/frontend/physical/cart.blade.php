@@ -30,11 +30,84 @@
             width: 20px;
             height: 20px;
         }
+
+        .physical-cart-page .quantity-wrapper {
+            display: inline-flex;
+            flex-wrap: nowrap;
+            align-items: stretch;
+            width: auto;
+            max-width: 100%;
+        }
+
+        .physical-cart-page .quantity-wrapper .qty-minus,
+        .physical-cart-page .quantity-wrapper .qty-plus {
+            flex: 0 0 42px;
+            min-width: 42px;
+        }
+
+        .physical-cart-page .quantity-wrapper input[type="number"] {
+            flex: 0 0 72px;
+            width: 72px;
+            min-width: 72px;
+        }
+
+        @media (min-width: 992px) and (max-width: 1199.98px) {
+            .physical-cart-page .col-lg-8 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+
+            .physical-cart-page .col-lg-4 {
+                flex: 0 0 100%;
+                max-width: 100%;
+                margin-top: 1rem;
+            }
+        }
+
+        @media (min-width: 768px) and (max-width: 991.98px) {
+            .physical-cart-page .table {
+                min-width: 720px;
+            }
+
+            .physical-cart-page .order-box {
+                padding: 1rem;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .physical-cart-page .order-box {
+                padding: 0.9rem;
+            }
+
+            .physical-cart-page .table-responsive-sm {
+                overflow-x: auto;
+            }
+
+            .physical-cart-page .quantity-wrapper input[type="number"] {
+                width: 60px;
+                min-width: 60px;
+                flex-basis: 60px;
+            }
+
+            .physical-cart-page .button_text {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .physical-cart-page .table {
+                min-width: 600px;
+            }
+
+            .physical-cart-page .order-box h3 {
+                font-size: 1.1rem;
+            }
+        }
     </style>
     <!-- Sub-Banner -->
     <x-banner key="order" />
     <!--Services section-->
-    <section class="order-summary">
+    <section class="order-summary physical-cart-page">
         <div class="container">
             <div class="row mb-3">
                 <div class="col-12 text-center">
@@ -83,9 +156,9 @@
                                                     <label>Data : {{ $order['service_data'] }}</label><br>
                                                     <label>SIM Type :
                                                         {{ $order['sim_type_label'] ?? Str::headline($order['sim_type']) }}</label><br>
-                                                    @if ($order['iccid_exist'])
+                                                    {{-- @if ($order['iccid_exist'])
                                                         <label>ICCID No: {{ $order['iccid_no'] ?? '-' }}</label><br>
-                                                    @endif
+                                                    @endif --}}
 
                                                 </td>
 
@@ -178,7 +251,7 @@
                             </table>
                             <div class="mt-4 text-center">
                                 <a href="{{ route('roam.physical.checkout') }}" class="button_text"
-                                    id="proceed-to-checkout">Proceed To Checkout</a>
+                                    id="proceed-to-checkout" data-request-loader>Proceed To Checkout</a>
                             </div>
                         </div>
                     </div>
@@ -198,7 +271,7 @@
         let pendingQuantityUpdates = new Map();
 
         async function syncCartQuantity(key, qty) {
-            let response = await fetch(`{{ url('/roam/physical/cart') }}/${key}`, {
+            const request = fetch(`{{ url('/roam/physical/cart') }}/${key}`, {
                 method: 'PATCH',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
@@ -209,6 +282,8 @@
                     qty
                 }),
             });
+
+            let response = window.requestLoader ? await window.requestLoader.track(request) : await request;
 
             if (!response.ok) {
                 throw new Error('Unable to update cart quantity.');
@@ -306,7 +381,7 @@
 
                 let row = this.closest('tr');
 
-                let response = await fetch(`/roam/physical/remove-cart/${key}`, {
+                const request = fetch(`/roam/physical/remove-cart/${key}`, {
                     method: 'DELETE',
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector(
@@ -315,6 +390,10 @@
                         'Accept': 'application/json'
                     }
                 });
+
+                let response = window.requestLoader
+                    ? await window.requestLoader.track(request)
+                    : await request;
 
                 let data = await response.json();
 

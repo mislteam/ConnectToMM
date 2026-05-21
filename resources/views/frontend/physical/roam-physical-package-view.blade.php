@@ -14,6 +14,125 @@
             color: #212529;
             font-weight: 500;
         }
+
+        .physical-package-view .row.mb-5 {
+            align-items: flex-start;
+        }
+
+        .physical-package-view .carousel-inner img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .physical-package-view .quantity-wrapper {
+            display: inline-flex;
+            flex-wrap: nowrap;
+            align-items: stretch;
+            width: auto;
+            max-width: 100%;
+        }
+
+        .physical-package-view .quantity-wrapper .qty-minus,
+        .physical-package-view .quantity-wrapper .qty-plus {
+            flex: 0 0 42px;
+            min-width: 42px;
+        }
+
+        .physical-package-view .quantity-wrapper input[type="number"] {
+            flex: 0 0 72px;
+            width: 72px;
+            min-width: 72px;
+        }
+
+        .physical-package-view .btn-group-toggle {
+            gap: 0.5rem;
+        }
+
+        .physical-package-view .btn-group-toggle .btn {
+            min-height: 48px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @media (min-width: 992px) and (max-width: 1199.98px) {
+            .physical-package-view .col-lg-6 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+
+            .physical-package-view .row.mb-5 {
+                row-gap: 1.25rem;
+            }
+        }
+
+        @media (min-width: 768px) and (max-width: 991.98px) {
+            .physical-package-view .col-lg-6,
+            .physical-package-view .col-md-6 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+
+            .physical-package-view .row.mb-5 {
+                row-gap: 1.25rem;
+            }
+
+            .physical-package-view .btn-group-toggle .btn {
+                min-height: 44px;
+                font-size: 0.9rem;
+            }
+        }
+
+        @media (min-width: 576px) and (max-width: 767.98px) {
+            .physical-package-view .row.mb-5 {
+                row-gap: 1rem;
+            }
+
+            .physical-package-view .btn-group-toggle .btn {
+                min-height: 42px;
+                font-size: 0.88rem;
+            }
+
+            .physical-package-view .quantity-wrapper input[type="number"] {
+                width: 64px;
+                min-width: 64px;
+                flex-basis: 64px;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .physical-package-view .row.mb-5 {
+                row-gap: 0.9rem;
+            }
+
+            .physical-package-view .col-lg-6,
+            .physical-package-view .col-md-6 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+
+            .physical-package-view .btn-group-toggle {
+                gap: 0.4rem;
+            }
+
+            .physical-package-view .btn-group-toggle .btn {
+                width: 100%;
+                margin: 0 !important;
+                min-height: 42px;
+                font-size: 0.86rem;
+            }
+
+            .physical-package-view .quantity-wrapper input[type="number"] {
+                width: 60px;
+                min-width: 60px;
+                flex-basis: 60px;
+            }
+
+            .physical-package-view .button_text {
+                width: 100%;
+            }
+        }
     </style>
 
     <!-- Sub-Banner -->
@@ -39,7 +158,7 @@
         </div>
     </div>
     <!--Services section-->
-    <section class="service-section">
+    <section class="service-section physical-package-view">
         <div class="container">
             <div class="row mb-5">
                 @php
@@ -168,7 +287,9 @@
                     @if ($hasValidPlans)
                         <form action="{{ route('roam.physical.cart') }}" class="form-design" method="POST">
                             @csrf
+                            <input type="hidden" name="sim_type" value="{{ session('sim_type', 'recharge_physical') }}">
                             <input type="hidden" name="skuid" value="{{ $sku->sku_id }}">
+                            <input type="hidden" name="dp_id" value="{{ $selectedDpInfo }}">
                             <div class="form-group">
                                 <label class="font-weight-bold">Type of Plan</label>
                                 <div id="trafficType" class="btn-group btn-group-toggle d-flex flex-wrap"
@@ -316,7 +437,7 @@
                                     @else
                                         <p class="text-size-16 text-danger">Not available</p>
                                     @endif
-                                    <a href="{{ route('physical.roampackageview', ['id' => $package->sku_id]) }}"
+                                    <a href="{{ route('physical.roampackageview', ['id' => $package->sku_id, 'sim_type' => session('sim_type', 'recharge_physical'), 'dp_id' => $selectedDpInfo]) }}"
                                         class="more">View Offer</a>
                                 </div>
                             </div>
