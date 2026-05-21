@@ -10,20 +10,44 @@ use App\Models\PriceList;
 use App\Models\GeneralSetting;
 use App\Models\RoamSku;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Collection;
 
 class PhysicalSimController extends Controller
 {
     public function roamPhysical(Request $request)
     {
+        $selectedOrderType = (string) $request->query('type', session('sim_type', 'recharge_physical'));
+        if (!in_array($selectedOrderType, ['new_physical', 'recharge_physical'], true)) {
+            $selectedOrderType = 'recharge_physical';
+        }
+
         $selectedDpId = (int) $request->query('dp_id', 9);
         if (!in_array($selectedDpId, [9, 21], true)) {
             $selectedDpId = 9;
         }
 
-        $countrys = RoamPhysicalSku::where('dp_id', $selectedDpId)
-            ->where('status', 1)
+        $activeSkus = RoamPhysicalSku::where('status', 1)->get();
+
+        $countrys = $activeSkus
+            ->where('dp_id', $selectedDpId)
             ->pluck('country_name')
-            ->flatten()
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values();
+
+        $globalCountries = $activeSkus
+            ->where('dp_id', 9)
+            ->pluck('country_name')
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values();
+
+        $asiaCountries = $activeSkus
+            ->where('dp_id', 21)
+            ->pluck('country_name')
+            ->filter()
             ->unique()
             ->sort()
             ->values();
@@ -32,65 +56,44 @@ class PhysicalSimController extends Controller
             ->whereNotNull('dp_info')
             ->get();
 
-        $skupackages = RoamPhysicalSku::where('status', 1)
+        $priceListByPlan = $priceList->groupBy('plan');
+        $roamBySku = RoamPhysical::whereIn('sku_id', $activeSkus->pluck('sku_id')->all())
             ->get()
-            ->filter(function ($sku) use ($priceList) {
+            ->keyBy(fn ($row) => $row->sku_id . ':' . (int) ($row->dp_id ?? 0));
+        $packageCards = $this->buildPhysicalPackageCards($activeSkus, $priceListByPlan, $roamBySku);
 
-                $roam = RoamPhysical::where('sku_id', $sku->sku_id)->first();
-                if (!$roam || empty($roam->packages)) return false;
-
-                // price list codes for this sku
-                $priceCodes = $priceList
-                    ->where('plan', $sku->sku_id)
-                    ->pluck('product_code')
-                    ->toArray();
-
-                // check valid package
-                $validPackage = collect($roam->packages)
-                    ->where('status', 1)
-                    ->first(function ($pkg) use ($priceCodes) {
-                        $apiCode = $pkg['apiCode'] ?? $pkg['api_code'] ?? null;
-                        $legacyCode = $pkg['priceid'] ?? null;
-
-                        return (
-                            ($apiCode !== null && in_array($apiCode, $priceCodes)) ||
-                            ($legacyCode !== null && in_array($legacyCode, $priceCodes))
-                        );
-                    });
-
-                if (empty($validPackage)) {
-                    return false;
-                }
-
-                return $this->getLowestPhysicalPrice($sku->sku_id, $priceList) !== null;
-            })
-            ->values();
-
-        $globalSkupackages = $skupackages->where('dp_id', 9)->values();
-        $asiaSkupackages = $skupackages->where('dp_id', 21)->values();
+        $globalPackageCards = $packageCards->where('dp_id', 9)->values();
+        $asiaPackageCards = $packageCards->where('dp_id', 21)->values();
 
         $logo = GeneralSetting::where('type', 'file')->first();
         $title = GeneralSetting::where('type', 'string')->first();
 
         return view(
             'frontend.physical.roam-physical',
-            compact(
-                'logo',
-                'title',
-                'countrys',
-                'skupackages',
-                'globalSkupackages',
-                'asiaSkupackages',
-                'priceList',
-                'selectedDpId'
-            )
+                compact(
+                    'logo',
+                    'title',
+                    'countrys',
+                    'globalCountries',
+                    'asiaCountries',
+                    'globalPackageCards',
+                    'asiaPackageCards',
+                    'selectedDpId'
+                    ,
+                    'selectedOrderType'
+                )
         );
     }
 
     public function roamPhysicalSearch(Request $request)
     {
+        $simType = (string) $request->input('type', session('sim_type', 'recharge_physical'));
+        if (!in_array($simType, ['new_physical', 'recharge_physical'], true)) {
+            $simType = 'recharge_physical';
+        }
+
         session([
-            'sim_type' => $request->type ?? null,
+            'sim_type' => $simType,
             'iccid_exist' => true,
             'iccid_no' => $request->iccid_number ?? null
         ]);
@@ -133,17 +136,31 @@ class PhysicalSimController extends Controller
 
     public function roamPhysicalView($skuid, Request $request)
     {
+        $selectedDpInfo = (int) $request->query('dp_id', session('physical_dp_id', 0));
         if ($request->list_view) {
+            $simType = (string) $request->query('sim_type', session('sim_type', 'recharge_physical'));
             session([
                 'iccid_exist' => true,
                 'iccid_no' => null,
-                'sim_type' => 'recharge_physical'
+                'sim_type' => in_array($simType, ['new_physical', 'recharge_physical'], true)
+                    ? $simType
+                    : 'recharge_physical'
             ]);
         }
-        $sku = RoamPhysicalSku::where('sku_id', $skuid)->firstOrFail();
-        $selectedDpInfo = (int) ($sku->dp_id ?? 0);
+        $skuQuery = RoamPhysicalSku::where('sku_id', $skuid);
+        if (in_array($selectedDpInfo, [9, 21], true)) {
+            $skuQuery->where('dp_id', $selectedDpInfo);
+        }
 
-        $roam = RoamPhysical::where('sku_id', $skuid)->firstOrFail();
+        $sku = $skuQuery->firstOrFail();
+        $selectedDpInfo = (int) ($sku->dp_id ?? $selectedDpInfo ?? 0);
+        session(['physical_dp_id' => $selectedDpInfo]);
+
+        $roam = RoamPhysical::where('sku_id', $skuid)
+            ->when($selectedDpInfo, function ($query) use ($selectedDpInfo) {
+                $query->where('dp_id', $selectedDpInfo);
+            })
+            ->firstOrFail();
         $packages = $roam->packages;
         //$activePackages = collect($packages)->where('status', 1)->values();
 
@@ -154,6 +171,13 @@ class PhysicalSimController extends Controller
                 $query->where('dp_info', $selectedDpInfo);
             })
             ->get();
+
+        if ($pricelists->isEmpty()) {
+            $pricelists = PriceList::where('dp_status', 1)
+                ->whereNotNull('dp_info')
+                ->where('plan', $skuid)
+                ->get();
+        }
 
         $priceListCodes = $pricelists->pluck('product_code')->toArray();
 
@@ -229,9 +253,20 @@ class PhysicalSimController extends Controller
             ->where('plan', $skuId)
             ->get();
 
+        if ($priceList->isEmpty() && $dpInfo) {
+            $priceList = PriceList::where('dp_status', 1)
+                ->whereNotNull('dp_info')
+                ->where('plan', $skuId)
+                ->get();
+        }
+
         $priceMap = $priceList->pluck('exchange_rate', 'product_code');
 
-        $roam = RoamPhysical::where('sku_id', $skuId)->first();
+        $roam = RoamPhysical::where('sku_id', $skuId)
+            ->when($dpInfo, function ($query) use ($dpInfo) {
+                $query->where('dp_id', $dpInfo);
+            })
+            ->first();
         if (!$roam || empty($roam->packages)) {
             return null;
         }
@@ -263,12 +298,74 @@ class PhysicalSimController extends Controller
         return $lowestPrice !== null ? (float) $lowestPrice : null;
     }
 
+    private function buildPhysicalPackageCards(Collection $skus, Collection $priceListByPlan, ?Collection $roamBySku = null): Collection
+    {
+        return $skus
+            ->map(function ($sku) use ($priceListByPlan, $roamBySku) {
+                $roamKey = $sku->sku_id . ':' . (int) ($sku->dp_id ?? 0);
+                $roam = $roamBySku?->get($roamKey) ?? RoamPhysical::where('sku_id', $sku->sku_id)
+                    ->when((int) ($sku->dp_id ?? 0), function ($query, $dpId) {
+                        $query->where('dp_id', $dpId);
+                    })
+                    ->first();
+                if (!$roam || empty($roam->packages)) {
+                    return null;
+                }
+
+                $priceRows = $priceListByPlan->get($sku->sku_id, collect());
+                $priceMap = $priceRows->pluck('exchange_rate', 'product_code');
+
+                $lowestPrice = collect($roam->packages)
+                    ->filter(fn($pkg) => ($pkg['status'] ?? 0) == 1)
+                    ->map(function ($pkg) use ($priceMap) {
+                        $apiCode = $pkg['apiCode'] ?? $pkg['api_code'] ?? null;
+                        $legacyCode = $pkg['priceid'] ?? null;
+
+                        $rate = ($apiCode !== null && isset($priceMap[$apiCode]))
+                            ? $priceMap[$apiCode]
+                            : (($legacyCode !== null && isset($priceMap[$legacyCode])) ? $priceMap[$legacyCode] : null);
+
+                        if ($rate === null || (float) $rate <= 0) {
+                            return null;
+                        }
+
+                        $portalPrice = (float) ($pkg['price'] ?? 0) + (float) ($pkg['openCardFee'] ?? 0);
+                        if ($portalPrice <= 0) {
+                            return null;
+                        }
+
+                        return $portalPrice * (float) $rate;
+                    })
+                    ->filter(fn($price) => $price > 0)
+                    ->min();
+
+                if ($lowestPrice === null) {
+                    return null;
+                }
+
+                return [
+                    'package' => $sku,
+                    'roam' => $roam,
+                    'lowest_price' => (float) $lowestPrice,
+                    'dp_id' => (int) ($sku->dp_id ?? 0),
+                ];
+            })
+            ->filter()
+            ->values();
+    }
+
     private function getPackagePlanPrice(string|int $skuId, array $pkg): ?float
     {
         $priceList = PriceList::where('dp_status', 1)
             ->whereNotNull('dp_info')
             ->where('plan', $skuId)
             ->get();
+
+        if ($priceList->isEmpty()) {
+            $priceList = PriceList::where('dp_status', 1)
+                ->where('plan', $skuId)
+                ->get();
+        }
 
         $priceMap = $priceList->pluck('exchange_rate', 'product_code');
         $apiCode = $pkg['apiCode'] ?? $pkg['api_code'] ?? null;
@@ -293,7 +390,11 @@ class PhysicalSimController extends Controller
     public function cart(Request $request)
     {
         // session()->forget('roam_order_cart');
-        $sim_type = session()->get('sim_type');
+        $sim_type = (string) $request->input('sim_type', session('sim_type', 'recharge_physical'));
+        if (!in_array($sim_type, ['new_physical', 'recharge_physical'], true)) {
+            $sim_type = 'recharge_physical';
+        }
+        session(['sim_type' => $sim_type]);
         $request->validate([
             'skuid' => 'required',
             'sday' => 'required',
@@ -301,14 +402,26 @@ class PhysicalSimController extends Controller
             'display_price' => 'required',
             'qty' => 'required',
             'original_selected_price' => 'required',
-            'api_code' => 'nullable|string'
+            'api_code' => 'nullable|string',
+            'dp_id' => 'nullable|integer|in:9,21'
         ]);
-        $sku = RoamSku::where('sku_id', $request->skuid)->first();
+        $selectedDpInfo = (int) $request->input('dp_id', session('physical_dp_id', 0));
+        $skuQuery = RoamPhysicalSku::where('sku_id', $request->skuid);
+        if (in_array($selectedDpInfo, [9, 21], true)) {
+            $skuQuery->where('dp_id', $selectedDpInfo);
+        }
+        $sku = $skuQuery->first();
+        if (!$sku) {
+            return redirect()->back()->with('error', 'Selected package is invalid!');
+        }
+        session(['physical_dp_id' => (int) ($sku->dp_id ?? $selectedDpInfo ?? 0)]);
         $iccid_no = session()->get('iccid_no');
         $iccid_exist = session()->get('iccid_exist');
-        $service_type = $this->resolveServiceType($sim_type);
+        $service_type = 'physical';
         $order_type = $this->resolveOrderType($sim_type);
         $apiCode = $this->normalizeApiCode($request->input('api_code'));
+        $dpInfo = (int) ($sku->dp_id ?? 0);
+        $dpLabel = $this->buildDpLabel($dpInfo);
         $canAdjustQuantity = $this->canAdjustQuantity([
             'sim_type' => $sim_type,
             'service_type' => $service_type,
@@ -332,6 +445,7 @@ class PhysicalSimController extends Controller
                 && ($item['sim_type'] ?? null) == $sim_type
                 && ($item['service_type'] ?? null) == $service_type
                 && ($item['order_type'] ?? null) == $order_type
+                && $this->resolveCartItemDpInfo($item) === $dpInfo
             ) {
                 $itemUnitPrice = (float) ($item['ori_price'] ?? $unitPrice);
 
@@ -343,6 +457,8 @@ class PhysicalSimController extends Controller
 
                 $item['ori_price'] = $itemUnitPrice;
                 $item['price'] = $itemUnitPrice * (int) $item['qty'];
+                $item['dp_info'] = $dpInfo;
+                $item['dp_label'] = $dpLabel;
                 $found = true;
                 break;
             }
@@ -355,6 +471,8 @@ class PhysicalSimController extends Controller
                 'sim_type' => $sim_type,
                 'service_type' => $service_type,
                 'order_type' => $order_type,
+                'dp_info' => $dpInfo,
+                'dp_label' => $dpLabel,
                 'api_code' => $apiCode,
                 'country_name' => $sku->country_name,
                 'service_day' => $request->sday,
@@ -408,9 +526,15 @@ class PhysicalSimController extends Controller
                 $item['ori_price'] = $unitPrice;
             }
 
-            $item['sim_type_label'] = $item['sim_type_label'] ?? $this->buildSimTypeLabel($serviceType, $orderType);
+            $item['sim_type_label'] = $this->buildSimTypeLabel($serviceType, $orderType);
             $item['iccid_count'] = $this->getIccidCount($item);
-            $item['iccid_label'] = $this->buildIccidLabel($item, (string) ($item['country_name'] ?? ''));
+            $item['dp_info'] = $this->resolveCartItemDpInfo($item);
+            $item['dp_label'] = $item['dp_label'] ?? $this->buildDpLabel($item['dp_info']);
+            $item['iccid_label'] = $this->buildIccidLabel(
+                $item,
+                (string) ($item['country_name'] ?? ''),
+                $item['dp_info']
+            );
 
             return $item;
         })->values();
@@ -422,7 +546,22 @@ class PhysicalSimController extends Controller
             return redirect()->back()->with('error', 'Cart data is invalid!');
         }
 
-        $sku = RoamSku::findOrFail($skuId);
+        $sku = RoamPhysicalSku::findOrFail($skuId);
+        $itemsToUse = $itemsToUse->map(function ($item) {
+            $item['dp_info'] = $this->resolveCartItemDpInfo($item);
+            $item['dp_label'] = $item['dp_label'] ?? $this->buildDpLabel($item['dp_info']);
+            $serviceType = $this->getCartServiceType($item);
+            $orderType = (string) ($item['order_type'] ?? $this->resolveOrderType($item['sim_type'] ?? session('sim_type')));
+            $item['sim_type_label'] = $this->buildSimTypeLabel($serviceType, $orderType);
+            $item['iccid_label'] = $this->buildIccidLabel(
+                $item,
+                (string) ($item['country_name'] ?? ''),
+                $item['dp_info']
+            );
+
+            return $item;
+        })->values();
+        $primaryItem = $itemsToUse->first();
         $price = (float) ($primaryItem['price'] ?? 0);
         $iccidCount = $this->getIccidCount($primaryItem);
         $iccidNumbers = array_values(array_pad(
@@ -447,7 +586,11 @@ class PhysicalSimController extends Controller
             'customer' => $customer,
             'subtotal' => $serviceItems->sum(fn($item) => (float) ($item['price'] ?? 0)),
             'requires_iccid' => $this->requiresIccid($primaryItem),
-            'iccid_label' => $this->buildIccidLabel($primaryItem, (string) $sku->country_name),
+            'iccid_label' => $this->buildIccidLabel(
+                $primaryItem,
+                (string) $sku->country_name,
+                (int) ($primaryItem['dp_info'] ?? 0)
+            ),
             'iccid_count' => $iccidCount,
             'iccid_numbers' => $iccidNumbers,
         ]);
@@ -521,7 +664,7 @@ class PhysicalSimController extends Controller
 
         if (is_array($cart) && !empty($cart)) {
             $normalizedCart = array_map(function (array $item) {
-                $serviceType = (string) ($item['service_type'] ?? $this->resolveServiceType($item['sim_type'] ?? session('sim_type')));
+                $serviceType = $this->getCartServiceType($item);
                 $orderType = (string) ($item['order_type'] ?? $this->resolveOrderType($item['sim_type'] ?? session('sim_type')));
                 $canAdjustQuantity = $this->canAdjustQuantity([
                     'sim_type' => $item['sim_type'] ?? session('sim_type'),
@@ -529,8 +672,10 @@ class PhysicalSimController extends Controller
                     'order_type' => $orderType,
                 ]);
 
-                $item['sim_type_label'] = $item['sim_type_label'] ?? $this->buildSimTypeLabel($serviceType, $orderType);
+                $item['sim_type_label'] = $this->buildSimTypeLabel($serviceType, $orderType);
                 $item['iccid_count'] = $this->getIccidCount($item);
+                $item['dp_info'] = (int) ($item['dp_info'] ?? 0);
+                $item['dp_label'] = $item['dp_label'] ?? $this->buildDpLabel((int) ($item['dp_info'] ?? 0));
                 $item['can_adjust_quantity'] = $canAdjustQuantity;
 
                 if (!$canAdjustQuantity) {
@@ -587,15 +732,50 @@ class PhysicalSimController extends Controller
         return $apiCode !== '' ? $apiCode : null;
     }
 
-    private function buildIccidLabel(array $cartItem, string $countryName): string
+    private function resolveCartItemDpInfo(array $cartItem): int
     {
-        $serviceType = strtolower((string) ($cartItem['service_type'] ?? ''));
+        $skuId = $cartItem['sku_id'] ?? $cartItem['sku'] ?? null;
+        if ($skuId) {
+            $sku = RoamPhysicalSku::find($skuId);
+            $skuDpInfo = (int) ($sku->dp_id ?? 0);
 
-        if ($serviceType === 'physical') {
-            return 'ICCID No For ' . $countryName . ' Recharge Physical';
+            if ($skuDpInfo > 0) {
+                return $skuDpInfo;
+            }
         }
 
-        return 'ICCID No For ' . $countryName . ' Recharge';
+        $dpInfo = (int) ($cartItem['dp_info'] ?? 0);
+        if ($dpInfo > 0) {
+            return $dpInfo;
+        }
+
+        return 0;
+    }
+
+    private function buildIccidLabel(array $cartItem, string $countryName, ?int $dpInfo = null): string
+    {
+        $orderType = strtolower((string) ($cartItem['order_type'] ?? ''));
+        $serviceType = strtolower((string) (
+            $cartItem['service_type']
+            ?? $this->resolveServiceType($cartItem['sim_type'] ?? session('sim_type'))
+        ));
+        $dpInfo = (int) ($dpInfo ?? $cartItem['dp_info'] ?? 0);
+        $planName = (string) ($cartItem['dp_label'] ?? $this->buildDpLabel($dpInfo));
+
+        if ($orderType === 'recharge') {
+            if ($serviceType === 'esim') {
+                $planName = 'FiROAM Esim';
+            }
+
+            return '( Recharge ' . $planName . ' - ' . $countryName . ' ) ICCID No';
+        }
+
+        return 'ICCID No';
+    }
+
+    private function buildDpLabel(int $dpInfo): string
+    {
+        return $dpInfo === 21 ? 'FiROAM Asia' : 'FiROAM Global';
     }
 
     private function buildSimTypeLabel(string $serviceType, string $orderType): string

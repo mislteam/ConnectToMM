@@ -1,14 +1,64 @@
 @extends('frontend.layouts.index')
 @section('title', 'Connect To Myanmar')
 @section('content')
+    <style>
+        .order-summary .order-box {
+            height: 100%;
+        }
+
+        .order-summary .button_text {
+            min-width: 0;
+        }
+
+        @media (min-width: 768px) and (max-width: 991.98px) {
+            .order-summary .order-box {
+                padding: 1rem;
+            }
+
+            .order-summary .table th,
+            .order-summary .table td {
+                padding: 0.65rem 0.45rem;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .order-summary .order-box {
+                padding: 0.9rem;
+            }
+
+            .order-summary .row.services-data {
+                row-gap: 1rem;
+            }
+
+            .order-summary .table {
+                font-size: 0.92rem;
+            }
+
+            .order-summary .table th,
+            .order-summary .table td {
+                padding: 0.55rem 0.35rem;
+                vertical-align: top;
+            }
+
+            .order-summary .button_text {
+                width: 100%;
+            }
+
+            .order-summary .mt-4.text-right {
+                text-align: center !important;
+            }
+        }
+    </style>
     <!-- Sub-Banner -->
     <x-banner key="checkout" />
     <!--Services section-->
     <section class="order-summary">
         <div class="container">
-            @php(
-    $checkoutItems = collect($selectedCartItems ?? [$cart ?? []])->filter()->values()
-)
+            @php
+                $checkoutItems = collect($selectedCartItems ?? [$cart ?? []])
+                    ->filter()
+                    ->values();
+            @endphp
             <div class="row mb-3">
                 <div class="col-12 text-center">
                     <div class="subheading" data-aos="fade-right">
@@ -39,7 +89,7 @@
                             @foreach ($checkoutItems as $itemIndex => $item)
                                 @if (($item['iccid_exist'] ?? false) || ($item['order_type'] ?? '') === 'recharge')
                                     <div class="form-group mb-0">
-                                        <label>{{ $item['country_name'] ?? 'Item' }} ICCID No
+                                        <label>{{ $item['iccid_label'] ?? ($item['country_name'] ?? 'Item') . ' ICCID No' }}
                                             <span class="required" aria-hidden="true">*</span></label>
                                         <input type="text" name="iccid_numbers[{{ $itemIndex }}][]"
                                             class="form_style text-dark" placeholder="Enter ICCID No">
@@ -63,9 +113,26 @@
                                         <td>
                                             <label>{{ $item['country_name'] ?? '-' }}</label><br>
                                             <label>{{ (($item['service_day'] ?? 1) > 1 ? $item['service_day'] . ' Days/ ' : $item['service_day'] . ' Day/ ') . ($item['service_data'] ?? '') }}</label><br>
-                                            <label>{{ $item['sim_type_label'] ?? Str::headline($item['sim_type'] ?? '') }}</label><br>
+                                            @php
+                                                $summaryIccidLabel = trim(
+                                                    str_replace(
+                                                        ['(', ')', 'ICCID No'],
+                                                        '',
+                                                        (string) ($item['iccid_label'] ?? ''),
+                                                    ),
+                                                );
+                                                $summaryIccidLabel = \Illuminate\Support\Str::before(
+                                                    $summaryIccidLabel,
+                                                    ' - ',
+                                                );
+                                            @endphp
+                                            <label>{{ $summaryIccidLabel !== '' ? $summaryIccidLabel : $item['sim_type_label'] ?? Str::headline($item['sim_type'] ?? '') }}</label><br>
+                                            <label>Service Type :
+                                                {{ Str::headline($item['service_type'] ?? 'esim') }}</label><br>
+                                            <label>Order Type :
+                                                {{ Str::headline($item['order_type'] ?? 'new') }}</label><br>
                                             @if (($item['iccid_exist'] ?? false) || ($item['order_type'] ?? '') === 'recharge')
-                                                <label>{{ $item['iccid_label'] ?? 'ICCID No' }}: -</label><br>
+                                                <label>ICCID No: </label><br>
                                             @endif
                                         </td>
                                         <td><label> {{ number_format((float) ($item['price'] ?? 0)) . ' MMK' }}</label></td>

@@ -1,3 +1,94 @@
+// Shared request loader for frontend pages
+(function () {
+    const body = document.body;
+    const overlay = document.querySelector("[data-request-loader-overlay]");
+    let activeRequests = 0;
+
+    function syncState() {
+        if (!body) {
+            return;
+        }
+
+        body.classList.toggle("request-loader-active", activeRequests > 0);
+
+        if (overlay) {
+            overlay.setAttribute(
+                "aria-hidden",
+                activeRequests > 0 ? "false" : "true",
+            );
+        }
+    }
+
+    function start() {
+        activeRequests += 1;
+        syncState();
+    }
+
+    function stop() {
+        activeRequests = Math.max(0, activeRequests - 1);
+        syncState();
+    }
+
+    window.requestLoader = {
+        show: start,
+        hide: stop,
+        track(promise) {
+            start();
+
+            return Promise.resolve(promise).finally(stop);
+        },
+        async withLoading(callback) {
+            start();
+
+            try {
+                return await callback();
+            } finally {
+                stop();
+            }
+        },
+    };
+
+    window.addEventListener("load", () => {
+        if (body) {
+            body.classList.add("app-ready");
+        }
+        syncState();
+    });
+
+    document.addEventListener(
+        "submit",
+        (event) => {
+            const form = event.target;
+
+            if (
+                form instanceof HTMLFormElement &&
+                form.matches("[data-request-loader]")
+            ) {
+                start();
+            }
+        },
+        true,
+    );
+
+    document.addEventListener(
+        "click",
+        (event) => {
+            const trigger = event.target.closest("[data-request-loader]");
+
+            if (!trigger) {
+                return;
+            }
+
+            const href = trigger.getAttribute("href");
+
+            if (trigger.tagName === "A" && !(href && href.indexOf("#") === 0)) {
+                start();
+            }
+        },
+        true,
+    );
+})();
+
 // TABS JS
 
 function makeTabActive() {
@@ -88,14 +179,15 @@ const priceMap = {
 // Function to calculate price
 function calculatePrice() {
     const priceDisplay = document.getElementById("priceDisplay");
-    const trafficType = document.getElementById("#trafficType")?.value;
-    const serviceDay = document.querySelector('input[name="sday"]:checked')
-        ?.dataset.day;
-    const dataPlan = document.querySelector(
-        'input[name="sdata"]:checked',
-    )?.value;
+    const trafficTypeEl = document.getElementById("trafficType");
+    const serviceDayEl = document.querySelector('input[name="sday"]:checked');
+    const dataPlanEl = document.querySelector('input[name="sdata"]:checked');
+    const trafficType = trafficTypeEl ? trafficTypeEl.value : null;
+    const serviceDay = serviceDayEl ? serviceDayEl.dataset.day : null;
+    const dataPlan = dataPlanEl ? dataPlanEl.value : null;
+    const typePrices = trafficType ? priceMap[trafficType] : null;
 
-    let basePrice = priceMap[trafficType]?.[dataPlan] || 0;
+    let basePrice = typePrices && typePrices[dataPlan] ? typePrices[dataPlan] : 0;
 
     // For demo: multiply base price by number of service days
     const totalPrice = basePrice * parseInt(serviceDay || 1);
@@ -108,7 +200,7 @@ function calculatePrice() {
 // console.log("days =", serviceDay);
 // console.log("dataPlan =", dataPlan);
 // console.log("priceMap[trafficType] =", priceMap[trafficType]);
-// console.log("priceMap[trafficType][days] =", priceMap[trafficType]?.[days]);
+// console.log("priceMap[trafficType][days] =", priceMap[trafficType] && priceMap[trafficType][days]);
 // console.log("price =", basePrice);
 // Event Listeners
 document

@@ -14,6 +14,16 @@ class ESimController extends Controller
 {
     public function roam()
     {
+        $selectedSimType = $this->normalizeSimType(request()->query('type', session('sim_type', 'new_esim')));
+        if (!in_array($selectedSimType, ['new_esim', 'recharge_esim'], true)) {
+            $selectedSimType = 'new_esim';
+        }
+
+        $orderTabs = [
+            'new_esim' => ['label' => 'New eSIM'],
+            'recharge_esim' => ['label' => 'Recharge'],
+        ];
+
         $countrys = Roam::pluck('support_country')
             ->flatten()
             ->unique()
@@ -56,6 +66,8 @@ class ESimController extends Controller
             })
             ->values();
 
+        $packageCards = $this->buildEsimPackageCards($skupackages, $priceList);
+
         $logo = GeneralSetting::where('type', 'file')->first();
         $title = GeneralSetting::where('type', 'string')->first();
 
@@ -63,7 +75,10 @@ class ESimController extends Controller
             'logo',
             'title',
             'countrys',
+            'orderTabs',
+            'selectedSimType',
             'skupackages',
+            'packageCards',
             'priceList'
         ));
     }
@@ -71,7 +86,12 @@ class ESimController extends Controller
     //for roam
     public function roamSearch(Request $request)
     {
-        session(['sim_type' => $request->type ?? null]);
+        $simType = $this->normalizeSimType($request->input('type', session('sim_type', 'new_esim')));
+        if (!in_array($simType, ['new_esim', 'recharge_esim'], true)) {
+            $simType = 'new_esim';
+        }
+
+        session(['sim_type' => $simType]);
         if ($request->iccid_exist === "1") {
             session([
                 'iccid_exist' => true,
@@ -135,19 +155,19 @@ class ESimController extends Controller
 
         // dd($packages);
         $priceList = PriceList::all();
+        $packageCards = $this->buildEsimPackageCards($packages, $priceList);
 
         $logo = GeneralSetting::where('type', 'file')->first();
         $title = GeneralSetting::where('type', 'string')->first();
 
-        return view('frontend.esim.roam-package', compact('logo', 'title', 'packages', 'skus', 'priceList'));
+        return view('frontend.esim.roam-package', compact('logo', 'title', 'packages', 'skus', 'priceList', 'packageCards'));
     }
 
     public function roamView($skuid, Request $request)
     {
-        if ($request->has('list_view') && session('sim_type') !== 'recharge_esim') {
-            session()->forget(['iccid_exist', 'iccid_no']);
-            session(['sim_type' => 'new_esim']);
-        }
+        $simType = $this->normalizeSimType($request->input('sim_type', session('sim_type', 'new_esim')));
+
+        session(['sim_type' => $simType]);
         $roam = Roam::where('sku_id', $skuid)->first();
 
         $packages = $roam->packages;
@@ -229,9 +249,9 @@ class ESimController extends Controller
             ->take(3)
             ->values();
         $canAdjustQuantity = $this->canAdjustQuantity([
-            'sim_type' => session('sim_type'),
+            'sim_type' => $simType,
             'service_type' => 'esim',
-            'order_type' => $this->resolveOrderType(session('sim_type')),
+            'order_type' => $this->resolveOrderType($simType),
         ]);
 
         return view('frontend.esim.roam-package-view', compact(
@@ -244,7 +264,8 @@ class ESimController extends Controller
             'pricelists',
             'hasValidPlans',
             'randomSkus',
-            'canAdjustQuantity'
+            'canAdjustQuantity',
+            'simType'
         ));
     }
 
@@ -252,7 +273,8 @@ class ESimController extends Controller
     {
         // session()->forget('roam_order_cart');
         // dd('hi');
-        $sim_type = session()->get('sim_type');
+        $sim_type = $this->normalizeSimType($request->input('sim_type', session()->get('sim_type')));
+        session(['sim_type' => $sim_type]);
         $request->validate([
             'skuid' => 'required',
             'sday' => 'required',
@@ -260,7 +282,8 @@ class ESimController extends Controller
             'display_price' => 'required',
             'qty' => 'required',
             'original_selected_price' => 'required',
-            'api_code' => 'nullable|string'
+            'api_code' => 'nullable|string',
+            'plan_name' => 'nullable|string'
         ]);
 
         $sku = RoamSku::where('sku_id', $request->skuid)->first();
@@ -270,6 +293,7 @@ class ESimController extends Controller
         $service_type = $this->resolveServiceType($sim_type);
         $order_type = $this->resolveOrderType($sim_type);
         $apiCode = $this->normalizeApiCode($request->input('api_code'));
+        $planName = trim((string) $request->input('plan_name', ''));
         $simTypeLabel = $this->buildSimTypeLabel($service_type, $order_type);
         $canAdjustQuantity = $this->canAdjustQuantity([
             'sim_type' => $sim_type,
@@ -319,6 +343,7 @@ class ESimController extends Controller
                 'service_type' => $service_type,
                 'order_type' => $order_type,
                 'api_code' => $apiCode,
+                'plan_name' => $planName !== '' ? $planName : null,
                 'country_name' => $sku->country_name,
                 'service_day' => $request->sday,
                 'service_data' => $request->sdata,
@@ -356,10 +381,10 @@ class ESimController extends Controller
         }
 
         $itemsToUse = $serviceItems->map(function ($item) {
-            $serviceType = (string) ($item['service_type'] ?? $this->resolveServiceType($item['sim_type'] ?? session('sim_type')));
-            $orderType = (string) ($item['order_type'] ?? $this->resolveOrderType($item['sim_type'] ?? session('sim_type')));
+            $serviceType = (string) ($item['service_type'] ?? $this->resolveServiceType($item['sim_type'] ?? 'new_esim'));
+            $orderType = (string) ($item['order_type'] ?? $this->resolveOrderType($item['sim_type'] ?? 'new_esim'));
             $canAdjustQuantity = $this->canAdjustQuantity([
-                'sim_type' => $item['sim_type'] ?? session('sim_type'),
+                'sim_type' => $item['sim_type'] ?? 'new_esim',
                 'service_type' => $serviceType,
                 'order_type' => $orderType,
             ]);
@@ -373,7 +398,11 @@ class ESimController extends Controller
 
             $item['sim_type_label'] = $item['sim_type_label'] ?? $this->buildSimTypeLabel($serviceType, $orderType);
             $item['iccid_count'] = $this->getIccidCount($item);
-            $item['iccid_label'] = $this->buildIccidLabel($item, (string) ($item['country_name'] ?? ''));
+            $item['iccid_label'] = $this->buildIccidLabel(
+                $item,
+                (string) ($item['country_name'] ?? ''),
+                (int) ($item['dp_info'] ?? 0)
+            );
 
             return $item;
         })->values();
@@ -410,7 +439,11 @@ class ESimController extends Controller
             'customer' => $customer,
             'subtotal' => $serviceItems->sum(fn($item) => (float) ($item['price'] ?? 0)),
             'requires_iccid' => $this->requiresIccid($primaryItem),
-            'iccid_label' => $this->buildIccidLabel($primaryItem, (string) $sku->country_name),
+            'iccid_label' => $this->buildIccidLabel(
+                $primaryItem,
+                (string) $sku->country_name,
+                (int) ($primaryItem['dp_info'] ?? 0)
+            ),
             'iccid_count' => $iccidCount,
             'iccid_numbers' => $iccidNumbers,
             'sim_type_label' => $this->buildSimTypeLabel(
@@ -470,10 +503,10 @@ class ESimController extends Controller
 
         if (is_array($cart) && !empty($cart)) {
             $normalizedCart = array_map(function (array $item) {
-                $serviceType = (string) ($item['service_type'] ?? $this->resolveServiceType($item['sim_type'] ?? session('sim_type')));
-                $orderType = (string) ($item['order_type'] ?? $this->resolveOrderType($item['sim_type'] ?? session('sim_type')));
+                $serviceType = (string) ($item['service_type'] ?? $this->resolveServiceType($item['sim_type'] ?? 'new_esim'));
+                $orderType = (string) ($item['order_type'] ?? $this->resolveOrderType($item['sim_type'] ?? 'new_esim'));
                 $canAdjustQuantity = $this->canAdjustQuantity([
-                    'sim_type' => $item['sim_type'] ?? session('sim_type'),
+                    'sim_type' => $item['sim_type'] ?? 'new_esim',
                     'service_type' => $serviceType,
                     'order_type' => $orderType,
                 ]);
@@ -537,8 +570,8 @@ class ESimController extends Controller
 
     private function canAdjustQuantity(array $cartItem): bool
     {
-        $serviceType = strtolower((string) ($cartItem['service_type'] ?? $this->resolveServiceType($cartItem['sim_type'] ?? session('sim_type'))));
-        $orderType = strtolower((string) ($cartItem['order_type'] ?? $this->resolveOrderType($cartItem['sim_type'] ?? session('sim_type'))));
+        $serviceType = strtolower((string) ($cartItem['service_type'] ?? $this->resolveServiceType($cartItem['sim_type'] ?? 'new_esim')));
+        $orderType = strtolower((string) ($cartItem['order_type'] ?? $this->resolveOrderType($cartItem['sim_type'] ?? 'new_esim')));
 
         return $serviceType === 'esim' && $orderType === 'new';
     }
@@ -567,10 +600,58 @@ class ESimController extends Controller
         return $query->first();
     }
 
+    private function buildEsimPackageCards($packages, $priceList)
+    {
+        return collect($packages)
+            ->map(function ($package) use ($priceList) {
+                $roam = Roam::where('sku_id', $package->sku_id)->first();
+                if (!$roam || empty($roam->packages)) {
+                    return null;
+                }
+
+                $priceMap = $priceList
+                    ->where('plan', $package->sku_id)
+                    ->pluck('exchange_rate', 'product_code');
+
+                $lowestPrice = collect($roam->packages)
+                    ->filter(fn($pkg) => ($pkg['status'] ?? 0) == 1)
+                    ->map(function ($pkg) use ($priceMap) {
+                        $apiCode = $pkg['apiCode'] ?? ($pkg['api_code'] ?? null);
+                        $legacyCode = $pkg['priceid'] ?? null;
+
+                        $rate = ($apiCode !== null && isset($priceMap[$apiCode]))
+                            ? $priceMap[$apiCode]
+                            : (($legacyCode !== null && isset($priceMap[$legacyCode])) ? $priceMap[$legacyCode] : null);
+
+                        if ($rate === null) {
+                            return null;
+                        }
+
+                        $portalPrice = (float) ($pkg['price'] ?? 0) + (float) ($pkg['openCardFee'] ?? 0);
+
+                        return $portalPrice * (float) $rate;
+                    })
+                    ->filter()
+                    ->min();
+
+                if (!$lowestPrice) {
+                    return null;
+                }
+
+                return [
+                    'package' => $package,
+                    'roam' => $roam,
+                    'lowest_price' => (float) $lowestPrice,
+                ];
+            })
+            ->filter()
+            ->values();
+    }
+
     private function requiresIccid(array $cartItem): bool
     {
-        $orderType = strtolower((string) ($cartItem['order_type'] ?? $this->resolveOrderType($cartItem['sim_type'] ?? session('sim_type'))));
-        $simType = strtolower((string) ($cartItem['sim_type'] ?? session('sim_type') ?? ''));
+        $orderType = strtolower((string) ($cartItem['order_type'] ?? $this->resolveOrderType($cartItem['sim_type'] ?? 'new_esim')));
+        $simType = strtolower((string) ($cartItem['sim_type'] ?? ''));
 
         return (bool) ($cartItem['iccid_exist'] ?? false) || $orderType === 'recharge' || str_contains($simType, 'recharge');
     }
@@ -594,17 +675,32 @@ class ESimController extends Controller
         return $apiCode !== '' ? $apiCode : null;
     }
 
-    private function buildIccidLabel(array $cartItem, string $countryName): string
+    private function buildIccidLabel(array $cartItem, string $countryName, ?int $dpInfo = null): string
     {
         $orderType = strtolower((string) ($cartItem['order_type'] ?? ''));
-        $serviceType = strtolower((string) ($cartItem['service_type'] ?? ''));
-
-        if ($orderType === 'recharge' && $serviceType === 'physical') {
-            return 'ICCID No For ' . $countryName . ' Recharge Physical';
-        }
+        $serviceType = strtolower((string) (
+            $cartItem['service_type']
+            ?? $this->resolveServiceType($cartItem['sim_type'] ?? 'new_esim')
+        ));
+        $dpInfo = (int) ($dpInfo ?? $cartItem['dp_info'] ?? 0);
 
         if ($orderType === 'recharge') {
-            return 'ICCID No For ' . $countryName . ' Recharge';
+            if ($serviceType === 'physical') {
+                $labelPlan = $dpInfo === 21 ? 'FiROAM Asia' : 'FiROAM Global';
+            } else {
+                $planName = strtolower(trim((string) ($cartItem['plan_name'] ?? '')));
+                $labelPlan = 'FiROAM Esim';
+
+                if (str_contains($planName, 'asia')) {
+                    $labelPlan = 'FiROAM Asia';
+                } elseif (str_contains($planName, 'global')) {
+                    $labelPlan = 'FiROAM Global';
+                } elseif (str_contains($planName, 'esim')) {
+                    $labelPlan = 'FiROAM Esim';
+                }
+            }
+
+            return '( Recharge ' . $labelPlan . ' - ' . $countryName . ' ) ICCID No';
         }
 
         return 'ICCID No';
@@ -628,5 +724,16 @@ class ESimController extends Controller
         $suffix = $serviceType === 'physical' ? 'Physical' : 'Esim';
 
         return trim($prefix . ' ' . $suffix);
+    }
+
+    private function normalizeSimType(?string $simType): string
+    {
+        $simType = strtolower(trim((string) $simType));
+
+        if ($simType === '' || !in_array($simType, ['new_esim', 'recharge_esim', 'new_physical', 'recharge_physical'], true)) {
+            return 'new_esim';
+        }
+
+        return $simType;
     }
 }

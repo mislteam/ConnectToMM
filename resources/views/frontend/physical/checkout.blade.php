@@ -6,9 +6,11 @@
     <!--Services section-->
     <section class="order-summary">
         <div class="container">
-            @php(
-    $checkoutItems = collect($selectedCartItems ?? [$cart ?? []])->filter()->values()
-)
+            @php
+                $checkoutItems = collect($selectedCartItems ?? [$cart ?? []])
+                    ->filter()
+                    ->values();
+            @endphp
             <div class="row mb-3">
                 <div class="col-12 text-center">
                     <div class="subheading" data-aos="fade-right">
@@ -39,7 +41,7 @@
                             @foreach ($checkoutItems as $itemIndex => $item)
                                 @if (($item['iccid_exist'] ?? false) || ($item['order_type'] ?? '') === 'recharge')
                                     <div class="form-group mb-0">
-                                        <label>{{ $item['country_name'] ?? 'Item' }} ICCID No
+                                        <label>{{ $item['iccid_label'] ?? ($item['country_name'] ?? 'Item') . ' ICCID No' }}
                                             <span class="required" aria-hidden="true">*</span></label>
                                         <input type="text" name="iccid_numbers[{{ $itemIndex }}][]"
                                             class="form_style text-dark" placeholder="Enter ICCID No">
@@ -63,9 +65,17 @@
                                         <td>
                                             <label>{{ $item['country_name'] ?? '-' }}</label><br>
                                             <label>{{ (($item['service_day'] ?? 1) > 1 ? $item['service_day'] . ' Days/ ' : $item['service_day'] . ' Day/ ') . ($item['service_data'] ?? '') }}</label><br>
-                                            <label>{{ $item['sim_type_label'] ?? Str::headline($item['sim_type'] ?? '') }}</label><br>
+                                            @php
+                                                $summaryIccidLabel = trim(str_replace(
+                                                    ['(', ')', 'ICCID No'],
+                                                    '',
+                                                    (string) ($item['iccid_label'] ?? '')
+                                                ));
+                                                $summaryIccidLabel = \Illuminate\Support\Str::before($summaryIccidLabel, ' - ');
+                                            @endphp
+                                            <label>{{ $summaryIccidLabel !== '' ? $summaryIccidLabel : ($item['sim_type_label'] ?? Str::headline($item['sim_type'] ?? '')) }}</label><br>
                                             @if (($item['iccid_exist'] ?? false) || ($item['order_type'] ?? '') === 'recharge')
-                                                <label>{{ $item['iccid_label'] ?? 'ICCID No' }}: -</label><br>
+                                                <label>ICCID No: </label><br>
                                             @endif
                                         </td>
                                         <td><label> {{ number_format((float) ($item['price'] ?? 0)) . ' MMK' }}</label></td>

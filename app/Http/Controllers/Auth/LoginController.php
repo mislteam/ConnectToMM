@@ -28,7 +28,7 @@ class LoginController extends Controller
         $user = User::where('email', $request->email)->first();
 
         if ($user && $user->status == 0 && Hash::check($request->password, $user->password)) {
-            Auth::login($user);
+            Auth::login($user, $request->boolean('remember', true));
             return redirect()->intended('/dashboard')->with('success', 'Welcome from Dashboard');
         }
 
@@ -38,6 +38,9 @@ class LoginController extends Controller
     public function logout(Request $request)
     {
         Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
         return redirect('admin/login');
     }
 

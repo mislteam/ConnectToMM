@@ -14,6 +14,165 @@
             color: #212529;
             font-weight: 500;
         }
+
+        .quantity-wrapper {
+            display: inline-flex;
+            flex-wrap: nowrap;
+            align-items: stretch;
+            width: auto;
+            max-width: 100%;
+        }
+
+        .quantity-wrapper .qty-minus,
+        .quantity-wrapper .qty-plus {
+            flex: 0 0 42px;
+            min-width: 42px;
+        }
+
+        .quantity-wrapper input[type="number"] {
+            flex: 0 0 72px;
+            width: 72px;
+            min-width: 72px;
+        }
+
+        .form-design .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-design .form-group > label {
+            margin-bottom: 0.55rem;
+        }
+
+        #trafficType,
+        #serviceDay,
+        #dataPlan {
+            gap: 0.6rem;
+        }
+
+        #trafficType .btn,
+        #serviceDay .btn,
+        #dataPlan .btn {
+            margin: 0.25rem !important;
+        }
+
+        #trafficType .btn,
+        #serviceDay .btn,
+        #dataPlan .btn {
+            border-radius: 4px;
+        }
+
+        .quantity-wrapper .btn {
+            min-width: 42px;
+        }
+
+        #addToCartBtn.button_text {
+            min-height: 60px;
+            padding: 0 2rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .service-section .row.mb-5 {
+            margin-bottom: 3rem !important;
+        }
+
+        .service-box .img {
+            margin-bottom: 0.65rem !important;
+        }
+
+        .service-box .content {
+            padding-bottom: 0.35rem;
+        }
+
+        .service-box .content h4 {
+            margin-bottom: 0.2rem;
+        }
+
+        .service-box .content .text-size-16 {
+            margin-bottom: 0.55rem;
+        }
+
+        .service-box .content .more {
+            margin-top: 0.15rem;
+        }
+
+        @media (min-width: 768px) and (max-width: 991.98px) {
+            .service-section .row.mb-5 {
+                margin-bottom: 2.5rem !important;
+            }
+
+            .form-design .form-group {
+                margin-bottom: 0.9rem;
+            }
+
+            #trafficType,
+            #serviceDay,
+            #dataPlan {
+                gap: 0.5rem;
+            }
+
+            .service-box .content {
+                padding-bottom: 0.3rem;
+            }
+
+            .service-box .content .more {
+                margin-top: 0.1rem;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .service-section .row.mb-5 {
+                margin-bottom: 2rem !important;
+            }
+
+            .quantity-wrapper {
+                max-width: 100%;
+                width: 100%;
+            }
+
+            .quantity-wrapper .btn {
+                min-width: 38px;
+            }
+
+            .quantity-wrapper input[type="number"] {
+                flex: 1 1 auto;
+                width: auto;
+                min-width: 0;
+            }
+
+            #trafficType,
+            #serviceDay,
+            #dataPlan {
+                gap: 0.45rem;
+            }
+
+            .form-design .form-group {
+                margin-bottom: 0.85rem;
+            }
+
+            .service-box .img {
+                margin-bottom: 0.5rem !important;
+            }
+
+            .service-box .content {
+                padding-bottom: 0.25rem;
+            }
+
+            .service-box .content .text-size-16 {
+                margin-bottom: 0.45rem;
+            }
+
+            #addToCartBtn.button_text {
+                width: 100%;
+            }
+
+            .row.mb-5 > .col-lg-6.mb-5,
+            .row.mb-5 > .col-lg-6.col-md-6,
+            .row.mb-5 > .col-lg-6.col-md-6.mb-5 {
+                margin-bottom: 1.5rem !important;
+            }
+        }
     </style>
 
     <!-- Sub-Banner -->
@@ -187,6 +346,7 @@
                         <form class="form-design" action="{{ route('roam.esim.cart') }}" method="POST">
                             @csrf
                             <input type="hidden" name="skuid" value="{{ $sku->sku_id }}">
+                            <input type="hidden" name="sim_type" value="{{ $simType ?? session('sim_type', 'new_esim') }}">
                             <div class="form-group">
                                 <label class="font-weight-bold">Type of Plan</label>
                                 <div id="trafficType" class="btn-group btn-group-toggle d-flex flex-wrap"
@@ -347,7 +507,7 @@
                                     @else
                                         <p class="text-size-16 text-danger">Not available</p>
                                     @endif
-                                    <a href="{{ route('esim.roampackageview', ['id' => $package->sku_id]) }}"
+                                    <a href="{{ route('esim.roampackageview', ['id' => $package->sku_id, 'sim_type' => $simType ?? session('sim_type', 'new_esim')]) }}"
                                         class="more">View Offer</a>
                                 </div>
                             </div>
@@ -371,6 +531,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             const hasValidPlans = @json($hasValidPlans);
             const canAdjustQuantity = @json($canAdjustQuantity);
+            const currentSimType = @json($simType ?? session('sim_type', 'new_esim'));
 
             if (!hasValidPlans) {
                 const elements = ['trafficType', 'serviceDay', 'dataPlan', 'priceDisplay'];
@@ -826,6 +987,11 @@
 
             const addToCartBtn = document.getElementById('addToCartBtn');
             const addToCartForm = addToCartBtn?.closest('form');
+            const simTypeInput = addToCartForm?.querySelector('input[name="sim_type"]');
+
+            if (simTypeInput && currentSimType) {
+                simTypeInput.value = currentSimType;
+            }
             addToCartBtn?.addEventListener('click', function() {
                 updatePriceDisplay();
 

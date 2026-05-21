@@ -30,6 +30,47 @@
             width: 20px;
             height: 20px;
         }
+
+        @media (min-width: 768px) and (max-width: 991.98px) {
+            .order-summary .order-box {
+                padding: 1rem;
+            }
+
+            .order-summary .table th,
+            .order-summary .table td {
+                padding: 0.65rem 0.45rem;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .order-summary .order-box {
+                padding: 0.9rem;
+            }
+
+            .order-summary .table {
+                font-size: 0.92rem;
+            }
+
+            .order-summary .table th,
+            .order-summary .table td {
+                padding: 0.55rem 0.35rem;
+                vertical-align: top;
+            }
+
+            .order-summary .quantity-wrapper {
+                max-width: 100%;
+            }
+
+            .order-summary .button_text,
+            .order-summary #proceed-to-checkout {
+                width: 100%;
+            }
+
+            .order-summary #proceed-to-checkout {
+                display: inline-flex;
+                justify-content: center;
+            }
+        }
     </style>
     <!-- Sub-Banner -->
     <x-banner key="order" />
@@ -70,14 +111,13 @@
                                     <tbody>
                                         @foreach ($cartItems ?? session()->get('roam_order_cart', []) as $key => $order)
                                             @php
-                                                $isQuantityEditable =
-                                                    strtolower((string) ($order['service_type'] ?? '')) === 'esim' &&
-                                                    strtolower((string) ($order['order_type'] ?? '')) === 'new';
-
-                                                if (array_key_exists('can_adjust_quantity', $order)) {
-                                                    $isQuantityEditable =
-                                                        $isQuantityEditable || !empty($order['can_adjust_quantity']);
-                                                }
+                                                $isQuantityEditable = array_key_exists(
+                                                    'can_adjust_quantity',
+                                                    $order,
+                                                )
+                                                    ? !empty($order['can_adjust_quantity'])
+                                                    : strtolower((string) ($order['service_type'] ?? '')) === 'esim' &&
+                                                        strtolower((string) ($order['order_type'] ?? '')) === 'new';
                                             @endphp
                                             <tr>
                                                 <td class="px-0">
@@ -93,9 +133,13 @@
                                                     <label>Data : {{ $order['service_data'] }}</label><br>
                                                     <label>SIM Type :
                                                         {{ $order['sim_type_label'] ?? Str::headline($order['sim_type']) }}</label><br>
-                                                    @if ($order['iccid_exist'])
+                                                    <label>Service Type :
+                                                        {{ Str::headline($order['service_type'] ?? 'esim') }}</label><br>
+                                                    <label>Order Type :
+                                                        {{ Str::headline($order['order_type'] ?? 'new') }}</label><br>
+                                                    {{-- @if ($order['iccid_exist'])
                                                         <label>ICCID No: {{ $order['iccid_no'] ?? '-' }}</label><br>
-                                                    @endif
+                                                    @endif --}}
 
                                                 </td>
 
@@ -189,7 +233,7 @@
                             </table>
                             <div class="mt-4 text-center">
                                 <a href="{{ route('roam.esim.checkout') }}" class="button_text"
-                                    id="proceed-to-checkout">Proceed To Checkout</a>
+                                    id="proceed-to-checkout" data-request-loader>Proceed To Checkout</a>
                             </div>
                         </div>
                     </div>
@@ -209,7 +253,7 @@
         let headerCartEl = document.getElementById('order_count');
 
         async function syncCartQuantity(key, qty) {
-            let response = await fetch(`{{ url('/roam/esim/cart') }}/${key}`, {
+            const request = fetch(`{{ url('/roam/esim/cart') }}/${key}`, {
                 method: 'PATCH',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
@@ -220,6 +264,8 @@
                     qty
                 }),
             });
+
+            let response = window.requestLoader ? await window.requestLoader.track(request) : await request;
 
             if (!response.ok) {
                 throw new Error('Unable to update cart quantity.');
@@ -317,7 +363,7 @@
 
                 let row = this.closest('tr');
 
-                let response = await fetch(`/roam/esim/remove-cart/${key}`, {
+                const request = fetch(`/roam/esim/remove-cart/${key}`, {
                     method: 'DELETE',
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector(
@@ -326,6 +372,10 @@
                         'Accept': 'application/json'
                     }
                 });
+
+                let response = window.requestLoader
+                    ? await window.requestLoader.track(request)
+                    : await request;
 
                 let data = await response.json();
 

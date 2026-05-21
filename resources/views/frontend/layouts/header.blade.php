@@ -124,10 +124,18 @@
                          <li class="nav-item {{ request()->routeIs('Contact') ? 'active' : '' }}">
                              <a class="nav-link" href="{{ route('Contact') }}">Contact Us</a>
                          </li>
+                         @php
+                             $simType = strtolower((string) session('sim_type'));
+                             $isPhysicalFlow =
+                                 request()->routeIs('roam.physical.*', 'physical.*') ||
+                                 str_contains($simType, 'physical');
+                             $cartRoute = $isPhysicalFlow
+                                 ? route('roam.physical.cartpage')
+                                 : route('roam.esim.cartpage');
+                         @endphp
                          <li
                              class="nav-item {{ request()->routeIs('roam.esim.*', 'roam.physical.*') ? 'active' : '' }}">
-                             <a class="nav-link position-relative d-inline-block"
-                                 href="{{ route('roam.esim.cartpage') }}">
+                             <a class="nav-link position-relative d-inline-block" href="{{ $cartRoute }}">
                                  <i class="fa-solid fa-cart-arrow-down fs-4"></i>
                                  <span class="position-absolute text-white badge badge-square bg-primary"
                                      style="top: -1px; right: -5px;"
@@ -171,8 +179,7 @@
                          @else
                              <li class="nav-item {{ request()->routeIs('user.register') ? 'active' : '' }}">
                                  <a class="nav-link signup" href="{{ route('user.register') }}"><i
-                                         class="fa-solid fa-user-lock"></i>Sign
-                                     Up</a>
+                                         class="fa-solid fa-user-lock"></i></a>
                              </li>
                          @endif
                      </ul>
