@@ -369,8 +369,12 @@
 
         .physical-order-pane {
             display: none;
-            padding: 1rem;
+            padding: 0.25rem 0 0;
             margin-bottom: 1.25rem;
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+            box-shadow: none;
         }
 
         .physical-order-pane.active {
@@ -674,7 +678,7 @@
             }
 
             .physical-order-pane {
-                padding: 0.9rem;
+                padding: 0.2rem 0 0;
             }
 
             .physical-search-card {
@@ -726,7 +730,7 @@
             }
 
             .physical-order-pane {
-                padding: 0.85rem;
+                padding: 0.2rem 0 0;
             }
 
             .physical-package-stage {

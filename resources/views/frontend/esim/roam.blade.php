@@ -218,12 +218,12 @@
 
         .esim-order-pane {
             display: none;
-            padding: 1rem;
+            padding: 0.25rem 0 0;
             margin-bottom: 1.25rem;
-            border-radius: 4px;
-            border: 1px solid rgba(18, 58, 134, 0.12);
-            background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(246, 249, 255, 0.96));
-            box-shadow: 0 18px 42px rgba(10, 36, 104, 0.08);
+            border: 0;
+            border-radius: 0;
+            background: transparent;
+            box-shadow: none;
         }
 
         .esim-order-pane.active {
@@ -440,7 +440,7 @@
             }
 
             .esim-order-pane {
-                padding: 0.85rem;
+                padding: 0.2rem 0 0;
             }
 
             .esim-search-card {
