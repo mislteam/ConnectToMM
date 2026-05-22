@@ -55,11 +55,10 @@
         syncState();
     }
 
-    if (document.readyState === "loading") {
-        document.addEventListener("DOMContentLoaded", markAppReady, { once: true });
-    } else {
-        markAppReady();
-    }
+    // Keep the initial pre-loader visible until the browser finishes loading
+    // (matches "tab is loading" expectation). Add a timeout so it can't hang forever.
+    window.addEventListener("load", markAppReady, { once: true });
+    window.setTimeout(markAppReady, 10000);
 
     document.addEventListener(
         "submit",
