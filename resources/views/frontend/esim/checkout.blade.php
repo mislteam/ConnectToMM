@@ -87,7 +87,7 @@
                                 <input type="text" class="form_style text-dark" placeholder="Enter Your Phone Number">
                             </div>
                             @foreach ($checkoutItems as $itemIndex => $item)
-                                @if (($item['iccid_exist'] ?? false) || ($item['order_type'] ?? '') === 'recharge')
+                                @if (($item['iccid_count'] ?? 0) > 0)
                                     <div class="form-group mb-0">
                                         <label>{{ $item['iccid_label'] ?? ($item['country_name'] ?? 'Item') . ' ICCID No' }}
                                             <span class="required" aria-hidden="true">*</span></label>
@@ -112,7 +112,8 @@
                                     <tr>
                                         <td>
                                             <label>{{ $item['country_name'] ?? '-' }}</label><br>
-                                            <label>{{ (($item['service_day'] ?? 1) > 1 ? $item['service_day'] . ' Days/ ' : $item['service_day'] . ' Day/ ') . ($item['service_data'] ?? '') }}</label><br>
+                                            <label>{{ $item['plan_type_label'] ?? (($item['plan_type'] ?? '') !== '' ? $item['plan_type'] . ' Plan' : '-') }}</label><br>
+                                            <label>{{ ($item['service_data'] ?? '') . ' / ' . (($item['service_day'] ?? 1) > 1 ? $item['service_day'] . ' Days' : $item['service_day'] . ' Day') }}</label><br>
                                             @php
                                                 $summaryIccidLabel = trim(
                                                     str_replace(
@@ -131,16 +132,17 @@
                                                 {{ Str::headline($item['service_type'] ?? 'esim') }}</label><br>
                                             <label>Order Type :
                                                 {{ Str::headline($item['order_type'] ?? 'new') }}</label><br>
-                                            @if (($item['iccid_exist'] ?? false) || ($item['order_type'] ?? '') === 'recharge')
+                                            @if (($item['iccid_count'] ?? 0) > 0)
                                                 <label>ICCID No: </label><br>
                                             @endif
                                         </td>
-                                        <td><label> {{ number_format((float) ($item['price'] ?? 0)) . ' MMK' }}</label></td>
+                                        <td><label> {{ number_format((float) ($item['price'] ?? 0)) . ' MMK' }}</label>
+                                        </td>
                                     </tr>
                                 @endforeach
                                 <tr>
                                     <td><label> Subtotal</label></td>
-                                    <td><label>{{ number_format((float) ($subtotal ?? 0)) }}</label></td>
+                                    <td><label>{{ number_format((float) ($subtotal ?? 0)) }} MMK</label></td>
                                 </tr>
                                 <tr>
                                     <td><label> Discount</label></td>

@@ -65,12 +65,37 @@
         }
 
         @media (min-width: 768px) and (max-width: 991.98px) {
+            .physical-cart-page #cart-container > .col-md-8,
+            .physical-cart-page #cart-container > .col-md-4 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+
+            .physical-cart-page #cart-container > .col-md-4 {
+                margin-top: 1rem;
+            }
+
+            .physical-cart-page .table-responsive-sm {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
             .physical-cart-page .table {
-                min-width: 720px;
+                min-width: 860px;
             }
 
             .physical-cart-page .order-box {
                 padding: 1rem;
+            }
+
+            .physical-cart-page .quantity-wrapper {
+                min-width: 130px;
+            }
+
+            .physical-cart-page #proceed-to-checkout {
+                width: 100%;
+                display: inline-flex;
+                justify-content: center;
             }
         }
 
@@ -151,6 +176,8 @@
                                                 <td>
                                                     <h6 class="font-weight-bold" style="text-transform: none;">
                                                         {{ $order['country_name'] }}</h6>
+                                                    <label>Type Of Plan :
+                                                        {{ $order['plan_type_label'] ?? (($order['plan_type'] ?? '') !== '' ? ($order['plan_type'] . ' Plan') : '-') }}</label><br>
                                                     <label>Service Day :
                                                         {{ $order['service_day'] > 1 ? $order['service_day'] . ' days' : $order['service_day'] . ' day' }}</label><br>
                                                     <label>Data : {{ $order['service_data'] }}</label><br>
@@ -169,19 +196,20 @@
                                                     </p>
                                                 </td>
                                                 <td>
-                                                    <div class="input-group quantity-wrapper" data-key="{{ $key }}"
-                                                        data-editable="{{ !empty($order['can_adjust_quantity']) ? 1 : 0 }}">
-                                                        <button class="btn btn-outline-secondary qty-minus"
-                                                            type="button">-</button>
-                                                        <input type="number" value="{{ $order['qty'] }}"
-                                                            class="form-control text-center text-dark qty-input"
-                                                            value="1" min="1"
-                                                            max="{{ !empty($order['can_adjust_quantity']) ? 100 : 1 }}"
-                                                            name="qty"
-                                                            @if (empty($order['can_adjust_quantity'])) readonly @endif>
-                                                        <button class="btn btn-outline-secondary qty-plus"
-                                                            type="button">+</button>
-                                                    </div>
+                                                    @if (!empty($order['can_adjust_quantity']))
+                                                        <div class="input-group quantity-wrapper" data-key="{{ $key }}"
+                                                            data-editable="1">
+                                                            <button class="btn btn-outline-secondary qty-minus"
+                                                                type="button">-</button>
+                                                            <input type="number" value="{{ $order['qty'] }}"
+                                                                class="form-control text-center text-dark qty-input"
+                                                                min="1" max="100" name="qty">
+                                                            <button class="btn btn-outline-secondary qty-plus"
+                                                                type="button">+</button>
+                                                        </div>
+                                                    @else
+                                                        <span class="quantity-static">{{ (int) ($order['qty'] ?? 1) }}</span>
+                                                    @endif
                                                 </td>
                                                 <td>
                                                     <p class="mb-0 text-size-14 total-price">

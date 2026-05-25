@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="light">
 
 <head>
     <meta charset="utf-8">
@@ -9,6 +9,18 @@
     <meta name="description" content="MOHT QR Code System">
     <meta name="keywords" content="MOHT QR Code System">
     <meta name="author" content="MISL">
+    <script>
+        (function() {
+            try {
+                var stored = localStorage.getItem("c2mm-theme");
+                var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+                var theme = stored || (prefersDark ? "dark" : "light");
+                document.documentElement.setAttribute("data-bs-theme", theme);
+            } catch (e) {
+                document.documentElement.setAttribute("data-bs-theme", "light");
+            }
+        })();
+    </script>
     <!-- App favicon -->
     <link rel="shortcut icon" href="{{ asset('assets/images/favicon.ico') }}">
 
@@ -84,6 +96,55 @@
 
     <!-- App js -->
     <script src="{{ asset('assets/js/app.js') }}"></script>
+    <script>
+        (function() {
+            var STORAGE_KEY = "c2mm-theme";
+            var CONFIG_KEY = "__INSPINIA_CONFIG__";
+
+            function currentTheme() {
+                return document.documentElement.getAttribute("data-bs-theme") === "dark" ? "dark" : "light";
+            }
+
+            function setTheme(theme, persist) {
+                var next = theme === "dark" ? "dark" : "light";
+                document.documentElement.setAttribute("data-bs-theme", next);
+
+                if (persist) {
+                    try {
+                        localStorage.setItem(STORAGE_KEY, next);
+                    } catch (e) {}
+                }
+
+                try {
+                    var raw = sessionStorage.getItem(CONFIG_KEY);
+                    var cfg = raw ? JSON.parse(raw) : {};
+                    cfg.theme = next;
+                    sessionStorage.setItem(CONFIG_KEY, JSON.stringify(cfg));
+                } catch (e) {}
+
+                var toggle = document.getElementById("themeToggleAdmin");
+                if (toggle) {
+                    toggle.setAttribute(
+                        "aria-label",
+                        next === "dark" ? "Switch to light mode" : "Switch to dark mode",
+                    );
+                }
+            }
+
+            document.addEventListener("DOMContentLoaded", function() {
+                var toggle = document.getElementById("themeToggleAdmin");
+                if (!toggle) {
+                    return;
+                }
+
+                toggle.addEventListener("click", function() {
+                    setTheme(currentTheme() === "dark" ? "light" : "dark", true);
+                });
+
+                setTheme(currentTheme(), false);
+            });
+        })();
+    </script>
 
     <!-- Plugins js -->
     {{-- <script src="{{ asset('assets/plugins/apexcharts/apexcharts.min.js') }}"></script> --}}

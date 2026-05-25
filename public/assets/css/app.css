@@ -26238,3 +26238,34 @@ div:where(.swal2-icon).swal2-success
     -webkit-transform: translateX(0);
     transform: translateX(0);
 }
+
+/* Theme toggle (admin topbar) */
+.c2mm-theme-toggle {
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+}
+
+.c2mm-theme-toggle:focus {
+    outline: none;
+}
+
+[data-bs-theme="light"] .c2mm-theme-icon-light {
+    display: none;
+}
+
+[data-bs-theme="dark"] .c2mm-theme-icon-dark {
+    display: none;
+}
+
+.c2mm-theme-toggle .c2mm-theme-icon-dark,
+.c2mm-theme-toggle .c2mm-theme-icon-light {
+    width: 1.1em;
+    height: 1.1em;
+    stroke-width: 2;
+}

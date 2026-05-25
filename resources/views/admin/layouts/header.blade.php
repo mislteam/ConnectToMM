@@ -172,7 +172,16 @@
 
                     </div> <!-- End dropdown-menu -->
                 </div> <!-- end dropdown-->
-            </div> <!-- end topbar item-->
+                </div> <!-- end topbar item-->
+
+            <!-- Theme Toggle -->
+            <div class="topbar-item">
+                <button type="button" class="topbar-link px-2 c2mm-theme-toggle" id="themeToggleAdmin"
+                    aria-label="Toggle dark mode" title="Toggle theme">
+                    <i data-lucide="moon" class="fs-xxl c2mm-theme-icon-dark" aria-hidden="true"></i>
+                    <i data-lucide="sun" class="fs-xxl c2mm-theme-icon-light" aria-hidden="true"></i>
+                </button>
+            </div>
 
             <!-- Notification Dropdown -->
             <div class="topbar-item">

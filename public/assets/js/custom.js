@@ -57,8 +57,20 @@
 
     // Keep the initial pre-loader visible until the browser finishes loading
     // (matches "tab is loading" expectation). Add a timeout so it can't hang forever.
+    document.addEventListener("DOMContentLoaded", markAppReady, { once: true });
     window.addEventListener("load", markAppReady, { once: true });
     window.setTimeout(markAppReady, 10000);
+
+    // When navigating back/forward, browsers may restore the page from bfcache without firing "load".
+    // Reset loader state so it doesn't stay stuck visible after a back navigation.
+    window.addEventListener(
+        "pageshow",
+        () => {
+            activeRequests = 0;
+            markAppReady();
+        },
+        true,
+    );
 
     document.addEventListener(
         "submit",

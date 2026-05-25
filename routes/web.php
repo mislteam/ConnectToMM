@@ -227,8 +227,6 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('joytel')->group(function () {
         // esim
         Route::get('/esim', [JoytelController::class, 'esim'])->name('esim.index');
-        Route::get('/esim-create', [JoytelController::class, 'esimCreate'])->name('esim.create');
-        Route::post('/esim-store', [JoytelController::class, 'esimStore'])->name('esim.store');
         Route::get('/esim-edit/{esim}', [JoytelController::class, 'esimEdit'])->name('esim.edit');
         Route::patch('/esim-update/{esim}', [JoytelController::class, 'updateEsim'])->name('esim.update');
 
@@ -241,8 +239,6 @@ Route::middleware(['auth'])->group(function () {
 
         // physical
         Route::get('/physical-sim', [JoytelController::class, 'physical'])->name('physical.index');
-        Route::get('/physical-create', [JoytelController::class, 'physicalCreate'])->name('physical.create');
-        Route::post('/physical-store', [JoytelController::class, 'physicalStore'])->name('physical.store');
         Route::get('/physical-edit/{recharge}', [JoytelController::class, 'editPhysical'])->name('physical.edit');
         Route::patch('/physical-update/{recharge}', [JoytelController::class, 'updatePhysical'])->name('physical.update');
 
