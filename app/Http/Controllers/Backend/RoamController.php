@@ -768,15 +768,14 @@ class RoamController extends Controller
         return redirect()->route('roamEsimIndex')->with('success', 'Roam data updated successfully!');
     }
 
-
-
-
-
     // For manage status
 
     public function updatePackageStatus(Request $request)
     {
-        $roam = Roam::where('sku_id', $request->sku_id)->first();
+        $roamCollection = collect($request->plans)->first();
+        $skuId = $roamCollection['sku_id'] ?? null;
+
+        $roam = Roam::where('sku_id', $skuId)->first();
 
         if (!$roam) {
             return back()->with('error', 'Roam package not found.');
@@ -786,9 +785,7 @@ class RoamController extends Controller
         $index = $request->index;
 
         if (isset($packages[$index])) {
-
             $packages[$index]['status'] = $request->input('status', 0);
-
 
             $roam->packages = $packages;
             $roam->save();

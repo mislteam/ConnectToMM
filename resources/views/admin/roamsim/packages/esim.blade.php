@@ -31,17 +31,6 @@
                         <div class="d-flex align-items-center gap-2">
                             <span class="me-2 fw-semibold">Filter By:</span>
 
-                            <!-- Date Range Filter -->
-                            <div class="app-search">
-                                <select data-table-range-filter="product-status"
-                                    class="form-select form-control my-1 my-md-0">
-                                    <option value="All">Status</option>
-                                    <option value="Enable">Enable</option>
-                                    <option value="Disable">Disable</option>
-                                </select>
-                                <i data-lucide="box" class="app-search-icon text-muted"></i>
-                            </div>
-
                             <!-- Records Per Page -->
                             <div>
                                 <select data-table-set-rows-per-page class="form-select form-control my-1 my-md-0">
@@ -132,7 +121,7 @@
                     </div>
                     <div class="card-footer border-0">
                         <div class="d-flex justify-content-between align-items-center">
-                            <div data-table-pagination-info="orders"></div>
+                            <div data-table-pagination-info="{{ $settings['roam_title']->value ?? 'Roam' }}"></div>
                             <div data-table-pagination></div>
                         </div>
                     </div>
@@ -174,7 +163,8 @@
                                                                 $open_card_fee = $plan['openCardFee'] ?? 0;
                                                                 $portal_price = $base_price + $open_card_fee;
 
-                                                                $apiCode = $plan['apiCode'] ?? $plan['api_code'] ?? null;
+                                                                $apiCode =
+                                                                    $plan['apiCode'] ?? ($plan['api_code'] ?? null);
                                                                 $legacyCode = $plan['priceid'] ?? null;
                                                                 $savedRate = App\Models\PriceList::where(
                                                                     'product_code',
@@ -183,7 +173,10 @@
                                                                     ->where('dp_status', 0)
                                                                     ->first();
                                                                 if (!$savedRate && $legacyCode !== null) {
-                                                                    $savedRate = App\Models\PriceList::where('product_code', $legacyCode)
+                                                                    $savedRate = App\Models\PriceList::where(
+                                                                        'product_code',
+                                                                        $legacyCode,
+                                                                    )
                                                                         ->where('dp_status', 0)
                                                                         ->first();
                                                                 }
@@ -344,6 +337,8 @@
                                                                             value="{{ $plan['flows'] ?? '' }} {{ $plan['unit'] ?? '' }}">
                                                                         <input type="hidden" name="status"
                                                                             value="0">
+                                                                        <input type="hidden" name="index"
+                                                                            value="{{ $index }}">
 
                                                                         <div
                                                                             class="form-check form-switch form-check-secondary fs-xxl mb-2">

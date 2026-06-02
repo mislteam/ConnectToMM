@@ -36,33 +36,41 @@
                 </a>
             </li>
 
-            <li class="side-nav-item">
+            <li class="side-nav-item {{ request()->routeIs('customer.*') ? 'active' : '' }}">
                 <a href="{{ route('customer.index') }}" class="side-nav-link">
                     <span class="menu-icon"><i class="ti ti-users-group"></i></span>
                     <span class="menu-text">All Customer</span>
                 </a>
             </li>
 
-            <li class="side-nav-item">
-                <a data-bs-toggle="collapse" href="#sidebarjoytel" aria-expanded="false" aria-controls="sidebarjoytel"
-                    class="side-nav-link">
+            @php
+                $isJoyActive =
+                    (request()->is('joytel/*') && request()->routeIs('esim.*', 'physical.*')) ||
+                    (request()->is('region/*') && request()->routeIs('region.*'));
+                $isJoyEsimActive = request()->is('joytel/*') && request()->routeIs('esim.*');
+                $isJoyPhyActive = request()->is('joytel/*') && request()->routeIs('physical.*');
+                $isRegionActive = request()->is('region/*') && request()->routeIs('region.*');
+            @endphp
+            <li class="side-nav-item {{ $isJoyActive ? 'active' : '' }}">
+                <a data-bs-toggle="collapse" href="#sidebarjoytel" aria-expanded="{{ $isJoyActive ? 'ture' : 'false' }}"
+                    aria-controls="sidebarjoytel" class="side-nav-link">
                     <span class="menu-icon"><i class="ti ti-device-sim"></i></span>
                     <span class="menu-text">{{ $settings['joytel_title']->value ?? 'Joytel' }}</span>
                     <span class="menu-arrow"></span>
                 </a>
-                <div class="collapse" id="sidebarjoytel">
+                <div class="collapse {{ $isJoyActive ? 'show' : '' }}" id="sidebarjoytel">
                     <ul class="sub-menu">
-                        <li class="side-nav-item">
+                        <li class="side-nav-item {{ $isJoyEsimActive ? 'active' : '' }}">
                             <a href="{{ route('esim.index') }}" class="side-nav-link">
                                 <span class="menu-text">E-Sim</span>
                             </a>
                         </li>
-                        <li class="side-nav-item">
+                        <li class="side-nav-item {{ $isJoyPhyActive ? 'active' : '' }}">
                             <a href="{{ route('physical.index') }}" class="side-nav-link">
                                 <span class="menu-text">Physical Sim</span>
                             </a>
                         </li>
-                        <li class="side-nav-item">
+                        <li class="side-nav-item {{ $isRegionActive ? 'active' : '' }}">
                             <a href="{{ route('region.index') }}" class="side-nav-link">
                                 <span class="menu-text">Region</span>
                             </a>
@@ -75,21 +83,32 @@
                     </ul>
                 </div>
             </li>
-            <li class="side-nav-item">
-                <a data-bs-toggle="collapse" href="#sidebarRoam" aria-expanded="false" aria-controls="sidebarRoam"
-                    class="side-nav-link">
+            @php
+                $isRoamActive = request()->routeIs(
+                    'roamEsimEdit',
+                    'roamEsimIndex',
+                    'roamphysical.Index',
+                    'roamPhysicalEdit',
+                );
+
+                $isRoamEsimActive = request()->routeIs('roamEsimEdit', 'roamEsimIndex');
+                $isRoamPhysicalActive = request()->routeIs('roamphysical.Index', 'roamPhysicalEdit');
+            @endphp
+            <li class="side-nav-item {{ $isRoamActive ? 'active' : '' }}">
+                <a data-bs-toggle="collapse" href="#sidebarRoam" aria-expanded="{{ $isRoamActive ? 'true' : 'false' }}"
+                    aria-controls="sidebarRoam" class="side-nav-link">
                     <span class="menu-icon"><i class="ti ti-device-sim"></i></span>
                     <span class="menu-text">{{ $settings['roam_title']->value ?? 'ROAM' }}</span>
                     <span class="menu-arrow"></span>
                 </a>
-                <div class="collapse" id="sidebarRoam">
+                <div class="collapse {{ $isRoamActive ? 'show' : '' }}" id="sidebarRoam">
                     <ul class="sub-menu">
-                        <li class="side-nav-item">
+                        <li class="side-nav-item {{ $isRoamEsimActive ? 'active' : '' }}">
                             <a href="{{ route('roamEsimIndex') }}" class="side-nav-link">
                                 <span class="menu-text">E-Sim</span>
                             </a>
                         </li>
-                        <li class="side-nav-item">
+                        <li class="side-nav-item {{ $isRoamPhysicalActive ? 'active' : '' }}">
                             <a href="{{ route('roamphysical.Index') }}" class="side-nav-link">
                                 <span class="menu-text">Physical Sim</span>
                             </a>
@@ -122,14 +141,27 @@
                     </ul>
                 </div>
             </li>
-            <li class="side-nav-item">
+            @php
+                $isCouponActive = request()->is('coupon/*') && request()->routeIs('coupon.*');
+            @endphp
+            <li class="side-nav-item {{ $isCouponActive ? 'active' : '' }}">
+                <a href="{{ route('coupon.index') }}" class="side-nav-link">
+                    <span class="menu-icon"><i class="ti ti-tag"></i></i></span>
+                    <span class="menu-text" data-lang="all-admin"> Coupons </span>
+                </a>
+            </li>
+
+            @php
+                $isAdminActive = request()->routeIs('admin.edit', 'show.admin', 'create.admin', 'view.admin');
+            @endphp
+            <li class="side-nav-item {{ $isAdminActive ? 'active' : '' }}">
                 <a href="{{ route('show.admin') }}" class="side-nav-link">
                     <span class="menu-icon"><i class="ti ti-users"></i></span>
                     <span class="menu-text" data-lang="all-admin"> All Admin </span>
                 </a>
             </li>
 
-            <li class="side-nav-item">
+            <li class="side-nav-item {{ request()->routeIs('message.*') ? 'active' : '' }}">
                 <a href="{{ route('message.index') }}" class="side-nav-link">
                     <span class="menu-icon"><i class="ti ti-message"></i></span>
                     <span class="menu-text" data-lang="all-admin"> Messages </span>
@@ -156,17 +188,22 @@
                 </div>
             </li>
 
-            <li class="side-nav-item">
-                <a data-bs-toggle="collapse" href="#sidebarSetting" aria-expanded="false"
-                    aria-controls="sidebarSetting" class="side-nav-link">
+            @php
+                $isSettingActive = request()->is('setting/*') || request()->routeIs('currency.*');
+            @endphp
+            <li class="side-nav-item {{ $isSettingActive ? 'active' : '' }}">
+                <a data-bs-toggle="collapse" href="#sidebarSetting"
+                    aria-expanded="{{ $isSettingActive ? 'true' : 'false' }}" aria-controls="sidebarSetting"
+                    class="side-nav-link">
 
                     <span class="menu-icon"><i class="ti ti-settings"></i></span>
                     <span class="menu-text" data-lang="setting"> Setting </span>
                     <span class="menu-arrow"></span>
                 </a>
-                <div class="collapse" id="sidebarSetting">
+                <div class="collapse {{ $isSettingActive ? 'show' : '' }}" id="sidebarSetting">
                     <ul class="sub-menu">
-                        <li class="side-nav-item">
+                        <li
+                            class="side-nav-item {{ request()->routeIs('generalEdit', 'generalIndex') ? 'active' : '' }}">
                             <a href="{{ route('generalIndex') }}" class="side-nav-link">
                                 <span class="menu-text" data-lang="general-setting">General Setting</span>
                             </a>
@@ -178,7 +215,7 @@
                             </a>
                         </li>
 
-                        <li class="side-nav-item">
+                        <li class="side-nav-item {{ request()->routeIs('currency.*') ? 'active' : '' }}">
                             <a href="{{ route('currency.index') }}" class="side-nav-link">
                                 <span class="menu-text">Currency</span>
                             </a>
@@ -189,8 +226,18 @@
             </li>
 
             @php
-                $isPageActive = request()->routeIs('page.*');
-                $isFooterActive = request()->routeIs('footer.*');
+                $isPageActive = request()->routeIs(
+                    'page.*',
+                    'footer.important.*',
+                    'footer.support.*',
+                    'footer.contact.*',
+                );
+                $isFooterActive = request()->routeIs(
+                    'footer.*',
+                    'footer.important.*',
+                    'footer.support.*',
+                    'footer.contact.*',
+                );
                 $isBannerActive = request()->routeIs('page.banner.*');
                 $isFaqActive = request()->routeIs('page.faq.*');
 
@@ -222,17 +269,19 @@
                         <x-page-nav route="page.about.index" title="About Us" :active="$isAboutActive" />
                         <x-page-nav route="page.banner.index" title="Banners" :active="$isBannerActive" />
                         <x-page-nav route="page.faq.index" title="FAQs" :active="$isFaqActive" />
-                        <li class="side-nav-item">
-                            <a data-bs-toggle="collapse" href="#footerPage" aria-expanded="false"
-                                aria-controls="footerPage" class="side-nav-link">
+                        <li class="side-nav-item {{ $isFooterActive ? 'active' : '' }}">
+                            <a data-bs-toggle="collapse" href="#footerPage"
+                                aria-expanded="{{ $isFooterActive ? 'true' : 'false' }}" aria-controls="footerPage"
+                                class="side-nav-link">
                                 <span class="menu-text"> Footer </span>
                                 <span class="menu-arrow"></span>
                             </a>
-                            <div class="collapse" id="footerPage">
+                            <div class="collapse {{ $isFooterActive ? 'show' : '' }}" id="footerPage">
                                 <ul class="sub-menu">
-                                    <x-page-nav route="footer.important.index" title="Important Links" />
-                                    <x-page-nav route="footer.support.index" title="Support" />
-                                    <x-page-nav route="footer.contact.index" title="Get In Touch" />
+                                    <x-page-nav :active="request()->routeIs('footer.important.*')" route="footer.important.index"
+                                        title="Important Links" />
+                                    <x-page-nav :active="request()->routeIs('footer.support.*')" route="footer.support.index" title="Support" />
+                                    <x-page-nav :active="request()->routeIs('footer.contact.*')" route="footer.contact.index" title="Get In Touch" />
                                 </ul>
                             </div>
                         </li>
