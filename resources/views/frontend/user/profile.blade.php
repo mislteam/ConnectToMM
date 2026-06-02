@@ -32,6 +32,7 @@
     @php
         $file = get_banner('my_account');
         $image = $file !== null ? 'banner/' . $file : 'assets/images/default-banner.png';
+
     @endphp
     <div class="sub-banner" style="background-image: url({{ asset($image) }})">
         <section class="banner-section">
