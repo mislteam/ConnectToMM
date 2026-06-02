@@ -395,6 +395,8 @@
             border-radius: 12px;
             font-size: 0.85rem;
             flex: 1 1 0;
+            border: 0;
+            background: transparent;
         }
 
         .physical-search-card {

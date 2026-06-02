@@ -277,6 +277,7 @@ class ESimController extends Controller
         session(['sim_type' => $sim_type]);
         $request->validate([
             'skuid' => 'required',
+            'tType' => 'nullable|string|in:Daily,Unlimited,Total',
             'sday' => 'required',
             'sdata' => 'required',
             'display_price' => 'required',
@@ -288,11 +289,20 @@ class ESimController extends Controller
 
         $sku = RoamSku::where('sku_id', $request->skuid)->first();
         // dd(session()->all());
-        $iccid_no = session()->get('iccid_no');
-        $iccid_exist = session()->get('iccid_exist');
         $service_type = $this->resolveServiceType($sim_type);
         $order_type = $this->resolveOrderType($sim_type);
+        $requiresIccid = $order_type === 'recharge' || str_contains(strtolower((string) $sim_type), 'recharge');
+        $iccid_no = $requiresIccid ? session()->get('iccid_no') : null;
+        $iccid_exist = $requiresIccid ? (bool) session()->get('iccid_exist') : false;
+
+        if (!$requiresIccid) {
+            session()->forget([
+                'iccid_exist',
+                'iccid_no',
+            ]);
+        }
         $apiCode = $this->normalizeApiCode($request->input('api_code'));
+        $planType = $this->normalizePlanType($request->input('tType'));
         $planName = trim((string) $request->input('plan_name', ''));
         $simTypeLabel = $this->buildSimTypeLabel($service_type, $order_type);
         $canAdjustQuantity = $this->canAdjustQuantity([
@@ -310,6 +320,7 @@ class ESimController extends Controller
         foreach ($roamCart as &$item) {
             if (
                 $item['country_name'] == $sku->country_name
+                && ($item['plan_type'] ?? null) === $planType
                 && $item['service_day'] == $request->sday
                 && $item['service_data'] == $request->sdata
                 && $this->normalizeApiCode($item['api_code'] ?? null) === $apiCode
@@ -343,6 +354,8 @@ class ESimController extends Controller
                 'service_type' => $service_type,
                 'order_type' => $order_type,
                 'api_code' => $apiCode,
+                'plan_type' => $planType,
+                'plan_type_label' => $this->buildPlanTypeLabel($planType),
                 'plan_name' => $planName !== '' ? $planName : null,
                 'country_name' => $sku->country_name,
                 'service_day' => $request->sday,
@@ -388,6 +401,7 @@ class ESimController extends Controller
                 'service_type' => $serviceType,
                 'order_type' => $orderType,
             ]);
+            $planType = $this->normalizePlanType($item['plan_type'] ?? null);
 
             if (!$canAdjustQuantity) {
                 $unitPrice = (float) ($item['ori_price'] ?? $item['price'] ?? 0);
@@ -397,6 +411,8 @@ class ESimController extends Controller
             }
 
             $item['sim_type_label'] = $item['sim_type_label'] ?? $this->buildSimTypeLabel($serviceType, $orderType);
+            $item['plan_type'] = $planType;
+            $item['plan_type_label'] = $item['plan_type_label'] ?? $this->buildPlanTypeLabel($planType);
             $item['iccid_count'] = $this->getIccidCount($item);
             $item['iccid_label'] = $this->buildIccidLabel(
                 $item,
@@ -510,10 +526,13 @@ class ESimController extends Controller
                     'service_type' => $serviceType,
                     'order_type' => $orderType,
                 ]);
+                $planType = $this->normalizePlanType($item['plan_type'] ?? ($item['tType'] ?? null));
 
                 $item['service_type'] = $serviceType;
                 $item['order_type'] = $orderType;
                 $item['sim_type_label'] = $item['sim_type_label'] ?? $this->buildSimTypeLabel($serviceType, $orderType);
+                $item['plan_type'] = $planType;
+                $item['plan_type_label'] = $item['plan_type_label'] ?? $this->buildPlanTypeLabel($planType);
                 $item['iccid_count'] = $this->getIccidCount($item);
                 $item['can_adjust_quantity'] = $canAdjustQuantity;
 
@@ -652,6 +671,11 @@ class ESimController extends Controller
     {
         $orderType = strtolower((string) ($cartItem['order_type'] ?? $this->resolveOrderType($cartItem['sim_type'] ?? 'new_esim')));
         $simType = strtolower((string) ($cartItem['sim_type'] ?? ''));
+        $serviceType = $this->getCartServiceType($cartItem);
+
+        if ($serviceType === 'esim' && $orderType !== 'recharge' && !str_contains($simType, 'recharge')) {
+            return false;
+        }
 
         return (bool) ($cartItem['iccid_exist'] ?? false) || $orderType === 'recharge' || str_contains($simType, 'recharge');
     }
@@ -673,6 +697,24 @@ class ESimController extends Controller
         $apiCode = trim((string) $apiCode);
 
         return $apiCode !== '' ? $apiCode : null;
+    }
+
+    private function normalizePlanType(?string $planType): string
+    {
+        $planType = strtolower(trim((string) $planType));
+        if ($planType === 'unlimited') {
+            return 'Unlimited';
+        }
+        if ($planType === 'total') {
+            return 'Total';
+        }
+
+        return 'Daily';
+    }
+
+    private function buildPlanTypeLabel(string $planType): string
+    {
+        return trim($planType) . ' Plan';
     }
 
     private function buildIccidLabel(array $cartItem, string $countryName, ?int $dpInfo = null): string

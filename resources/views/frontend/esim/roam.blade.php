@@ -145,7 +145,7 @@
                                     </div>
                                 @elseif ($groupValidCount > 6)
                                     <div class="text-center mt-4">
-                                        <button id="showMoreBtn-{{ $orderType }}" class="btn btn-primary px-4 py-2"
+                                        <button type="button" id="showMoreBtn-{{ $orderType }}" class="btn btn-primary px-4 py-2"
                                             data-show-more="{{ $orderType }}">Show All</button>
                                     </div>
                                 @endif
@@ -505,7 +505,7 @@
                 const items = grid.querySelectorAll('.package-card');
                 const gridKey = grid.getAttribute('data-package-grid');
                 const showMoreBtn = document.querySelector(`[data-show-more="${gridKey}"]`);
-                let visibleCount = 6;
+                const visibleCount = 6;
 
                 if (!showMoreBtn || items.length === 0) {
                     if (showMoreBtn) {
@@ -525,20 +525,16 @@
                     return;
                 }
 
-                showMoreBtn.addEventListener('click', function() {
-                    let revealed = 0;
+                showMoreBtn.addEventListener('click', function(event) {
+                    event.preventDefault();
+
                     items.forEach((item, index) => {
-                        if (index >= visibleCount && revealed < 6) {
-                            item.style.display = 'block';
-                            revealed++;
+                        if (index >= visibleCount) {
+                            item.style.display = '';
                         }
                     });
 
-                    visibleCount += revealed;
-
-                    if (visibleCount >= items.length) {
-                        showMoreBtn.style.display = 'none';
-                    }
+                    showMoreBtn.style.display = 'none';
                 });
             });
         });

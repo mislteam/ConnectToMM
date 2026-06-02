@@ -86,12 +86,12 @@
                                          <ul class="list-unstyled drop-down-pages">
                                              <li
                                                  class="nav-item {{ request()->routeIs('esimIndex', 'esim.search') || (request()->routeIs('joytel.packageview') && request()->type == 'esim') ? 'active' : '' }}">
-                                                 <a class="nav-link"
+                                                 <a class="nav-link" data-request-loader
                                                      href="{{ route('esimIndex') }}">{{ $settings['joytel_title']->value ?? 'Joytel' }}</a>
                                              </li>
                                              <li
                                                  class="nav-item {{ request()->routeIs('esim.roam', 'esim.roamsearch', 'esim.roampackageview') ? 'active' : '' }}">
-                                                 <a class="nav-link"
+                                                 <a class="nav-link" data-request-loader
                                                      href="{{ route('esim.roam') }}">{{ $settings['roam_title']->value ?? 'Joytel' }}</a>
                                              </li>
                                          </ul>
@@ -102,12 +102,12 @@
                                          <ul class="list-unstyled drop-down-pages">
                                              <li
                                                  class="nav-item {{ request()->routeIs('physicalIndex', 'physical.search') || (request()->routeIs('joytel.packageview') && request()->type == 'physical') ? 'active' : '' }}">
-                                                 <a class="nav-link"
+                                                 <a class="nav-link" data-request-loader
                                                      href="{{ route('physicalIndex') }}">{{ $settings['joytel_title']->value ?? 'Joytel' }}</a>
                                              </li>
                                              <li
                                                  class="nav-item {{ request()->routeIs('physical.roam', 'physical.roamsearch', 'physical.roampackageview') ? 'active' : '' }}">
-                                                 <a class="nav-link"
+                                                 <a class="nav-link" data-request-loader
                                                      href="{{ route('physical.roam') }}">{{ $settings['roam_title']->value ?? 'Joytel' }}</a>
                                              </li>
                                          </ul>
@@ -182,8 +182,8 @@
                                          class="fa-solid fa-user-lock"></i></a>
                              </li>
                          @endif
-                     </ul>
-                 </div>
+                    </ul>
+                </div>
              </nav>
          </div>
      </header>

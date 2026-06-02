@@ -397,6 +397,7 @@ class PhysicalSimController extends Controller
         session(['sim_type' => $sim_type]);
         $request->validate([
             'skuid' => 'required',
+            'tType' => 'nullable|string|in:Daily,Unlimited,Total',
             'sday' => 'required',
             'sdata' => 'required',
             'display_price' => 'required',
@@ -420,6 +421,7 @@ class PhysicalSimController extends Controller
         $service_type = 'physical';
         $order_type = $this->resolveOrderType($sim_type);
         $apiCode = $this->normalizeApiCode($request->input('api_code'));
+        $planType = $this->normalizePlanType($request->input('tType'));
         $dpInfo = (int) ($sku->dp_id ?? 0);
         $dpLabel = $this->buildDpLabel($dpInfo);
         $canAdjustQuantity = $this->canAdjustQuantity([
@@ -437,6 +439,7 @@ class PhysicalSimController extends Controller
         foreach ($roamCart as &$item) {
             if (
                 $item['country_name'] == $sku->country_name
+                && ($item['plan_type'] ?? null) === $planType
                 && $item['service_day'] == $request->sday
                 && $item['service_data'] == $request->sdata
                 && $this->normalizeApiCode($item['api_code'] ?? null) === $apiCode
@@ -459,6 +462,8 @@ class PhysicalSimController extends Controller
                 $item['price'] = $itemUnitPrice * (int) $item['qty'];
                 $item['dp_info'] = $dpInfo;
                 $item['dp_label'] = $dpLabel;
+                $item['plan_type'] = $planType;
+                $item['plan_type_label'] = $this->buildPlanTypeLabel($planType);
                 $found = true;
                 break;
             }
@@ -474,6 +479,8 @@ class PhysicalSimController extends Controller
                 'dp_info' => $dpInfo,
                 'dp_label' => $dpLabel,
                 'api_code' => $apiCode,
+                'plan_type' => $planType,
+                'plan_type_label' => $this->buildPlanTypeLabel($planType),
                 'country_name' => $sku->country_name,
                 'service_day' => $request->sday,
                 'service_data' => $request->sdata,
@@ -518,6 +525,7 @@ class PhysicalSimController extends Controller
                 'service_type' => $serviceType,
                 'order_type' => $orderType,
             ]);
+            $planType = $this->normalizePlanType($item['plan_type'] ?? null);
 
             if (!$canAdjustQuantity) {
                 $unitPrice = (float) ($item['ori_price'] ?? $item['price'] ?? 0);
@@ -527,6 +535,8 @@ class PhysicalSimController extends Controller
             }
 
             $item['sim_type_label'] = $this->buildSimTypeLabel($serviceType, $orderType);
+            $item['plan_type'] = $planType;
+            $item['plan_type_label'] = $item['plan_type_label'] ?? $this->buildPlanTypeLabel($planType);
             $item['iccid_count'] = $this->getIccidCount($item);
             $item['dp_info'] = $this->resolveCartItemDpInfo($item);
             $item['dp_label'] = $item['dp_label'] ?? $this->buildDpLabel($item['dp_info']);
@@ -552,7 +562,10 @@ class PhysicalSimController extends Controller
             $item['dp_label'] = $item['dp_label'] ?? $this->buildDpLabel($item['dp_info']);
             $serviceType = $this->getCartServiceType($item);
             $orderType = (string) ($item['order_type'] ?? $this->resolveOrderType($item['sim_type'] ?? session('sim_type')));
+            $planType = $this->normalizePlanType($item['plan_type'] ?? null);
             $item['sim_type_label'] = $this->buildSimTypeLabel($serviceType, $orderType);
+            $item['plan_type'] = $planType;
+            $item['plan_type_label'] = $item['plan_type_label'] ?? $this->buildPlanTypeLabel($planType);
             $item['iccid_label'] = $this->buildIccidLabel(
                 $item,
                 (string) ($item['country_name'] ?? ''),
@@ -671,8 +684,11 @@ class PhysicalSimController extends Controller
                     'service_type' => $serviceType,
                     'order_type' => $orderType,
                 ]);
+                $planType = $this->normalizePlanType($item['plan_type'] ?? ($item['tType'] ?? null));
 
                 $item['sim_type_label'] = $this->buildSimTypeLabel($serviceType, $orderType);
+                $item['plan_type'] = $planType;
+                $item['plan_type_label'] = $item['plan_type_label'] ?? $this->buildPlanTypeLabel($planType);
                 $item['iccid_count'] = $this->getIccidCount($item);
                 $item['dp_info'] = (int) ($item['dp_info'] ?? 0);
                 $item['dp_label'] = $item['dp_label'] ?? $this->buildDpLabel((int) ($item['dp_info'] ?? 0));
@@ -710,7 +726,15 @@ class PhysicalSimController extends Controller
 
     private function requiresIccid(array $cartItem): bool
     {
-        return true;
+        $orderType = strtolower((string) ($cartItem['order_type'] ?? $this->resolveOrderType($cartItem['sim_type'] ?? session('sim_type'))));
+        $simType = strtolower((string) ($cartItem['sim_type'] ?? ''));
+        $serviceType = $this->getCartServiceType($cartItem);
+
+        if ($serviceType === 'esim' && $orderType !== 'recharge' && !str_contains($simType, 'recharge')) {
+            return false;
+        }
+
+        return (bool) ($cartItem['iccid_exist'] ?? false) || $orderType === 'recharge' || str_contains($simType, 'recharge');
     }
 
     private function getCartServiceType(array $cartItem): string
@@ -730,6 +754,24 @@ class PhysicalSimController extends Controller
         $apiCode = trim((string) $apiCode);
 
         return $apiCode !== '' ? $apiCode : null;
+    }
+
+    private function normalizePlanType(?string $planType): string
+    {
+        $planType = strtolower(trim((string) $planType));
+        if ($planType === 'unlimited') {
+            return 'Unlimited';
+        }
+        if ($planType === 'total') {
+            return 'Total';
+        }
+
+        return 'Daily';
+    }
+
+    private function buildPlanTypeLabel(string $planType): string
+    {
+        return trim($planType) . ' Plan';
     }
 
     private function resolveCartItemDpInfo(array $cartItem): int
@@ -794,7 +836,7 @@ class PhysicalSimController extends Controller
         $serviceType = strtolower((string) ($cartItem['service_type'] ?? $this->resolveServiceType($cartItem['sim_type'] ?? session('sim_type'))));
         $orderType = strtolower((string) ($cartItem['order_type'] ?? $this->resolveOrderType($cartItem['sim_type'] ?? session('sim_type'))));
 
-        return $serviceType === 'physical' && $orderType === 'new';
+        return $serviceType === 'esim' && $orderType === 'new';
     }
 
     private function getIccidCount(array $cartItem): int

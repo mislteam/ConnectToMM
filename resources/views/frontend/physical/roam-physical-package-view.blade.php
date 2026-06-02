@@ -56,24 +56,34 @@
             justify-content: center;
         }
 
-        @media (min-width: 992px) and (max-width: 1199.98px) {
-            .physical-package-view .col-lg-6 {
-                flex: 0 0 100%;
-                max-width: 100%;
-            }
+        .physical-package-view .form-design .form-group {
+            margin-bottom: 1rem;
+        }
 
+        .physical-package-view .form-design .form-group>label {
+            margin-bottom: 0.55rem;
+        }
+
+        .physical-package-view #trafficType,
+        .physical-package-view #serviceDay,
+        .physical-package-view #dataPlan {
+            gap: 0.6rem;
+        }
+
+        .physical-package-view #trafficType .btn,
+        .physical-package-view #serviceDay .btn,
+        .physical-package-view #dataPlan .btn {
+            margin: 0.25rem !important;
+            border-radius: 4px;
+        }
+
+        @media (min-width: 992px) and (max-width: 1199.98px) {
             .physical-package-view .row.mb-5 {
                 row-gap: 1.25rem;
             }
         }
 
         @media (min-width: 768px) and (max-width: 991.98px) {
-            .physical-package-view .col-lg-6,
-            .physical-package-view .col-md-6 {
-                flex: 0 0 100%;
-                max-width: 100%;
-            }
-
             .physical-package-view .row.mb-5 {
                 row-gap: 1.25rem;
             }
@@ -117,10 +127,14 @@
             }
 
             .physical-package-view .btn-group-toggle .btn {
-                width: 100%;
-                margin: 0 !important;
                 min-height: 42px;
                 font-size: 0.86rem;
+            }
+
+            .physical-package-view #trafficType,
+            .physical-package-view #serviceDay,
+            .physical-package-view #dataPlan {
+                gap: 0.45rem;
             }
 
             .physical-package-view .quantity-wrapper input[type="number"] {

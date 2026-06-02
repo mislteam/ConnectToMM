@@ -28,43 +28,43 @@ class JoytelController extends Controller
         return $this->renderIndex('admin.joytel.physical.index', 'recharge');
     }
 
-    // esim create
-    public function esimCreate()
-    {
-        return $this->renderCreate('admin.joytel.esim.create');
-    }
+    // // esim create
+    // public function esimCreate()
+    // {
+    //     return $this->renderCreate('admin.joytel.esim.create');
+    // }
 
-    // create physical
-    public function physicalCreate()
-    {
-        return $this->renderCreate('admin.joytel.physical.create');
-    }
+    // // create physical
+    // public function physicalCreate()
+    // {
+    //     return $this->renderCreate('admin.joytel.physical.create');
+    // }
 
-    // esim Store
-    public function esimStore(JoyCreateFormRequest $request)
-    {
-        try {
-            return $this->storeJoytelPlan($request, 'esim.index');
-        } catch (\Throwable $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 500);
-        }
-    }
+    // // esim Store
+    // public function esimStore(JoyCreateFormRequest $request)
+    // {
+    //     try {
+    //         return $this->storeJoytelPlan($request, 'esim.index');
+    //     } catch (\Throwable $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 
-    // physical store
-    public function physicalStore(JoyCreateFormRequest $request)
-    {
-        try {
-            return $this->storeJoytelPlan($request, 'physical.index');
-        } catch (\Throwable $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ], 500);
-        }
-    }
+    // // physical store
+    // public function physicalStore(JoyCreateFormRequest $request)
+    // {
+    //     try {
+    //         return $this->storeJoytelPlan($request, 'physical.index');
+    //     } catch (\Throwable $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 
     // esim edit
     // public function esimEdit(Joytel $esim)

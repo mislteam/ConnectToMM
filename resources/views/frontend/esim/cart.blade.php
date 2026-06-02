@@ -32,13 +32,42 @@
         }
 
         @media (min-width: 768px) and (max-width: 991.98px) {
+            .order-summary #cart-container > .col-md-8,
+            .order-summary #cart-container > .col-md-4 {
+                flex: 0 0 100%;
+                max-width: 100%;
+            }
+
+            .order-summary #cart-container > .col-md-4 {
+                margin-top: 1rem;
+            }
+
             .order-summary .order-box {
                 padding: 1rem;
+            }
+
+            .order-summary .table-responsive-sm {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .order-summary .table {
+                min-width: 860px;
             }
 
             .order-summary .table th,
             .order-summary .table td {
                 padding: 0.65rem 0.45rem;
+            }
+
+            .order-summary .quantity-wrapper {
+                min-width: 130px;
+            }
+
+            .order-summary #proceed-to-checkout {
+                width: 100%;
+                display: inline-flex;
+                justify-content: center;
             }
         }
 
@@ -128,6 +157,8 @@
                                                 <td>
                                                     <h6 class="font-weight-bold" style="text-transform: none;">
                                                         {{ $order['country_name'] }}</h6>
+                                                    <label>Type Of Plan :
+                                                        {{ $order['plan_type_label'] ?? (($order['plan_type'] ?? '') !== '' ? ($order['plan_type'] . ' Plan') : '-') }}</label><br>
                                                     <label>Service Day :
                                                         {{ $order['service_day'] > 1 ? $order['service_day'] . ' days' : $order['service_day'] . ' day' }}</label><br>
                                                     <label>Data : {{ $order['service_data'] }}</label><br>

@@ -58,9 +58,6 @@
                                 </select>
                             </div>
                             <div class="d-flex gap-1">
-                                <a href="{{ route('physical.create') }}" class="btn btn-primary ms-1">
-                                    <i class="ti ti-plus fs-sm me-2"></i> Create
-                                </a>
                                 <a href="#!" class="btn btn-primary ms-1" data-bs-toggle="modal"
                                     data-bs-target="#export_csv">
                                     <i class="ti ti-file-import fs-sm me-2"></i> Import
