@@ -39,11 +39,11 @@
 
                             <!-- Date Range Filter -->
                             <div class="app-search">
-                                <select id="product_status" data-table-range-filter="product-status"
+                                <select id="product_status" data-table-filter="product-status"
                                     class="form-select form-control my-1 my-md-0">
                                     <option value="All">Status</option>
-                                    <option value="1">Enable</option>
-                                    <option value="0">Disable</option>
+                                    <option value="Enable">Enable</option>
+                                    <option value="Disable">Disable</option>
                                 </select>
                                 <i data-lucide="box" class="app-search-icon text-muted"></i>
                             </div>
@@ -118,7 +118,7 @@
                                             </td>
                                             <td>{{ $recharge->supplier }}</td>
 
-                                            <td
+                                            <td data-column="product-status"
                                                 class="{{ $recharge->status == 1 ? 'text-success' : 'text-danger' }} fw-semibold">
                                                 <i class="ti ti-point-filled fs-sm"></i>
                                                 {{ $recharge->status == 1 ? 'Enable' : 'Disable' }}
@@ -177,51 +177,52 @@
                     </div>
                     <div class="card-footer border-0">
                         <div class="d-flex justify-content-between align-items-center">
-                            <div data-table-pagination-info="orders" id="pagination-info"></div>
+                            <div data-table-pagination-info="{{ $settings['joytel_title']->value ?? 'Joytel' }}"
+                                id="pagination-info"></div>
                             <div data-table-pagination id="pagination"></div>
                         </div>
                     </div>
 
                     <!-- manage price -->
                     <!-- <div class="modal fade" id="manage-price" tabindex="-1" role="dialog"
-                                                                                                                                        aria-labelledby="managePrice" aria-hidden="true">
-                                                                                                                                        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-                                                                                                                                            <div class="modal-content">
-                                                                                                                                                <div class="modal-header">
-                                                                                                                                                    <h4 class="modal-title" id="managePrice">Manage Price</h4>
-                                                                                                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                                                                                                                        aria-label="Close"></button>
-                                                                                                                                                </div>
-                                                                                                                                                <div class="modal-body">
-                                                                                                                                                    <div class="table-responsive mt-2">
-                                                                                                                                                        <table class="table table-bordered table-nowrap text-center align-middle">
-                                                                                                                                                            <thead class="bg-light align-middle bg-opacity-25 thead-sm">
-                                                                                                                                                                <tr class="text-uppercase fs-xxs">
-                                                                                                                                                                    <th>#</th>
-                                                                                                                                                                    <th class="text-start">Product SKU</th>
-                                                                                                                                                                    <th>Traffic Type</th>
-                                                                                                                                                                    <th>Original Selling Price<br>(MMK)</th>
-                                                                                                                                                                    <th>Update Selling Price<br>(MMK)</th>
-                                                                                                                                                                    <th>Profit<br>(MMK)</th>
-                                                                                                                                                                    <th>Increment</th>
+                                                                                                                                                        aria-labelledby="managePrice" aria-hidden="true">
+                                                                                                                                                        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                                                                                                                                                            <div class="modal-content">
+                                                                                                                                                                <div class="modal-header">
+                                                                                                                                                                    <h4 class="modal-title" id="managePrice">Manage Price</h4>
+                                                                                                                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                                                                                                                                        aria-label="Close"></button>
+                                                                                                                                                                </div>
+                                                                                                                                                                <div class="modal-body">
+                                                                                                                                                                    <div class="table-responsive mt-2">
+                                                                                                                                                                        <table class="table table-bordered table-nowrap text-center align-middle">
+                                                                                                                                                                            <thead class="bg-light align-middle bg-opacity-25 thead-sm">
+                                                                                                                                                                                <tr class="text-uppercase fs-xxs">
+                                                                                                                                                                                    <th>#</th>
+                                                                                                                                                                                    <th class="text-start">Product SKU</th>
+                                                                                                                                                                                    <th>Traffic Type</th>
+                                                                                                                                                                                    <th>Original Selling Price<br>(MMK)</th>
+                                                                                                                                                                                    <th>Update Selling Price<br>(MMK)</th>
+                                                                                                                                                                                    <th>Profit<br>(MMK)</th>
+                                                                                                                                                                                    <th>Increment</th>
 
-                                                                                                                                                                </tr>
-                                                                                                                                                            </thead>
-                                                                                                                                                            <tbody id="price-invoice-items">
+                                                                                                                                                                                </tr>
+                                                                                                                                                                            </thead>
+                                                                                                                                                                            <tbody id="price-invoice-items">
 
-                                                                                                                                                            </tbody>
-                                                                                                                                                        </table>
+                                                                                                                                                                            </tbody>
+                                                                                                                                                                        </table>
 
-                                                                                                                                                    </div>
-                                                                                                                                                </div>
-                                                                                                                                                <div class="modal-footer">
-                                                                                                                                                    <div class="my-3 d-flex gap-2 justify-content-end">
-                                                                                                                                                        <button type="button" class="btn btn-primary text-end">Update</button>
-                                                                                                                                                    </div>
-                                                                                                                                                </div>
-                                                                                                                                            </div>
-                                                                                                                                        </div>
-                                                                                                                                    </div> -->
+                                                                                                                                                                    </div>
+                                                                                                                                                                </div>
+                                                                                                                                                                <div class="modal-footer">
+                                                                                                                                                                    <div class="my-3 d-flex gap-2 justify-content-end">
+                                                                                                                                                                        <button type="button" class="btn btn-primary text-end">Update</button>
+                                                                                                                                                                    </div>
+                                                                                                                                                                </div>
+                                                                                                                                                            </div>
+                                                                                                                                                        </div>
+                                                                                                                                                    </div> -->
 
                     <!-- manage price -->
                     <div class="modal fade" id="manage-price" tabindex="-1">

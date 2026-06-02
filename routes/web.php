@@ -3,12 +3,12 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\CustomerAuthController;
 use App\Http\Controllers\Auth\LoginController;
-use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Backend\DashboardController;
 use App\Http\Controllers\Backend\AdminController;
 use App\Http\Controllers\Backend\BlogCategoryController;
 use App\Http\Controllers\Backend\BlogController;
 use App\Http\Controllers\Backend\ContactUsController;
+use App\Http\Controllers\Backend\CouponController;
 use App\Http\Controllers\Backend\CurrencyController;
 use App\Http\Controllers\Backend\CustomerController;
 use App\Http\Controllers\Backend\FooterPageController;
@@ -221,6 +221,16 @@ Route::middleware(['auth'])->group(function () {
         //manage price
         Route::post('/pricelist/store', [RoamController::class, 'updateExchangeRate'])->name('pricelist.store');
         Route::post('/physical-pricelist/store', [RoamPhysicalController::class, 'updatePhysicalExchangeRate'])->name('physicalpricelist.store');
+    });
+
+    // coupons
+    Route::prefix('/coupon')->group(function () {
+        Route::get('/', [CouponController::class, 'index'])->name('coupon.index');
+        Route::get('/create', [CouponController::class, 'create'])->name('coupon.create');
+        Route::get('/show/{coupon}', [CouponController::class, 'show'])->name('coupon.show');
+        Route::get('/edit/{coupon}', [CouponController::class, 'edit'])->name('coupon.edit');
+        Route::post('/store', [CouponController::class, 'store'])->name('coupon.store');
+        Route::patch('/update/{coupon}', [CouponController::class, 'update'])->name('coupon.update');
     });
 
     // joytel

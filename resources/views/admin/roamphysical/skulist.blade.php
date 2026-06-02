@@ -46,7 +46,7 @@
 
                                         <!-- Date Range Filter -->
                                         <div class="app-search">
-                                            <select data-table-range-filter="product-status"
+                                            <select data-table-filter="product-status"
                                                 class="form-select form-control my-1 my-md-0">
                                                 <option value="All">Status</option>
                                                 <option value="Enable">Enable</option>
@@ -70,7 +70,7 @@
                                 </div>
 
                                 <div class="table-responsive">
-                                    <table class="table table-custom table-centered table-select table-hover w-100 mb-0">
+                                    <table class="table table-custom table-centered table-hover w-100 mb-0">
                                         <thead class="bg-light align-middle bg-opacity-25 thead-sm">
                                             <tr class="text-uppercase fs-xxs">
                                                 <th class="ps-3" style="width: 1%;">
@@ -217,7 +217,7 @@
                                                         <h5 class="text-nowrap fs-base mb-0 lh-base">
                                                             {{ $item->country_code }}</h5>
                                                     </td>
-                                                    <td
+                                                    <td data-column="product-status"
                                                         class="{{ $item->status ? 'text-success' : 'text-danger' }} fw-semibold">
                                                         <i class="ti ti-point-filled fs-sm"></i>
                                                         {{ $item->status ? 'Enable' : 'Disable' }}

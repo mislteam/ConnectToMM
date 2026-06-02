@@ -10,7 +10,8 @@
     <meta name="author" content="WebAppLayers">
 
     <!-- App favicon -->
-    <link rel="shortcut icon" href="{{ asset('assets/images/favicon.ico') }}">
+    <link rel="shortcut icon"
+        href="{{ $settings['logo'] ? asset('general/logo/' . $settings['logo']->value) : asset('assets/images/favicon.ico') }}">
 
     <!-- Vendor css -->
     <link href="{{ asset('assets/css/vendors.min.css') }}" rel="stylesheet" type="text/css">
