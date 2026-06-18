@@ -122,8 +122,12 @@ Route::prefix("joytel")->group(function () {
     Route::get("/esim/search", [FrontendJoytelController::class, "esimIndex"])->name("esimIndex"); // search page
     Route::get("/esim/packages", [FrontendJoytelController::class, "esimSearch"])->name("esim.search"); // search and show packages
 
-    Route::get("/package/{joytel}", [FrontendJoytelController::class, "packageView"])->name("joytel.packageview"); // show each package
+    // Route::get("/package/{joytel}", [FrontendJoytelController::class, "packageView"])->name("joytel.packageview"); // show each package
+    Route::get('/joytel/esim/package/{id}', [FrontendJoytelController::class, 'esimPackageView'])
+    ->name('joytel.esim.packageview');
 
+    Route::get('/joytel/physical/package/{id}', [FrontendJoytelController::class, 'physicalPackageView'])
+    ->name('joytel.physical.packageview');
     // physical
     Route::get('/physical-sim/search', [FrontendJoytelController::class, 'physicalIndex'])->name('physicalIndex');
     Route::get("/physical-sim/packages", [FrontendJoytelController::class, "physicalSearch"])->name("physical.search"); // search and show packages
@@ -240,6 +244,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/esim-edit/{esim}', [JoytelController::class, 'esimEdit'])->name('esim.edit');
         Route::patch('/esim-update/{esim}', [JoytelController::class, 'updateEsim'])->name('esim.update');
 
+        Route::get('/joytel-api', [JoytelController::class, 'Apiindex'])->name('joytelApiIndex');
+        Route::patch('/joytel-api/update', [JoytelController::class, 'updateApi'])->name('joytel-api.update');
+        
         // status + manage price
         Route::post('/update-code-status', [JoytelController::class, 'updateCodeStatus'])->name('update.code.status');
         Route::post('/update-price', [JoytelController::class, 'updateExchangeRate'])->name('update.price');

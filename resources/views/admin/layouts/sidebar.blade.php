@@ -76,7 +76,7 @@
                             </a>
                         </li>
                         <li class="side-nav-item">
-                            <a href="#" class="side-nav-link">
+                            <a href="{{ route('joytelApiIndex') }}" class="side-nav-link">
                                 <span class="menu-text">API Credentials</span>
                             </a>
                         </li>
