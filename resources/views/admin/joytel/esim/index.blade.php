@@ -99,7 +99,7 @@
                                 <tr class="text-uppercase fs-xxs">
                                     <th data-table-sort>No</th>
                                     <th data-table-sort>Product Name</th>
-                                    <th data-table-sort>Supplier</th>
+                                    <th data-table-sort>Provider</th>
                                     <th data-table-sort data-column="product-status">Status</th>
                                     <th class="text-center" style="width: 1%;">Actions</th>
                                 </tr>
@@ -107,6 +107,16 @@
                             <tbody id="displayItems">
                                 @if ($sim_lists->isNotEmpty())
                                     @foreach ($sim_lists as $index => $esim)
+                                        @php
+                                            $plans = App\Models\JoytelEsim::where(
+                                                'product_name',
+                                                $esim->product_name,
+                                            )->get();
+                                            $exchangeRates = \App\Models\PriceList::pluck(
+                                                'exchange_rate',
+                                                'product_code',
+                                            );
+                                        @endphp
                                         <tr>
                                             <td>
                                                 <h5 class="fs-sm mb-0 fw-medium">{{ $loop->iteration }}</h5>
@@ -114,7 +124,7 @@
                                             <td>
                                                 <h5 class="text-nowrap fs-base mb-0 lh-base">{{ $esim->product_name }}</h5>
                                             </td>
-                                            <td>{{ $esim->supplier }}</td>
+                                            <td>{{ $esim->provider }}</td>
 
                                             <td data-column="product-status" data-id="{{ $esim->id }}"
                                                 class="{{ $esim->status == 1 ? 'text-success' : 'text-danger' }} fw-semibold joy-toggle-status">
@@ -129,23 +139,21 @@
                                                             data-bs-toggle="dropdown" aria-expanded="false"> <i
                                                                 class="ti ti-dots-vertical fs-lg"></i></button>
                                                         <div class="dropdown-menu">
-                                                            @php
-                                                                $exchangeRates = \App\Models\PriceList::pluck(
-                                                                    'exchange_rate',
-                                                                    'product_code',
-                                                                );
-                                                            @endphp
                                                             <button type="button" class="dropdown-item"
                                                                 data-bs-toggle="modal" data-bs-target="#manage-price"
-                                                                data-plan='@json($esim->plan)'
+                                                                data-plan='@json($plans)'
                                                                 data-existing-rates='@json($exchangeRates)'
-                                                                data-joytel-id="{{ $esim->id }}">
+                                                                data-joytel-id="{{ $esim->id }}"
+                                                                data-joytel-type="esim"
+                                                                data-product-name="{{ $esim->product_name }}">
                                                                 <i class="ti ti-currency-dollar fs-lg"></i> Manage Price
                                                             </button>
+
                                                             <button type="button" class="dropdown-item"
                                                                 data-bs-toggle="modal" data-bs-target="#manage-status"
-                                                                data-plan='@json($esim->plan)'
-                                                                data-id="{{ $esim->id }}">
+                                                                data-plan='@json($plans)'
+                                                                data-id="{{ $esim->id }}" data-joytel-type="esim"
+                                                                data-product-name="{{ $esim->product_name }}">
                                                                 <i class="ti ti-box fs-lg"></i> Manage Status
                                                             </button>
                                                         </div>
@@ -153,11 +161,11 @@
                                                     <a href="{{ route('esim.edit', $esim->id) }}"
                                                         class="btn btn-light btn-icon btn-sm rounded-circle"><i
                                                             class="ti ti-edit fs-lg"></i></a>
-                                                    <a href="#" data-id="{{ $esim->id }}"
+                                                    {{-- <a href="#" data-id="{{ $esim->id }}"
                                                         data-bs-toggle="modal" data-bs-target="#sim-delete"
                                                         class="btn btn-light btn-icon btn-sm rounded-circle delete-sim-btn">
                                                         <i class="ti ti-trash fs-lg"></i>
-                                                    </a>
+                                                    </a> --}}
                                                 </div>
                                             </td>
                                         </tr>
@@ -179,45 +187,45 @@
                     </div>
 
                     <!-- manage price -->
-                    <!-- <div class="modal fade" id="manage-price" tabindex="-1" role="dialog"
-                                                                                                                                                                                                                                                                                                                                aria-labelledby="managePrice" aria-hidden="true">
-                                                                                                                                                                                                                                                                                                                                <div class="modal-dialog modal-lg modal-dialog-scrollable">
-                                                                                                                                                                                                                                                                                                                                    <div class="modal-content">
-                                                                                                                                                                                                                                                                                                                                        <div class="modal-header">
-                                                                                                                                                                                                                                                                                                                                            <h4 class="modal-title" id="managePrice">Manage Price</h4>
-                                                                                                                                                                                                                                                                                                                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                                                                                                                                                                                                                                                                                                                aria-label="Close"></button>
-                                                                                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                                                                                        <div class="modal-body">
-                                                                                                                                                                                                                                                                                                                                            <div class="table-responsive mt-2">
-                                                                                                                                                                                                                                                                                                                                                <table class="table table-bordered table-nowrap text-center align-middle">
-                                                                                                                                                                                                                                                                                                                                                    <thead class="bg-light align-middle bg-opacity-25 thead-sm">
-                                                                                                                                                                                                                                                                                                                                                        <tr class="text-uppercase fs-xxs">
-                                                                                                                                                                                                                                                                                                                                                            <th>#</th>
-                                                                                                                                                                                                                                                                                                                                                            <th class="text-start">Product SKU</th>
-                                                                                                                                                                                                                                                                                                                                                            <th>Traffic Type</th>
-                                                                                                                                                                                                                                                                                                                                                            <th>Original Selling Price<br>(MMK)</th>
-                                                                                                                                                                                                                                                                                                                                                            <th>Update Selling Price<br>(MMK)</th>
-                                                                                                                                                                                                                                                                                                                                                            <th>Profit<br>(MMK)</th>
-                                                                                                                                                                                                                                                                                                                                                            <th>Increment</th>
+                    {{-- <div class="modal fade" id="manage-price" tabindex="-1" role="dialog"
+                        aria-labelledby="managePrice" aria-hidden="true">
+                        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title" id="managePrice">Manage Price</h4>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="table-responsive mt-2">
+                                        <table class="table table-bordered table-nowrap text-center align-middle">
+                                            <thead class="bg-light align-middle bg-opacity-25 thead-sm">
+                                                <tr class="text-uppercase fs-xxs">
+                                                    <th>#</th>
+                                                    <th class="text-start">Product SKU</th>
+                                                    <th>Traffic Type</th>
+                                                    <th>Original Selling Price<br>(MMK)</th>
+                                                    <th>Update Selling Price<br>(MMK)</th>
+                                                    <th>Profit<br>(MMK)</th>
+                                                    <th>Increment</th>
 
-                                                                                                                                                                                                                                                                                                                                                        </tr>
-                                                                                                                                                                                                                                                                                                                                                    </thead>
-                                                                                                                                                                                                                                                                                                                                                    <tbody id="price-invoice-items">
+                                                </tr>
+                                            </thead>
+                                            <tbody id="price-invoice-items">
 
-                                                                                                                                                                                                                                                                                                                                                    </tbody>
-                                                                                                                                                                                                                                                                                                                                                </table>
+                                            </tbody>
+                                        </table>
 
-                                                                                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                                                                                        <div class="modal-footer">
-                                                                                                                                                                                                                                                                                                                                            <div class="my-3 d-flex gap-2 justify-content-end">
-                                                                                                                                                                                                                                                                                                                                                <button type="button" class="btn btn-primary text-end">Update</button>
-                                                                                                                                                                                                                                                                                                                                            </div>
-                                                                                                                                                                                                                                                                                                                                        </div>
-                                                                                                                                                                                                                                                                                                                                    </div>
-                                                                                                                                                                                                                                                                                                                                </div>
-                                                                                                                                                                                                                                                                                                                            </div> -->
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <div class="my-3 d-flex gap-2 justify-content-end">
+                                        <button type="button" class="btn btn-primary text-end">Update</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div> --}}
 
                     <!-- manage price -->
                     <div class="modal fade" id="manage-price" tabindex="-1">
@@ -235,7 +243,7 @@
                                                 <tr>
                                                     <th>#</th>
                                                     <th class="text-start">Product SKU</th>
-                                                    <th>Traffic Type</th>
+                                                    <th>Plan</th>
                                                     <th>Exchange Rate</th>
                                                     <th>Portal Price</th>
                                                     <th style="width: 150px;">Selling Rate</th>
@@ -275,6 +283,7 @@
                                                 <tr class="text-uppercase fs-xxs">
                                                     <th>#</th>
                                                     <th class="text-start">Product SKU</th>
+                                                    <th>Plan</th>
                                                     <th>Status</th>
                                                 </tr>
                                             </thead>
