@@ -131,7 +131,8 @@
                                         {{ number_format($lowest_price) }}
                                         MMK
                                     </p>
-                                    <a href="{{ route('joytel.packageview', $package->id) }}" class="more">View Offer</a>
+                                    <a href="{{ route('joytel.physical.packageview', ['id' => $package->id, 'sim_type' => 'recharge_physical']) }}"
+                                        class="more">View Offer</a>
                                 </div>
                             </div>
                         </div>

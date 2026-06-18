@@ -3,7 +3,8 @@
 namespace App\Http\Controllers\Frontend;
 
 use App\Http\Controllers\Controller;
-use App\Models\Joytel;
+use App\Models\JoytelEsim;
+use App\Models\JoytelPhysical;
 use App\Models\JoyUsageLocation;
 use App\Models\PriceList;
 use App\Models\Section;
@@ -12,32 +13,146 @@ use Illuminate\Support\Facades\Validator;
 
 class FrontendJoytelController extends Controller
 {
-    // esim search page
     public function esimIndex()
     {
-        return $this->renderSearchPage('frontend.joytel.esim.search');
+        return $this->esimSearchPage();
     }
 
-    // physical search page
-    public function physicalIndex()
+    public function physicalIndex(Request $request)
     {
-        return $this->renderSearchPage('frontend.joytel.physical.search');
+        return $this->physicalSearchPage($request);
     }
 
-    // esim search and show packages
+    private function esimSearchPage()
+    {
+        $usage_locations = JoyUsageLocation::where('status', 1)->pluck('location')->values();
+        $section = Section::where('section_key', 'need_more_help')->first();
+
+        $query = JoytelEsim::whereRaw('LOWER(type) LIKE ?', ['%esim%']);
+
+        $query->whereIn('product_name', function ($subquery) {
+            $subquery->select('plan')
+                ->from('price_lists')
+                ->whereNotNull('plan')
+                ->where('exchange_rate', '>', 0);
+        });
+
+        $packages = $query->where('status', 1)
+            ->get()
+            ->unique('product_name');
+
+        return view('frontend.joytel.esim.search', compact(
+            'usage_locations',
+            'packages',
+            'section'
+        ));
+    }
+
+    private function physicalSearchPage($request)
+    {
+        $usage_locations = JoyUsageLocation::where('status', 1)->pluck('location')->values();
+        $section = Section::where('section_key', 'need_more_help')->first();
+
+        $query = JoytelPhysical::whereRaw('LOWER(type) LIKE ?', ['%recharge%']);
+
+        $query->whereIn('product_name', function ($subquery) {
+            $subquery->select('plan')
+                ->from('price_lists')
+                ->whereNotNull('plan')
+                ->where('exchange_rate', '>', 0);
+        });
+
+        $packages = $query->where('status', 1)
+            ->get()
+            ->unique('product_name');
+
+        return view('frontend.joytel.physical.search', compact(
+            'usage_locations',
+            'packages',
+            'section'
+        ));
+    }
+
     public function esimSearch(Request $request)
     {
-        return $this->renderPackages('frontend.joytel.esim.packages', 'esim', $request);
+        return $this->esimPackages($request);
     }
 
-    // physical search and show packages
     public function physicalSearch(Request $request)
     {
-        return $this->renderPackages('frontend.joytel.physical.packages', 'recharge', $request);
+        return $this->physicalPackages($request);
     }
 
+    private function esimPackages(Request $request)
+    {
+        $simType = $this->normalizeSimType($request->input('type', session('sim_type', 'new_esim')));
+        if (!in_array($simType, ['new_esim', 'recharge_esim'], true)) {
+            $simType = 'new_esim';
+        }
+
+        session(['sim_type' => $simType]);
+
+        $validated = $request->validate([
+            'locations' => 'required|array',
+            'locations.*' => 'string'
+        ]);
+
+        $query = JoytelEsim::whereRaw('LOWER(type) LIKE ?', ['%esim%']);
+
+        foreach ($validated['locations'] as $location) {
+            $query->where(function ($q) use ($location) {
+                $q->whereJsonContains('coverage', $location)
+                ->orWhereRaw("JSON_SEARCH(coverage, 'one', ?) IS NOT NULL", [$location . '%']);
+            });
+        }
+
+        $query->whereIn('product_name', function ($subquery) {
+            $subquery->select('plan')
+                ->from('price_lists')
+                ->whereNotNull('plan')
+                ->where('exchange_rate', '>', 0);
+        });
+
+        $packages = $query->where('status', 1)
+            ->get()
+            ->unique('product_name');
+
+        return view('frontend.joytel.esim.packages', compact('packages'));
+    }
+
+   private function physicalPackages(Request $request)
+    {
+        $validated = $request->validate([
+            'locations' => 'required|array',
+            'locations.*' => 'string'
+        ]);
+
+        $query = JoytelPhysical::whereRaw('LOWER(type) LIKE ?', ['%recharge%']);
+
+        foreach ($validated['locations'] as $location) {
+            $query->where(function ($q) use ($location) {
+                $q->whereJsonContains('coverage', $location)
+                ->orWhereRaw("JSON_SEARCH(coverage, 'one', ?) IS NOT NULL", [$location . '%']);
+            });
+        }
+
+        $query->whereIn('product_name', function ($subquery) {
+            $subquery->select('plan')
+                ->from('price_lists')
+                ->whereNotNull('plan')
+                ->where('exchange_rate', '>', 0);
+        });
+
+        $packages = $query->where('status', 1)
+            ->get()
+            ->unique('product_name');
+
+        return view('frontend.joytel.physical.packages', compact('packages'));
+    }
+        
+
     // jotel add to cart
-    public function cart(Joytel $joytel, Request $request)
+    public function cart($joytel, Request $request)
     {
         $request->validate([
             'sday' => 'required',
@@ -45,8 +160,12 @@ class FrontendJoytelController extends Controller
             'display_price' => 'required',
             'qty' => 'required',
         ]);
+
+        $joytel = $this->resolveJoytelProduct((int) $joytel, $request->input('joytel_type'));
+
         $cart = [
-            'joytel' => $joytel->product_name,
+            'joytel' => $joytel->id,
+            'joytel_type' => $joytel instanceof JoytelPhysical ? 'physical' : 'esim',
             'service_day' => $request->sday,
             'service_data' => $request->sdata,
             'qty' => $request->qty,
@@ -73,7 +192,7 @@ class FrontendJoytelController extends Controller
         if (!$cart) {
             return redirect()->back()->with('error', 'Cart is Empty!');
         }
-        $joytel = Joytel::findOrFail($cart['joytel']);
+        $joytel = $this->resolveJoytelProduct((int) $cart['joytel'], $cart['joytel_type'] ?? null);
         return view('frontend.joytel.check-out', [
             'joytel' => $joytel,
             'service_day' => $cart['service_day'],
@@ -83,36 +202,26 @@ class FrontendJoytelController extends Controller
         ]);
     }
 
-    // show each package
-    public function packageView(Joytel $joytel, Request $request)
+ 
+    public function esimPackageView($id,Request $request)
     {
-        // Determine SIM type
-        // session()->forget('joytel_cart');
-        $type = $joytel->product_type;
+        $simType = $this->normalizeSimType($request->input('sim_type', session('sim_type', 'new_esim')));
 
-        if (stripos($type, 'eSIM') !== false) {
-            $joytel_type_label = 'E-SIM';
-        } elseif (stripos($type, 'JOY SIM Recharge') !== false) {
-            $joytel_type_label = 'Physical SIM';
-        } else {
-            $joytel_type_label = 'Unknown SIM Type';
-        }
+        session(['sim_type' => $simType]);
+       
+        $joytel = JoytelEsim::findOrFail($id);
 
-        $packages = collect($joytel->plan)->where('code_status', 1)->values();
+        $packages = JoytelEsim::where('product_name', $joytel->product_name)
+            ->where('status', 1)
+            ->get();
 
         $traffic_types = $packages->pluck('traffic_type')->unique()->values();
 
-        $daily_types = $packages->where("traffic_type", "Daily Type")->values();
+        $daily_types = $packages->where('traffic_type', 'daily')->values();
+        $total_types = $packages->where('traffic_type', 'total')->values();
+        $unlimited_types = $packages->where('traffic_type', 'unlimited')->values();
 
-        $product_type = $joytel->product_type;
-
-        $daily_days = collect();
-        $service_days = $daily_types->pluck('service_day')->unique();
-        if (!$service_days->contains('day')) {
-            $daily_days = $service_days->map(function ($day) {
-                return (int)filter_var($day, FILTER_SANITIZE_NUMBER_INT);
-            });
-        };
+        $service_days = $packages->pluck('service_day')->unique();
 
         $validPlans = PriceList::where('exchange_rate', '>', 0)
             ->pluck('plan')
@@ -120,88 +229,96 @@ class FrontendJoytelController extends Controller
             ->unique()
             ->toArray();
 
-        $random_packages = Joytel::where('product_type', $product_type)
-            ->where('status', 1)
+        $random_packages = JoytelEsim::where('status', 1)
             ->where('id', '!=', $joytel->id)
             ->whereIn('product_name', $validPlans)
             ->inRandomOrder()
-            ->take(3)
-            ->get();
+            ->get()
+            ->unique('product_name');
 
-        $total_types = $packages->where("traffic_type", "Total Type")->values();
+        $network_types = $packages->pluck('network')->unique();
 
-        $unlimited_types = $packages->where("traffic_type", "Unlimited Type")->values();
-
-        $network_types = $packages->pluck('network_type')->unique();
         $price_lists = PriceList::latest()->get();
-        //$price_lists = PriceList::all()->keyBy('product_code');
 
-        return view('frontend.joytel.package-view', compact(
+        $joytel_type_label = 'E-SIM';
+
+        return view('frontend.joytel.esim.package-view', compact(
             'joytel',
-            'joytel_type_label',
+            'packages',
+            'traffic_types',
             'daily_types',
             'total_types',
             'unlimited_types',
-            'daily_days',
+            'service_days',
             'random_packages',
             'network_types',
-            'traffic_types',
-            'price_lists'
+            'price_lists',
+            'joytel_type_label',
+            'simType'
         ));
     }
 
-    private function renderSearchPage($route)
+
+    public function physicalPackageView($id)
     {
-        $usage_locations = JoyUsageLocation::where('status', 1)->pluck('location')->values();
-        $routeName = request()->route()->getName();
-        $section = Section::where('section_key', 'need_more_help')->first();
+        $joytel = JoytelPhysical::findOrFail($id);
 
-        // Start query
-        if (str_contains($routeName, 'esim')) {
-            $query = Joytel::where('product_type', 'LIKE', '%esim%');
-        } else {
-            $query = Joytel::where('product_type', 'LIKE', '%recharge%');
-        }
-
-        // NEW FILTER
-        $query->whereIn('product_name', function ($subquery) {
-            $subquery->select('plan')
-                ->from('price_lists')
-                ->whereNotNull('plan')
-                ->where('exchange_rate', '>', 0);
-        });
-
-        $packages = $query->where('status', 1)
-            ->take(3)
+        $packages = JoytelPhysical::where('product_name', $joytel->product_name)
+            ->where('status', 1)
             ->get();
 
-        return view($route, compact('usage_locations', 'packages', 'section'));
+        $traffic_types = $packages->pluck('traffic_type')->unique()->values();
+
+        $daily_types = $packages->where('traffic_type', 'daily')->values();
+        $total_types = $packages->where('traffic_type', 'total')->values();
+        $unlimited_types = $packages->where('traffic_type', 'unlimited')->values();
+
+        $service_days = $packages->pluck('service_day')->unique();
+
+        $validPlans = PriceList::where('exchange_rate', '>', 0)
+            ->pluck('plan')
+            ->filter()
+            ->unique()
+            ->toArray();
+
+        $random_packages = JoytelPhysical::where('status', 1)
+            ->where('id', '!=', $joytel->id)
+            ->whereIn('product_name', $validPlans)
+            ->inRandomOrder()
+            ->get()
+            ->unique('product_name');
+
+        $network_types = $packages->pluck('network')->unique();
+
+        $price_lists = PriceList::latest()->get();
+
+        $joytel_type_label = 'Physical SIM';
+
+        return view('frontend.joytel.physical.package-view', compact(
+            'joytel',
+            'packages',
+            'traffic_types',
+            'daily_types',
+            'total_types',
+            'unlimited_types',
+            'service_days',
+            'random_packages',
+            'network_types',
+            'price_lists',
+            'joytel_type_label'
+        ));
     }
 
-    private function renderPackages($route, $keyword, $request)
-    {
-        $validated = Validator::make($request->all(), [
-            'locations' => 'required|array',
-            'locations.*' => 'string'
-        ])->validate();
 
-        $query = Joytel::whereRaw('LOWER(product_type) LIKE ?', ['%' . $keyword . '%']);
-        foreach ($validated['locations'] as $location) {
-            $query->whereJsonContains('usage_location', $location);
+     private function normalizeSimType(?string $simType): string
+    {
+        $simType = strtolower(trim((string) $simType));
+
+        if ($simType === '' || !in_array($simType, ['new_esim', 'recharge_esim', 'new_physical', 'recharge_physical'], true)) {
+            return 'new_esim';
         }
 
-        /** * NEW FILTER: Only show packages where the product_name exists 
-         * in the price_lists table under the 'plan' column.
-         */
-        $query->whereIn('product_name', function ($subquery) {
-            $subquery->select('plan')
-                ->from('price_lists')
-                ->whereNotNull('plan')
-                ->where('exchange_rate', '>', 0);
-        });
-
-        $packages = $query->where('status', 1)->get();
-
-        return view($route, compact('packages'));
+        return $simType;
     }
+    
 }

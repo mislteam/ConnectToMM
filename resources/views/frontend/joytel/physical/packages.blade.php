@@ -35,15 +35,14 @@
                 <div class="row">
                     @forelse ($packages as $index => $package)
                         @php
-                            $lowest_price = collect($package->plan ?? [])
+                            $lowest_price = App\Models\JoytelPhysical::where('product_name', $package->product_name)
+                                ->where('status', 1)
+                                ->get()
                                 ->map(function ($plan) {
-                                    $priceList = \App\Models\PriceList::where(
-                                        'product_code',
-                                        $plan['product_code'] ?? null,
-                                    )->first();
+                                    $priceList = \App\Models\PriceList::where('product_code', $plan->code)->first();
 
                                     $exchangeRate = (float) ($priceList->exchange_rate ?? 0);
-                                    $priceCny = (float) ($plan['price_cny'] ?? 0);
+                                    $priceCny = (float) ($plan->price ?? 0);
 
                                     if ($exchangeRate <= 0 || $priceCny <= 0) {
                                         return null;
@@ -71,7 +70,7 @@
                                         {{ number_format($lowest_price) }}
                                         MMK
                                     </p>
-                                    <a href="{{ route('joytel.packageview', ['joytel' => $package->id, 'type' => 'physical']) }}"
+                                    <a href="{{ route('joytel.physical.packageview', ['id' => $package->id, 'sim_type' => 'recharge_physical']) }}"
                                         class="more">View
                                         Offer</a>
                                 </div>

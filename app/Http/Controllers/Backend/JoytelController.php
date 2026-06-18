@@ -8,10 +8,14 @@ use App\Http\Requests\JoyUpdateFormRequest;
 use App\Imports\JoytelEsimImport;
 use App\Imports\JoytelRechargeImport;
 use App\Models\GeneralSetting;
-use App\Models\Joytel;
+use App\Models\JoytelEsim;
+use App\Models\JoytelPhysical;
+use App\Models\JoytelApi;
 use App\Models\JoyUsageLocation;
 use App\Models\PriceList;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
 
 class JoytelController extends Controller
@@ -22,10 +26,19 @@ class JoytelController extends Controller
         return $this->renderIndex('admin.joytel.esim.index', 'esim');
     }
 
+    public function Apiindex()
+    {
+        $logo = GeneralSetting::where('type', 'file')->first();
+        $title = GeneralSetting::where('type', 'string')->first();
+        $api = JoytelApi::first();
+        // $categories=Category::latest()->get();
+        return view('admin.joytel.api-credential', compact('logo', 'title', 'api'));
+    }
+
     // physical Index
     public function physical()
     {
-        return $this->renderIndex('admin.joytel.physical.index', 'recharge');
+       return $this->renderIndex('admin.joytel.physical.index', 'recharge', JoytelPhysical::class);
     }
 
     // // esim create
@@ -34,24 +47,24 @@ class JoytelController extends Controller
     //     return $this->renderCreate('admin.joytel.esim.create');
     // }
 
-    // // create physical
-    // public function physicalCreate()
-    // {
-    //     return $this->renderCreate('admin.joytel.physical.create');
-    // }
-
-    // // esim Store
-    // public function esimStore(JoyCreateFormRequest $request)
-    // {
-    //     try {
-    //         return $this->storeJoytelPlan($request, 'esim.index');
-    //     } catch (\Throwable $e) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'message' => $e->getMessage()
-    //         ], 500);
-    //     }
-    // }
+    // create physical
+    public function physicalCreate()
+    {
+        return $this->renderCreate('admin.joytel.physical.create');
+    }
+    
+    // esim Store
+    public function esimStore(JoyCreateFormRequest $request)
+    {
+        try {
+            return $this->storeJoytelPlan($request, 'esim.index');
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
+    }
 
     // // physical store
     // public function physicalStore(JoyCreateFormRequest $request)
@@ -66,46 +79,39 @@ class JoytelController extends Controller
     //     }
     // }
 
-    // esim edit
-    // public function esimEdit(Joytel $esim)
-    // {
-    //     $data = $this->getData();
-    //     $data["esim"] = $esim;
-    //     return view('admin.joytel.esim.edit', $data);
-    // }
 
-    public function esimEdit(Joytel $esim)
+    public function esimEdit(JoytelEsim $esim)
     {
         $data = $this->getData();
-        $esim->plan = is_array($esim->plan) ? $esim->plan : json_decode($esim->plan, true);
+        // same product_name rows from DB
+        $plans = JoytelEsim::where('product_name', $esim->product_name)->get();
         $data["esim"] = $esim;
+        $data["plans"] = $plans;
+
         return view('admin.joytel.esim.edit', $data);
     }
 
-    // physical edit
-    // public function editPhysical(Joytel $recharge)
-    // {
-    //     $data = $this->getData();
-    //     $data['recharge'] = $recharge;
-    //     return view('admin.joytel.physical.edit', $data);
-    // }
 
-    public function editPhysical(Joytel $recharge)
+
+
+    public function editPhysical(JoytelPhysical $recharge)
     {
         $data = $this->getData();
-        $recharge->plan = is_array($recharge->plan) ? $recharge->plan : json_decode($recharge->plan, true);
-        $data['recharge'] = $recharge;
+        $plans = JoytelPhysical::where('product_name', $recharge->product_name)->get();
+        $data["recharge"] = $recharge;
+        $data["plans"] = $plans;
+
         return view('admin.joytel.physical.edit', $data);
     }
 
     // update esim
-    public function updateEsim(Joytel $esim, JoyUpdateFormRequest $request)
+    public function updateEsim(JoytelEsim $esim, JoyUpdateFormRequest $request)
     {
         return $this->updateJoytel($esim, $request, 'esim.index');
     }
 
     // update physical
-    public function updatePhysical(Joytel $recharge, JoyUpdateFormRequest $request)
+    public function updatePhysical(JoytelPhysical $recharge, JoyUpdateFormRequest $request)
     {
         return $this->updateJoytel($recharge, $request, 'physical.index');
     }
@@ -180,95 +186,67 @@ class JoytelController extends Controller
         );
     }
 
-    // update code status
+    
+
     public function updateCodeStatus(Request $request)
     {
         $validated = $request->validate([
-            'sim_id' => 'required|integer|exists:joytels,id',
+            'joytel_type' => 'required|in:esim,physical',
             'updates' => 'required|array',
-            'updates.*.product_code' => 'required|string',
-            'updates.*.code_status' => 'required|integer|in:0,1'
+            'updates.*.id' => 'required|integer',
+            'updates.*.status' => 'required|integer|in:0,1',
         ]);
 
-        $joytel = Joytel::findOrFail($validated['sim_id']);
-        $plan = $joytel->plan;
-        foreach ($plan as &$row) {
-            foreach ($validated['updates'] as $update) {
-                if ($row['product_code'] === $update['product_code']) {
-                    $row['code_status'] = $update['code_status'];
-                }
+        foreach ($validated['updates'] as $update) {
+            $model = $this->findJoytelRecordById((int) $update['id'], $validated['joytel_type']);
+
+            if (!$model) {
+                continue;
             }
+
+            $model->update([
+                'status' => $update['status'],
+            ]);
         }
-        $joytel->plan = $plan;
-        $joytel->save();
-        return response()->json(['success' => true]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Status updated successfully'
+        ]);
     }
 
-    // update price
-    // public function updatePrice(Request $request)
-    // {
-    //     try {
-    //         $validated = $request->validate([
-    //             'updates' => 'required|array',
-    //             'update.*.sim_id' => ['required', 'exists:joytels,id'],
-    //             'updates.*.product_code' => [
-    //                 'required',
-    //                 'string',
-    //                 function ($attribute, $value, $fail) {
-    //                     $exists = Joytel::whereJsonContains('plan', ['product_code' => $value])->exists();
-    //                     if (!$exists) {
-    //                         $fail("The product code {$value} does not exist with service_day='day' in joytels");
-    //                     }
-    //                 }
-    //             ],
-    //             'updates.*.price' => ['nullable', 'integer', 'regex:/^(0|[1-9]\d*)$/'],
-    //             'updates.*.increment' => ['nullable', 'integer', 'regex:/^(0|[1-9]\d*)$/'],
-    //         ]);
-
-    //         foreach ($validated['updates'] as $update) {
-    //             PriceList::updateOrCreate(
-    //                 ['product_code' => $update['product_code']],
-    //                 [
-    //                     'price' => $update['price'],
-    //                     'increment' => $update['increment'] ?? null,
-    //                     'joytel_id' => $update['sim_id'] ?? null,
-    //                 ]
-    //             );
-    //         }
-
-    //         return response()->json(['success' => true]);
-    //     } catch (\Illuminate\Validation\ValidationException $e) {
-    //         return response()->json([
-    //             'success' => false,
-    //             'errors' => $e->errors()
-    //         ], 422);
-    //     }
-    // }
-
-
+   
     public function updateExchangeRate(Request $request)
     {
+       
         $validated = $request->validate([
+            'joytel_type' => 'required|in:esim,physical',
             'updates' => 'required|array',
             'updates.*.product_code' => 'required|string',
             'updates.*.exchange_rate' => 'nullable|numeric|min:0',
             'updates.*.profit' => 'nullable|numeric',
-            'updates.*.joytel_id' => 'required'
+            'updates.*.joytel_id' => 'required|integer',
         ]);
 
         $updatedRows = [];
 
         foreach ($validated['updates'] as $row) {
+            $joytelProduct = $this->findJoytelRecordById((int) $row['joytel_id'], $validated['joytel_type']);
+
+            if (!$joytelProduct) continue;
+
             $productCode = trim($row['product_code']);
-            $newRate = $row['exchange_rate'] ?? 0;
-            $profit = $row['profit'] ?? 0;
-            $joytelId = $row['joytel_id'];
-            $joytelProduct = \App\Models\Joytel::find($joytelId);
-            $productName = $joytelProduct->product_name ?? '';
+            $newRate = (float) ($row['exchange_rate'] ?? 0);
+            $profit = (float) ($row['profit'] ?? 0);
 
-            $priceList = PriceList::firstOrNew(['product_code' => $productCode]);
+            $productName = $joytelProduct->product_name;
 
-            if ($priceList->exchange_rate != $newRate) {
+            $priceList = PriceList::firstOrNew([
+                'product_code' => $productCode
+            ]);
+
+            // only update if changed
+            if ((float)$priceList->exchange_rate !== $newRate) {
 
                 $priceList->exchange_rate = $newRate;
                 $priceList->profit = $profit;
@@ -278,19 +256,35 @@ class JoytelController extends Controller
                 $priceList->dp_info = null;
 
                 $priceList->save();
+
                 $updatedRows[] = $productCode;
             }
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Exchange rates updated successfully'
+            'message' => 'Exchange rates updated successfully',
+            'updated' => $updatedRows
         ]);
+    }
+
+    private function findJoytelRecordById(int $id, ?string $type = null): ?Model
+    {
+        if ($type === 'physical') {
+            return JoytelPhysical::find($id);
+        }
+
+        if ($type === 'esim') {
+            return JoytelEsim::find($id);
+        }
+
+        return JoytelEsim::find($id)
+            ?? JoytelPhysical::find($id);
     }
 
     public function destroy($id)
     {
-        $esim = Joytel::findOrFail($id);
+        $esim = JoytelEsim::findOrFail($id);
 
         $plans = is_array($esim->plan) ? $esim->plan : json_decode($esim->plan, true);
 
@@ -308,12 +302,12 @@ class JoytelController extends Controller
     }
 
     // render index pages function
-    private function renderIndex($route, $keyword)
+     private function renderIndex($route, $keyword, string $modelClass = JoytelEsim::class)
     {
         $logo = GeneralSetting::where('type', 'file')->first();
         $title = GeneralSetting::where('type', 'string')->first();
-        $query = Joytel::whereRaw('LOWER(product_type) LIKE ?', ['%' . $keyword . '%']);
-        $sim_lists = $query->latest()->get();
+        $query = $modelClass::whereRaw('LOWER(type) LIKE ?', ['%' . $keyword . '%']);
+        $sim_lists = $query->latest()->get()->unique('product_name');
         $additional_prices = PriceList::latest()->get();
         return view($route, compact('logo', 'title', 'sim_lists', 'additional_prices'));
     }
@@ -334,86 +328,51 @@ class JoytelController extends Controller
         return [
             "logo" => GeneralSetting::where('type', 'file')->first(),
             "title" => GeneralSetting::where('type', 'string')->first(),
-            "usage_locations" => JoyUsageLocation::where('status', 1)->pluck('location')->unique(),
+            "coverages" => JoyUsageLocation::where('status', 1)->pluck('location')->unique(),
         ];
     }
 
+
     // update function for physical + esim
-    private function updateJoytel(Joytel $model, JoyUpdateFormRequest $request, string $redirectRoute)
+    private function updateJoytel(Model $model, JoyUpdateFormRequest $request, string $redirectRoute)
     {
         try {
-            $rows = json_decode($request->input('rows_json'), true) ?: [];
-            if (!is_array($rows)) $rows = [];
-
-            $status = $request->input('status');
-
-            $productCodes = [];
-            foreach ($rows as &$row) {
-                if (!is_array($row)) continue;
-
-                if ($status === "0") {
-                    $row['code_status'] = 0;
-                }
-
-                // if (isset($row['service_day'])) {
-                //     $sd = trim((string)$row['service_day']);
-                //     $n = is_numeric($sd) ? (int)$sd : (int)preg_replace('/\D/', '', $sd);
-                //     if ($n) $row['service_day'] = $n . ' day';
-                // }
-
-                if (!isset($row['product_code'])) {
-                    return response()->json(['success' => false, 'message' => 'Each row must have a product code'], 422);
-                }
-
-                if (in_array($row['product_code'], $productCodes)) {
-                    return response()->json(['success' => false, 'message' => 'Duplicate product code detected: ' . $row['product_code']], 422);
-                }
-
-                $productCodes[] = $row['product_code'];
-            }
-            unset($row);
-
+            $oldProductName = $model->getOriginal('product_name');
             $removedPhotos = $request->input('removed_photos', []);
-            $photos = $model->photo ?? [];
+            $photos = $this->normalizeJoytelPhotos($model->photo);
+
             foreach ($removedPhotos as $fileToRemove) {
                 $filePath = public_path('sim/' . $fileToRemove);
                 if (file_exists($filePath)) unlink($filePath);
                 if (($key = array_search($fileToRemove, $photos)) !== false) unset($photos[$key]);
             }
-            $model->photo = array_values($photos);
-            $model->save();
 
             $filePaths = [];
             if ($request->hasFile('files')) {
                 foreach ($request->file('files') as $file) {
-                    $fileName = time() . '_' . $file->getClientOriginalName();
+                    $fileName = $file->getClientOriginalName();
                     $file->move(public_path('sim'), $fileName);
                     $filePaths[] = $fileName;
                 }
             }
 
-            $oldPhotos = is_array($model->photo) ? $model->photo : (json_decode($model->photo, true) ?: []);
-            $mergedPhotos = array_merge($oldPhotos, $filePaths);
+            $mergedPhotos = array_values(array_merge($photos, $filePaths));
 
-            $model->update([
-                'category_name'     => $request->cat_name,
-                'product_name'      => $request->product_name,
-                'usage_location'    => $request->locations,
-                'supplier'          => $request->supplier,
-                'product_type'      => $request->product_type,
-                'plan'              => $rows,
-                'photo'             => $mergedPhotos,
-                'remark'            => $request->product_name,
-                'activation_policy' => $request->activation_policy,
-                'delivery_time'     => $request->del_time,
-                'status'            => $request->status ?? 1,
-            ]);
+            DB::transaction(function () use ($model, $request, $mergedPhotos, $oldProductName) {
+                $modelClass = get_class($model);
+
+                $modelClass::where('product_name', $oldProductName)->update([
+                    'photo' => $mergedPhotos,
+                    'status' => $request->status,
+                ]);
+
+                $model->refresh();
+            });
 
             session()->flash('success', 'SIM updated successfully!');
 
             return response()->json([
                 'success' => true,
-                'rows' => $rows,
                 'redirect_url' => route($redirectRoute)
             ]);
         } catch (\Throwable $e) {
@@ -422,6 +381,25 @@ class JoytelController extends Controller
                 'message' => $e->getMessage()
             ], 500);
         }
+    }
+
+    private function normalizeJoytelPhotos($photos): array
+    {
+        if (is_array($photos)) {
+            return array_values(array_filter($photos));
+        }
+
+        if (is_string($photos) && trim($photos) !== '') {
+            $decoded = json_decode($photos, true);
+
+            if (is_array($decoded)) {
+                return array_values(array_filter($decoded));
+            }
+
+            return [$photos];
+        }
+
+        return [];
     }
 
     // store function for physical + esim
@@ -476,7 +454,7 @@ class JoytelController extends Controller
             }
         }
 
-        Joytel::create([
+        JoytelEsim::create([
             'category_name' => $request->cat_name,
             'product_name' => $request->product_name,
             'usage_location' => $request->locations,
@@ -497,5 +475,23 @@ class JoytelController extends Controller
             'rows' => $rows,
             'redirect_url' => route($redirectRoute)
         ]);
+    }
+
+    public function updateApi(Request $request)
+    {
+        $validated = $request->validate([
+            'customer_code' => 'required|string',
+            'customer_auth' => 'required|string',
+            'api_url' => 'required|url',
+        ]);
+
+        $api = JoytelApi::first() ?? new JoytelApi();
+        $api->fill([
+            'customer_code' => $validated['customer_code'],
+            'customer_auth' => $validated['customer_auth'],
+            'api_url'       => $validated['api_url'],
+        ])->save();
+
+        return redirect()->back()->with('success', 'Joytel API credentials updated successfully!');
     }
 }
