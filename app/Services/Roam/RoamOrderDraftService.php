@@ -113,10 +113,10 @@ class RoamOrderDraftService
      */
     public function generateOuterOrderId(): string
     {
-        // O-YYYYMMDD-HH:MM:SS-000001
+        // R-YYYYMMDD-HH:MM:SS-000001
         $datePart = now()->format('Ymd');
         $timePart = now()->format('H:i:s');
-        $prefix = "O-{$datePart}-{$timePart}-";
+        $prefix = "R-{$datePart}-{$timePart}-";
 
         $latest = RoamOrder::query()
             ->where('outer_order_id', 'like', $prefix . '%')
@@ -124,7 +124,7 @@ class RoamOrderDraftService
             ->value('outer_order_id');
 
         $sequence = 1;
-        if (is_string($latest) && preg_match('/^O-\\d{8}-\\d{2}:\\d{2}:\\d{2}-(\\d{6})$/', $latest, $matches)) {
+        if (is_string($latest) && preg_match('/^R-\\d{8}-\\d{2}:\\d{2}:\\d{2}-(\\d{6})$/', $latest, $matches)) {
             $sequence = ((int) $matches[1]) + 1;
         }
 

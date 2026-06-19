@@ -708,10 +708,10 @@ class RoamOrderService
 
     public function generateOuterOrderId(): string
     {
-        // Generates: O-20260508-14:53:39-
+        // Generates: R-20260508-14:53:39-
         $datePart = now()->format('Ymd');
         $timePart = now()->format('H:i:s');
-        $prefix = "O-{$datePart}-{$timePart}-";
+        $prefix = "R-{$datePart}-{$timePart}-";
 
         $latest = RoamOrder::query()
             ->where('outer_order_id', 'like', $prefix . '%')
@@ -721,8 +721,8 @@ class RoamOrderService
         $sequence = 1;
 
         // Updated Regex to handle the colons and the date format
-        // Matches: O - 8 digits - dash - 2 digits : 2 digits : 2 digits - dash - 6 digits
-        if (is_string($latest) && preg_match('/^O-\d{8}-\d{2}:\d{2}:\d{2}-(\d{6})$/', $latest, $matches)) {
+        // Matches: R - 8 digits - dash - 2 digits : 2 digits : 2 digits - dash - 6 digits
+        if (is_string($latest) && preg_match('/^R-\d{8}-\d{2}:\d{2}:\d{2}-(\d{6})$/', $latest, $matches)) {
             $sequence = ((int) $matches[1]) + 1;
         }
 
