@@ -93,13 +93,18 @@ Route::middleware('auth:customers')->group(function () {
         Route::get('/physical/checkout', [PhysicalSimController::class, 'checkout'])->name('roam.physical.checkout');
         Route::patch('/physical/cart/{key}', [PhysicalSimController::class, 'updateCartQuantity'])->name('roam.physical.cart.update');
         Route::delete('/physical/remove-cart/{key}', [PhysicalSimController::class, 'removeCart']);
+
+        // place order + payment
+        Route::post('/place-order', [\App\Http\Controllers\Frontend\RoamCheckoutController::class, 'placeOrder'])->name('roam.place-order');
+        Route::get('/payment/{outerOrderId}', [\App\Http\Controllers\Frontend\RoamCheckoutController::class, 'showPayment'])->name('roam.payment.show');
+        Route::post('/payment/{outerOrderId}/upload-slip', [\App\Http\Controllers\Frontend\RoamCheckoutController::class, 'uploadPaymentSlip'])->name('roam.payment.upload-slip');
     });
 
     Route::get('/customer/profile', [HomeController::class, 'customerProfile'])->name('customer.profile.index');
     Route::post('/customer/profile/edit/{customer}/{edit_type}', [HomeController::class, 'customerEdit'])->name('frontend.customer.edit');
 
-    // order detail page
-    Route::get('/customer/order-detail', [HomeController::class, 'orderDetail'])->name('customer.order.detail');
+    // Roam order detail page
+    Route::get('/customer/roam-order-detail/{outerOrderId?}', [HomeController::class, 'roamOrderDetail'])->name('customer.roam.order.detail');
 });
 
 // e-sim
@@ -148,6 +153,11 @@ Route::middleware(['auth'])->group(function () {
 
     // order
     Route::get('/all-orders', [OrderController::class, 'index'])->name('order.index');
+    Route::get('/all-orders/joytel', [OrderController::class, 'joytelIndex'])->name('order.joytel');
+    Route::get('/all-orders/{reference}/detail', [OrderController::class, 'show'])->name('order.show');
+    Route::post('/all-orders/{roamOrder}/approve-payment', [OrderController::class, 'approvePayment'])->name('order.approve-payment');
+    Route::post('/all-orders/{roamOrder}/retry-roam-api', [OrderController::class, 'retryRoamApi'])->name('order.retry-roam-api');
+    Route::post('/all-orders/{roamOrder}/refund', [OrderController::class, 'refund'])->name('order.refund');
 
     // All Admin Users
     Route::get('/show', [AdminController::class, 'index'])->name('show.admin');

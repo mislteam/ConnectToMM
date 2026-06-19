@@ -326,7 +326,7 @@
                                     data-toggle="buttons">
                                     @foreach ($serviceDays as $day)
                                         <label class="btn btn-outline-secondary m-1 {{ $loop->first ? 'active' : '' }}">
-                                            <input type="radio" name="sday" value="{{ $day }} Days"
+                                            <input type="radio" name="sday" value="{{ $day }}"
                                                 data-day="{{ $day }}" {{ $loop->first ? 'checked' : '' }}>
                                             {{ $day }} Days
                                         </label>
@@ -364,6 +364,7 @@
                             </div>
 
                             <input type="hidden" name="original_selected_price" value="">
+                            <input type="hidden" name="api_code" id="api_code" value="">
 
                             <!-- Qty Field -->
                             <div class="form-group">
@@ -465,11 +466,6 @@
             </div>
         </div>
     </section>
-    <!-- jQuery first -->
-
-    <script src="{{ asset('assets/js/jquery-3.6.0.min.js') }}"></script>
-    <script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}"></script>
-
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const hasValidPlans = @json($hasValidPlans);
@@ -809,6 +805,12 @@
 
                     const unitPrice = parseFloat(selectedData.dataset.price || 0);
                     oriSelectedPrice.value = unitPrice;
+
+                    const apiCodeInput = document.getElementById('api_code');
+                    if (apiCodeInput) {
+                        apiCodeInput.value = String(selectedData.dataset.apicode || '').trim();
+                    }
+
                     const total = unitPrice * qty;
                     total_price.innerText = `Total Price: ${total.toLocaleString()} MMK`;
                     if (displayPriceInput) displayPriceInput.value = total;
@@ -817,6 +819,8 @@
 
                 total_price.innerText = 'Total Price: -';
                 if (displayPriceInput) displayPriceInput.value = '';
+                const apiCodeInput = document.getElementById('api_code');
+                if (apiCodeInput) apiCodeInput.value = '';
             }
 
             // Handlers

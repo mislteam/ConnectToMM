@@ -403,7 +403,8 @@ class PhysicalSimController extends Controller
             'display_price' => 'required',
             'qty' => 'required',
             'original_selected_price' => 'required',
-            'api_code' => 'nullable|string',
+            // Roam ordering requires api_code (product_code). Without it we can't create an upstream order later.
+            'api_code' => 'required|string|min:1',
             'dp_id' => 'nullable|integer|in:9,21'
         ]);
         $selectedDpInfo = (int) $request->input('dp_id', session('physical_dp_id', 0));
@@ -421,6 +422,9 @@ class PhysicalSimController extends Controller
         $service_type = 'physical';
         $order_type = $this->resolveOrderType($sim_type);
         $apiCode = $this->normalizeApiCode($request->input('api_code'));
+        if ($apiCode === null || trim($apiCode) === '') {
+            return redirect()->back()->with('error', 'Selected package is missing api_code. Please refresh and select again.');
+        }
         $planType = $this->normalizePlanType($request->input('tType'));
         $dpInfo = (int) ($sku->dp_id ?? 0);
         $dpLabel = $this->buildDpLabel($dpInfo);
