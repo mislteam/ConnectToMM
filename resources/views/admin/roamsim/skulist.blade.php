@@ -1,14 +1,41 @@
 @extends('admin.layouts.index')
 @section('title', 'All Admin')
 @section('content')
+    <style>
+        .roam-esim-sku-page-title,
+        .roam-esim-sku-breadcrumb-current {
+            color: #111827;
+        }
+
+        .roam-esim-sku-breadcrumb-link {
+            color: #4b5563;
+        }
+
+        .roam-esim-sku-breadcrumb-link:hover {
+            color: #1f2937;
+        }
+
+        html[data-bs-theme="dark"] .roam-esim-sku-page-title,
+        html[data-bs-theme="dark"] .roam-esim-sku-breadcrumb-current {
+            color: #e5edf9;
+        }
+
+        html[data-bs-theme="dark"] .roam-esim-sku-breadcrumb-link {
+            color: #9fb1cc;
+        }
+
+        html[data-bs-theme="dark"] .roam-esim-sku-breadcrumb-link:hover {
+            color: #dbe7ff;
+        }
+    </style>
     <div class="container-fluid">
         <div class="page-title-head d-flex align-items-center">
             <div class="flex-grow-1 py-3">
-                <h4 class="fs-sm fw-bold m-0 text-black">{{ $settings['roam_title']->value ?? 'Roam' }}</h4>
+                <h4 class="fs-sm fw-bold m-0 roam-esim-sku-page-title">{{ $settings['roam_title']->value ?? 'Roam' }}</h4>
                 <ol class="breadcrumb m-0 py-0">
-                    <li class="breadcrumb-item"><a href="javascript: void(0);">Home</a></li>
+                    <li class="breadcrumb-item"><a href="javascript: void(0);" class="roam-esim-sku-breadcrumb-link">Home</a></li>
 
-                    <li class="breadcrumb-item active text-black">eSIM SKU List</li>
+                    <li class="breadcrumb-item active roam-esim-sku-breadcrumb-current">eSIM SKU List</li>
                 </ol>
             </div>
         </div>

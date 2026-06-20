@@ -158,7 +158,7 @@
                                     </div>
                             </div>
                             <!-- {{-- Dropzone Previews --}}
-                                                    <div class="dropzone-previews mt-3" id="file-previews"></div> -->
+                                                        <div class="dropzone-previews mt-3" id="file-previews"></div> -->
                             <div class="col-12">
                                 {{-- Status Section --}}
                                 <div class="card mt-3">

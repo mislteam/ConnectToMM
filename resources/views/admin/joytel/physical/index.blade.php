@@ -1,20 +1,48 @@
 @extends('admin.layouts.index')
 @section('title', 'Joytel Physical sim')
 @section('content')
+    <style>
+        .joytel-physical-page-title,
+        .joytel-physical-breadcrumb-current {
+            color: #111827;
+        }
+
+        .joytel-physical-breadcrumb-link {
+            color: #4b5563;
+        }
+
+        .joytel-physical-breadcrumb-link:hover {
+            color: #1f2937;
+        }
+
+        html[data-bs-theme="dark"] .joytel-physical-page-title,
+        html[data-bs-theme="dark"] .joytel-physical-breadcrumb-current {
+            color: #e5edf9;
+        }
+
+        html[data-bs-theme="dark"] .joytel-physical-breadcrumb-link {
+            color: #9fb1cc;
+        }
+
+        html[data-bs-theme="dark"] .joytel-physical-breadcrumb-link:hover {
+            color: #dbe7ff;
+        }
+    </style>
     @include('components.alert')
-    @if (request()->get('saved'))
+    {{-- @if (request()->get('saved'))
         <div class="alert alert-success alert-dismissible fade show alert-fixed" role="alert">
             Saved successfully!
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-    @endif
+    @endif --}}
     <div class="container-fluid">
         <div class="page-title-head d-flex align-items-center">
             <div class="flex-grow-1 py-3">
-                <h4 class="fs-sm fw-bold m-0 text-black">{{ $settings['joytel_title']->value ?? 'Joytel' }}</h4>
+                <h4 class="fs-sm fw-bold m-0 joytel-physical-page-title">{{ $settings['joytel_title']->value ?? 'Joytel' }}</h4>
                 <ol class="breadcrumb m-0 py-0">
-                    <li class="breadcrumb-item"><a href="javascript: void(0);">Home</a></li>
-                    <li class="breadcrumb-item active text-black">{{ $settings['joytel_title']->value ?? 'Joytel' }} -
+                    <li class="breadcrumb-item"><a href="javascript: void(0);"
+                            class="joytel-physical-breadcrumb-link">Home</a></li>
+                    <li class="breadcrumb-item active joytel-physical-breadcrumb-current">{{ $settings['joytel_title']->value ?? 'Joytel' }} -
                         Physical Sim</li>
                 </ol>
             </div>
@@ -100,7 +128,7 @@
                                 <tr class="text-uppercase fs-xxs">
                                     <th data-table-sort>No</th>
                                     <th data-table-sort>Product Name</th>
-                                    <th data-table-sort>Supplier</th>
+                                    <th data-table-sort>Provider</th>
                                     <th data-table-sort data-column="product-status">Status</th>
                                     <th class="text-center" style="width: 1%;">Actions</th>
                                 </tr>
@@ -108,6 +136,16 @@
                             <tbody id="displayItems">
                                 @if ($sim_lists->isNotEmpty())
                                     @foreach ($sim_lists as $index => $recharge)
+                                        @php
+
+                                            $plans = App\Models\JoytelPhysical::where(
+                                                'product_name',
+                                                $recharge->product_name,
+                                            )->get();
+
+                                        @endphp
+
+
                                         <tr>
                                             <td>
                                                 <h5 class="fs-sm mb-0 fw-medium">{{ $loop->iteration }}</h5>
@@ -116,7 +154,7 @@
                                                 <h5 class="text-nowrap fs-base mb-0 lh-base">{{ $recharge->product_name }}
                                                 </h5>
                                             </td>
-                                            <td>{{ $recharge->supplier }}</td>
+                                            <td>{{ $recharge->provider }}</td>
 
                                             <td data-column="product-status"
                                                 class="{{ $recharge->status == 1 ? 'text-success' : 'text-danger' }} fw-semibold">
@@ -140,15 +178,18 @@
                                                             @endphp
                                                             <button type="button" class="dropdown-item"
                                                                 data-bs-toggle="modal" data-bs-target="#manage-price"
-                                                                data-plan='@json($recharge->plan)'
+                                                                data-plan='@json($plans)'
                                                                 data-existing-rates='@json($exchangeRates)'
-                                                                data-joytel-id="{{ $recharge->id }}">
+                                                                data-joytel-id="{{ $recharge->id }}"
+                                                                data-joytel-type="physical"
+                                                                data-product-name="{{ $recharge->product_name }}">
                                                                 <i class="ti ti-currency-dollar fs-lg"></i> Manage Price
                                                             </button>
                                                             <button type="button" class="dropdown-item"
                                                                 data-bs-toggle="modal" data-bs-target="#manage-status"
-                                                                data-plan='@json($recharge->plan)'
-                                                                data-id="{{ $recharge->id }}">
+                                                                data-plan='@json($plans)'
+                                                                data-id="{{ $recharge->id }}" data-joytel-type="physical"
+                                                                data-product-name="{{ $recharge->product_name }}">
                                                                 <i class="ti ti-box fs-lg"></i> Manage Status
                                                             </button>
 
@@ -157,11 +198,11 @@
                                                     <a href="{{ route('physical.edit', $recharge->id) }}"
                                                         class="btn btn-light btn-icon btn-sm rounded-circle"><i
                                                             class="ti ti-edit fs-lg"></i></a>
-                                                    <a href="#" data-id="{{ $recharge->id }}"
+                                                    {{-- <a href="#" data-id="{{ $recharge->id }}"
                                                         data-bs-toggle="modal" data-bs-target="#sim-delete"
                                                         class="btn btn-light btn-icon btn-sm rounded-circle delete-sim-btn">
                                                         <i class="ti ti-trash fs-lg"></i>
-                                                    </a>
+                                                    </a> --}}
                                                 </div>
                                             </td>
                                         </tr>
@@ -184,45 +225,45 @@
                     </div>
 
                     <!-- manage price -->
-                    <!-- <div class="modal fade" id="manage-price" tabindex="-1" role="dialog"
-                                                                                                                                                        aria-labelledby="managePrice" aria-hidden="true">
-                                                                                                                                                        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-                                                                                                                                                            <div class="modal-content">
-                                                                                                                                                                <div class="modal-header">
-                                                                                                                                                                    <h4 class="modal-title" id="managePrice">Manage Price</h4>
-                                                                                                                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                                                                                                                                        aria-label="Close"></button>
-                                                                                                                                                                </div>
-                                                                                                                                                                <div class="modal-body">
-                                                                                                                                                                    <div class="table-responsive mt-2">
-                                                                                                                                                                        <table class="table table-bordered table-nowrap text-center align-middle">
-                                                                                                                                                                            <thead class="bg-light align-middle bg-opacity-25 thead-sm">
-                                                                                                                                                                                <tr class="text-uppercase fs-xxs">
-                                                                                                                                                                                    <th>#</th>
-                                                                                                                                                                                    <th class="text-start">Product SKU</th>
-                                                                                                                                                                                    <th>Traffic Type</th>
-                                                                                                                                                                                    <th>Original Selling Price<br>(MMK)</th>
-                                                                                                                                                                                    <th>Update Selling Price<br>(MMK)</th>
-                                                                                                                                                                                    <th>Profit<br>(MMK)</th>
-                                                                                                                                                                                    <th>Increment</th>
+                    {{-- <div class="modal fade" id="manage-price" tabindex="-1" role="dialog"
+                        aria-labelledby="managePrice" aria-hidden="true">
+                        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title" id="managePrice">Manage Price</h4>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="table-responsive mt-2">
+                                        <table class="table table-bordered table-nowrap text-center align-middle">
+                                            <thead class="bg-light align-middle bg-opacity-25 thead-sm">
+                                                <tr class="text-uppercase fs-xxs">
+                                                    <th>#</th>
+                                                    <th class="text-start">Product SKU</th>
+                                                    <th>Traffic Type</th>
+                                                    <th>Original Selling Price<br>(MMK)</th>
+                                                    <th>Update Selling Price<br>(MMK)</th>
+                                                    <th>Profit<br>(MMK)</th>
+                                                    <th>Increment</th>
 
-                                                                                                                                                                                </tr>
-                                                                                                                                                                            </thead>
-                                                                                                                                                                            <tbody id="price-invoice-items">
+                                                </tr>
+                                            </thead>
+                                            <tbody id="price-invoice-items">
 
-                                                                                                                                                                            </tbody>
-                                                                                                                                                                        </table>
+                                            </tbody>
+                                        </table>
 
-                                                                                                                                                                    </div>
-                                                                                                                                                                </div>
-                                                                                                                                                                <div class="modal-footer">
-                                                                                                                                                                    <div class="my-3 d-flex gap-2 justify-content-end">
-                                                                                                                                                                        <button type="button" class="btn btn-primary text-end">Update</button>
-                                                                                                                                                                    </div>
-                                                                                                                                                                </div>
-                                                                                                                                                            </div>
-                                                                                                                                                        </div>
-                                                                                                                                                    </div> -->
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <div class="my-3 d-flex gap-2 justify-content-end">
+                                        <button type="button" class="btn btn-primary text-end">Update</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div> --}}
 
                     <!-- manage price -->
                     <div class="modal fade" id="manage-price" tabindex="-1">
@@ -233,6 +274,9 @@
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                 </div>
                                 <div class="modal-body">
+                                    <h4 class="modal-title">
+                                        <span id="product-name-title"></span>
+                                    </h4>
                                     <div class="mt-2">
                                         <table class="table table-bordered text-center align-middle"
                                             style="white-space: nowrap; min-width: 800px;">
@@ -240,7 +284,7 @@
                                                 <tr>
                                                     <th>#</th>
                                                     <th class="text-start">Product SKU</th>
-                                                    <th>Traffic Type</th>
+                                                    <th>Plan</th>
                                                     <th>Exchange Rate</th>
                                                     <th>Portal Price</th>
                                                     <th style="width: 150px;">Selling Rate</th>
@@ -275,12 +319,16 @@
                                         aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
+                                    <h4 class="modal-title">
+                                        <span id="product-title"></span>
+                                    </h4>
                                     <div class="table-responsive mt-2">
                                         <table class="table table-bordered table-nowrap text-center align-middle">
                                             <thead class="bg-light align-middle bg-opacity-25 thead-sm">
                                                 <tr class="text-uppercase fs-xxs">
                                                     <th>#</th>
                                                     <th class="text-start">Product SKU</th>
+                                                    <th>Plan</th>
                                                     <th>Status</th>
                                                 </tr>
                                             </thead>

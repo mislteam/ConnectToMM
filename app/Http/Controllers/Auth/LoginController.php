@@ -29,7 +29,7 @@ class LoginController extends Controller
 
         if ($user && $user->status == 0 && Hash::check($request->password, $user->password)) {
             Auth::login($user, $request->boolean('remember', true));
-            return redirect()->intended('/dashboard')->with('success', 'Welcome from Dashboard');
+            return redirect()->intended('/dashboard');
         }
 
         return redirect()->intended('/admin/login')->with('error', 'User Not Found');

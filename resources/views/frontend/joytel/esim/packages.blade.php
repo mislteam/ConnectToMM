@@ -35,15 +35,16 @@
                 <div class="row">
                     @forelse ($packages as $index => $package)
                         @php
-                            $lowest_price = collect($package->plan ?? [])
+                            $plans = App\Models\JoytelEsim::where('product_name', $package->product_name)->get();
+
+                            $lowest_price = $plans
                                 ->map(function ($plan) {
                                     $priceList = \App\Models\PriceList::where(
                                         'product_code',
-                                        $plan['product_code'] ?? null,
+                                        $plan->code, // <- $plans မဟုတ်ဘူး
                                     )->first();
-
                                     $exchangeRate = (float) ($priceList->exchange_rate ?? 0);
-                                    $priceCny = (float) ($plan['price_cny'] ?? 0);
+                                    $priceCny = (float) ($plan->price ?? 0);
 
                                     if ($exchangeRate <= 0 || $priceCny <= 0) {
                                         return null;
@@ -51,9 +52,11 @@
 
                                     return round($priceCny * $exchangeRate);
                                 })
-                                ->filter(fn($price) => $price > 0)
+                                ->filter()
                                 ->min();
+
                         @endphp
+
                         <div class="col-lg-4 col-md-4 col-sm-12 col-12">
                             <div class="service-box">
                                 <figure class="img img2 mb-3">
@@ -71,9 +74,13 @@
                                         {{ number_format($lowest_price) }}
                                         MMK
                                     </p>
-                                    <a href="{{ route('joytel.packageview', ['joytel' => $package->id, 'type' => 'esim']) }}"
+                                    <a href="{{ route('joytel.esim.packageview', ['id' => $package->id, 'sim_type' => session('sim_type', 'new_esim')]) }}"
                                         class="more">View
                                         Offer</a>
+
+
+
+
                                 </div>
                             </div>
                         </div>

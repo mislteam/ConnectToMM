@@ -29,11 +29,31 @@
                 </a>
             </li>
 
-            <li class="side-nav-item">
-                <a href="{{ route('order.index') }}" class="side-nav-link">
+            @php
+                $isOrderActive = request()->routeIs('order.*');
+            @endphp
+            <li class="side-nav-item {{ $isOrderActive ? 'active' : '' }}">
+                <a data-bs-toggle="collapse" href="#sidebarOrders"
+                    aria-expanded="{{ $isOrderActive ? 'true' : 'false' }}" aria-controls="sidebarOrders"
+                    class="side-nav-link">
                     <span class="menu-icon"><i class="ti ti-shopping-cart"></i></span>
                     <span class="menu-text">All Orders</span>
+                    <span class="menu-arrow"></span>
                 </a>
+                <div class="collapse {{ $isOrderActive ? 'show' : '' }}" id="sidebarOrders">
+                    <ul class="sub-menu">
+                        <li class="side-nav-item {{ request()->routeIs('order.index', 'order.show') ? 'active' : '' }}">
+                            <a href="{{ route('order.index') }}" class="side-nav-link">
+                                <span class="menu-text">Roam Orders</span>
+                            </a>
+                        </li>
+                        <li class="side-nav-item {{ request()->routeIs('order.joytel') ? 'active' : '' }}">
+                            <a href="{{ route('order.joytel') }}" class="side-nav-link">
+                                <span class="menu-text">Joytel Orders</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </li>
 
             <li class="side-nav-item {{ request()->routeIs('customer.*') ? 'active' : '' }}">
@@ -52,8 +72,9 @@
                 $isRegionActive = request()->is('region/*') && request()->routeIs('region.*');
             @endphp
             <li class="side-nav-item {{ $isJoyActive ? 'active' : '' }}">
-                <a data-bs-toggle="collapse" href="#sidebarjoytel" aria-expanded="{{ $isJoyActive ? 'ture' : 'false' }}"
-                    aria-controls="sidebarjoytel" class="side-nav-link">
+                <a data-bs-toggle="collapse" href="#sidebarjoytel"
+                    aria-expanded="{{ $isJoyActive ? 'ture' : 'false' }}" aria-controls="sidebarjoytel"
+                    class="side-nav-link">
                     <span class="menu-icon"><i class="ti ti-device-sim"></i></span>
                     <span class="menu-text">{{ $settings['joytel_title']->value ?? 'Joytel' }}</span>
                     <span class="menu-arrow"></span>
@@ -76,7 +97,7 @@
                             </a>
                         </li>
                         <li class="side-nav-item">
-                            <a href="#" class="side-nav-link">
+                            <a href="{{ route('joytelApiIndex') }}" class="side-nav-link">
                                 <span class="menu-text">API Credentials</span>
                             </a>
                         </li>

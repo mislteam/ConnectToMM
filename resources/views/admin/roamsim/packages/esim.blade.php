@@ -1,18 +1,44 @@
 @extends('admin.layouts.index')
 @section('title', 'Physical Sim')
 @section('content')
+    <style>
+        .roam-esim-page-title,
+        .roam-esim-breadcrumb-current {
+            color: #111827;
+        }
+
+        .roam-esim-breadcrumb-link {
+            color: #4b5563;
+        }
+
+        .roam-esim-breadcrumb-link:hover {
+            color: #1f2937;
+        }
+
+        html[data-bs-theme="dark"] .roam-esim-page-title,
+        html[data-bs-theme="dark"] .roam-esim-breadcrumb-current {
+            color: #e5edf9;
+        }
+
+        html[data-bs-theme="dark"] .roam-esim-breadcrumb-link {
+            color: #9fb1cc;
+        }
+
+        html[data-bs-theme="dark"] .roam-esim-breadcrumb-link:hover {
+            color: #dbe7ff;
+        }
+    </style>
     @include('components.alert')
     <div class="container-fluid">
         <div class="page-title-head d-flex align-items-center">
             <div class="flex-grow-1 py-3">
-                <h4 class="fs-sm fw-bold m-0 text-black">{{ $settings['roam_title']->value ?? 'Roam' }}</h4>
+                <h4 class="fs-sm fw-bold m-0 roam-esim-page-title">{{ $settings['roam_title']->value ?? 'Roam' }}</h4>
                 <ol class="breadcrumb m-0 py-0">
-                    <li class="breadcrumb-item"><a href="javascript: void(0);">Home</a></li>
-                    <li class="breadcrumb-item active text-black">{{ $settings['roam_title']->value ?? 'Roam' }} - Esim</li>
+                    <li class="breadcrumb-item"><a href="javascript: void(0);" class="roam-esim-breadcrumb-link">Home</a></li>
+                    <li class="breadcrumb-item active roam-esim-breadcrumb-current">{{ $settings['roam_title']->value ?? 'Roam' }} - Esim</li>
                 </ol>
             </div>
         </div>
-
         <div class="row">
             <div class="col-12">
                 <div data-table data-table-rows-per-page="8" class="card">
@@ -108,9 +134,9 @@
                                                 <a href="{{ route('roamEsimEdit', ['skuid' => $pkg['sku_id']]) }}"
                                                     class="btn btn-light btn-icon btn-sm rounded-circle"><i
                                                         class="ti ti-edit fs-lg"></i></a>
-                                                <a href="#" data-table-delete-row
+                                                {{-- <a href="#" data-table-delete-row
                                                     class="btn btn-light btn-icon btn-sm rounded-circle"><i
-                                                        class="ti ti-trash fs-lg"></i></a>
+                                                        class="ti ti-trash fs-lg"></i></a> --}}
                                             </div>
                                         </td>
                                     </tr>
@@ -140,6 +166,9 @@
                                             aria-label="Close"></button>
                                     </div>
                                     <div class="modal-body">
+                                        <h4 class="modal-title">
+                                            <span>{{ $pkg->country_name }}</span>
+                                        </h4>
                                         <div class="mt-2">
                                             <form action="{{ route('pricelist.store') }}" method="POST">
                                                 @csrf
@@ -285,6 +314,9 @@
                                             aria-label="Close"></button>
                                     </div>
                                     <div class="modal-body">
+                                        <h4 class="modal-title">
+                                            <span>{{ $pkg->country_name }}</span>
+                                        </h4>
                                         <div class="table-responsive mt-2">
                                             <table class="table table-bordered table-nowrap text-center align-middle">
                                                 <thead class="bg-light align-middle bg-opacity-25 thead-sm">

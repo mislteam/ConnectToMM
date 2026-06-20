@@ -93,13 +93,18 @@ Route::middleware('auth:customers')->group(function () {
         Route::get('/physical/checkout', [PhysicalSimController::class, 'checkout'])->name('roam.physical.checkout');
         Route::patch('/physical/cart/{key}', [PhysicalSimController::class, 'updateCartQuantity'])->name('roam.physical.cart.update');
         Route::delete('/physical/remove-cart/{key}', [PhysicalSimController::class, 'removeCart']);
+
+        // place order + payment
+        Route::post('/place-order', [\App\Http\Controllers\Frontend\RoamCheckoutController::class, 'placeOrder'])->name('roam.place-order');
+        Route::get('/payment/{outerOrderId}', [\App\Http\Controllers\Frontend\RoamCheckoutController::class, 'showPayment'])->name('roam.payment.show');
+        Route::post('/payment/{outerOrderId}/upload-slip', [\App\Http\Controllers\Frontend\RoamCheckoutController::class, 'uploadPaymentSlip'])->name('roam.payment.upload-slip');
     });
 
     Route::get('/customer/profile', [HomeController::class, 'customerProfile'])->name('customer.profile.index');
     Route::post('/customer/profile/edit/{customer}/{edit_type}', [HomeController::class, 'customerEdit'])->name('frontend.customer.edit');
 
-    // order detail page
-    Route::get('/customer/order-detail', [HomeController::class, 'orderDetail'])->name('customer.order.detail');
+    // Roam order detail page
+    Route::get('/customer/roam-order-detail/{outerOrderId?}', [HomeController::class, 'roamOrderDetail'])->name('customer.roam.order.detail');
 });
 
 // e-sim
@@ -122,8 +127,12 @@ Route::prefix("joytel")->group(function () {
     Route::get("/esim/search", [FrontendJoytelController::class, "esimIndex"])->name("esimIndex"); // search page
     Route::get("/esim/packages", [FrontendJoytelController::class, "esimSearch"])->name("esim.search"); // search and show packages
 
-    Route::get("/package/{joytel}", [FrontendJoytelController::class, "packageView"])->name("joytel.packageview"); // show each package
+    // Route::get("/package/{joytel}", [FrontendJoytelController::class, "packageView"])->name("joytel.packageview"); // show each package
+    Route::get('/joytel/esim/package/{id}', [FrontendJoytelController::class, 'esimPackageView'])
+    ->name('joytel.esim.packageview');
 
+    Route::get('/joytel/physical/package/{id}', [FrontendJoytelController::class, 'physicalPackageView'])
+    ->name('joytel.physical.packageview');
     // physical
     Route::get('/physical-sim/search', [FrontendJoytelController::class, 'physicalIndex'])->name('physicalIndex');
     Route::get("/physical-sim/packages", [FrontendJoytelController::class, "physicalSearch"])->name("physical.search"); // search and show packages
@@ -144,6 +153,11 @@ Route::middleware(['auth'])->group(function () {
 
     // order
     Route::get('/all-orders', [OrderController::class, 'index'])->name('order.index');
+    Route::get('/all-orders/joytel', [OrderController::class, 'joytelIndex'])->name('order.joytel');
+    Route::get('/all-orders/{reference}/detail', [OrderController::class, 'show'])->name('order.show');
+    Route::post('/all-orders/{roamOrder}/approve-payment', [OrderController::class, 'approvePayment'])->name('order.approve-payment');
+    Route::post('/all-orders/{roamOrder}/retry-roam-api', [OrderController::class, 'retryRoamApi'])->name('order.retry-roam-api');
+    Route::post('/all-orders/{roamOrder}/refund', [OrderController::class, 'refund'])->name('order.refund');
 
     // All Admin Users
     Route::get('/show', [AdminController::class, 'index'])->name('show.admin');
@@ -240,6 +254,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/esim-edit/{esim}', [JoytelController::class, 'esimEdit'])->name('esim.edit');
         Route::patch('/esim-update/{esim}', [JoytelController::class, 'updateEsim'])->name('esim.update');
 
+        Route::get('/joytel-api', [JoytelController::class, 'Apiindex'])->name('joytelApiIndex');
+        Route::patch('/joytel-api/update', [JoytelController::class, 'updateApi'])->name('joytel-api.update');
+        
         // status + manage price
         Route::post('/update-code-status', [JoytelController::class, 'updateCodeStatus'])->name('update.code.status');
         Route::post('/update-price', [JoytelController::class, 'updateExchangeRate'])->name('update.price');

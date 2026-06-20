@@ -1,8 +1,34 @@
 @extends('admin.layouts.index')
-@section('title', 'Joytel eSim')
+@section('title', 'Joytel Physical')
 <style>
     th.t-head {
         min-width: 200px;
+    }
+
+    .joytel-physical-edit-page-title,
+    .joytel-physical-edit-breadcrumb-current {
+        color: #111827;
+    }
+
+    .joytel-physical-edit-breadcrumb-link {
+        color: #4b5563;
+    }
+
+    .joytel-physical-edit-breadcrumb-link:hover {
+        color: #1f2937;
+    }
+
+    html[data-bs-theme="dark"] .joytel-physical-edit-page-title,
+    html[data-bs-theme="dark"] .joytel-physical-edit-breadcrumb-current {
+        color: #e5edf9;
+    }
+
+    html[data-bs-theme="dark"] .joytel-physical-edit-breadcrumb-link {
+        color: #9fb1cc;
+    }
+
+    html[data-bs-theme="dark"] .joytel-physical-edit-breadcrumb-link:hover {
+        color: #dbe7ff;
     }
 
     .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__choice {
@@ -17,11 +43,12 @@
     <div class="container-fluid">
         <div class="page-title-head d-flex align-items-center">
             <div class="flex-grow-1 py-3">
-                <h4 class="fs-sm fw-bold m-0 text-black">{{ $settings['joytel_title']->value ?? 'Joytel' }}</h4>
+                <h4 class="fs-sm fw-bold m-0 joytel-physical-edit-page-title">{{ $settings['joytel_title']->value ?? 'Joytel' }}</h4>
                 <ol class="breadcrumb m-0 py-0">
-                    <li class="breadcrumb-item"><a href="javascript: void(0);">Home</a></li>
+                    <li class="breadcrumb-item"><a href="javascript: void(0);"
+                            class="joytel-physical-edit-breadcrumb-link">Home</a></li>
 
-                    <li class="breadcrumb-item active text-black">Edit Product</li>
+                    <li class="breadcrumb-item active joytel-physical-edit-breadcrumb-current">Edit Product</li>
                 </ol>
             </div>
             <div class="d-flex gap-2 justify-content-end">
@@ -39,57 +66,15 @@
                         <div class="card-header d-block p-3">
                             <h4 class="card-title mb-1">Product Information</h4>
                         </div>
-
                         <div class="card-body">
                             <div class="row">
-
                                 <div class="col-12">
                                     <div class="mb-3">
-                                        <label for="productName" class="form-label">Product Name <span
-                                                class="text-danger">*</span></label>
+                                        <label for="productName" class="form-label">Product Name </label>
                                         <input type="text" name="product_name" class="form-control" id="productName"
-                                            placeholder="Enter Product Name" required=""
-                                            value="{{ old('product_name', $recharge->product_name) }}">
+                                            placeholder="Enter Product Name"
+                                            value="{{ old('product_name', $recharge->product_name) }}" disabled>
                                         @error('product_name')
-                                            <small class="text-danger">{{ $message }}</small>
-                                        @enderror
-                                    </div>
-                                </div>
-
-                                <div class="col-12">
-                                    <div class="mb-3">
-                                        <label for="categoryName" class="form-label">Category Name <span
-                                                class="text-danger">*</span></label>
-                                        <input type="text" name="cat_name" class="form-control" id="categoryName"
-                                            placeholder="Enter Category Name" required="" readonly
-                                            value="{{ $recharge->category_name }}">
-                                        @error('cat_name')
-                                            <small class="text-danger">{{ $message }}</small>
-                                        @enderror
-                                    </div>
-                                </div>
-
-                                <div class="col-lg-6">
-                                    <div class="mb-3">
-                                        <label for="stockNumber" class="form-label">Supplier <span
-                                                class="text-danger">*</span></label>
-                                        <input type="text" name="supplier" class="form-control" id="stockNumber"
-                                            placeholder="Enter Suppliers" readonly
-                                            value="{{ old('supplier', $recharge->supplier) }}">
-                                        @error('supplier')
-                                            <small class="text-danger">{{ $message }}</small>
-                                        @enderror
-                                    </div>
-                                </div>
-
-                                <div class="col-lg-6">
-                                    <div class="mb-3">
-                                        <label for="stockNumber" class="form-label">Product Type <span
-                                                class="text-danger">*</span></label>
-                                        <input type="text" name="product_type" class="form-control" id="stockNumber"
-                                            placeholder="Enter Product Type(eg. Recharge)" readonly
-                                            value="{{ old('product_type', $recharge->product_type) }}">
-                                        @error('product_type')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
                                     </div>
@@ -102,29 +87,32 @@
                                                 <tr class="text-uppercase fs-xxs">
                                                     <th>#</th>
                                                     <th class="t-head text-start">Product Code</th>
-
                                                     <th class="t-head">Data</th>
                                                     <th class="t-head">Traffic Type</th>
                                                     <th class="t-head">Service Day</th>
-                                                    <th class="t-head">Network Type</th>
                                                     <th class="t-head">Price CNY</th>
-                                                    <th class="t-head">Remark</th>
-                                                    <th class="t-head">Expiration date</th>
-                                                    <th class="t-head">Description</th>
-                                                    <th>Action</th>
+                                                    <th class="t-head">Type</th>
+                                                    <th class="t-head">Product Description</th>
+                                                    <th class="t-head">Memo</th>
+                                                    <th class="t-head">Activation Type</th>
+                                                    <th class="t-head">Provider</th>
+                                                    <th class="t-head">Network Type</th>
+                                                    <th class="t-head">Hotspot</th>
+                                                    <th class="t-head">Recharge</th>
+
                                                 </tr>
                                             </thead>
                                             <tbody id="invoice-items">
-                                                @foreach ($recharge->plan as $key => $plan)
+
+                                                @foreach ($plans as $plan)
                                                     <tr>
                                                         <td class="row-id">{{ $loop->iteration }}</td>
                                                         <!-- sku -->
                                                         <td>
-                                                            <input type="text"
-                                                                name="rows[{{ $loop->iteration }}][product_code]"
-                                                                class="form-control data-input" data-field="product_code"
-                                                                placeholder="Enter SKU" readonly
-                                                                value="{{ $plan['product_code'] ?? '' }}">
+                                                            <input type="text" name="code"
+                                                                class="form-control data-input" data-field="code"
+                                                                placeholder="Enter SKU" value="{{ $plan['code'] ?? '' }}"
+                                                                readonly>
                                                             @error('product_code')
                                                                 <small class="text-danger">{{ $message }}</small>
                                                             @enderror
@@ -132,19 +120,16 @@
 
                                                         <td class="d-none">
                                                             <!-- code status -->
-                                                            <input type="hidden"
-                                                                name="rows[{{ $loop->iteration }}][code_status]"
-                                                                class="data-input" data-field="code_status" readonly
-                                                                value="{{ $plan['code_status'] ?? '' }}">
+                                                            <input type="hidden" name="row_status" class="data-input"
+                                                                data-field="status" value="{{ $plan['status'] ?? '' }}">
                                                         </td>
 
                                                         <!-- data -->
                                                         <td>
-                                                            <input type="text"
-                                                                name="rows[{{ $loop->iteration }}][data]"
+                                                            <input type="text" name="data"
                                                                 class="form-control data-input" data-field="data"
-                                                                placeholder="Enter Data" readonly
-                                                                value="{{ $plan['data'] ?? '' }}">
+                                                                data-field="data" placeholder="Enter Data"
+                                                                value="{{ $plan['data'] ?? '' }}" readonly>
                                                             @error('data')
                                                                 <small class="text-danger">{{ $message }}</small>
                                                             @enderror
@@ -152,18 +137,17 @@
                                                         <!-- traffic type -->
                                                         {{-- dynamic traffic type --}}
                                                         <td>
-                                                            <select class="form-select data-input"
-                                                                data-field="traffic_type"
-                                                                name="rows[{{ $loop->iteration }}][traffic_type]">
+                                                            <select class="form-select data-input" data-field="traffic_type"
+                                                                name="traffic_type" disabled>
                                                                 <option value="">Select Traffic Type</option>
                                                                 <option value="Daily Type"
-                                                                    {{ $plan['traffic_type'] == 'Daily Type' ? 'selected' : '' }}>
+                                                                    {{ $plan['traffic_type'] == 'daily' ? 'selected' : '' }}>
                                                                     Daily Type</option>
                                                                 <option value="Total Type"
-                                                                    {{ $plan['traffic_type'] == 'Total Type' ? 'selected' : '' }}>
+                                                                    {{ $plan['traffic_type'] == 'total' ? 'selected' : '' }}>
                                                                     Total Type</option>
                                                                 <option value="Unlimited Type"
-                                                                    {{ $plan['traffic_type'] == 'Unlimited Type' ? 'selected' : '' }}>
+                                                                    {{ $plan['traffic_type'] == 'unlimited' ? 'selected' : '' }}>
                                                                     Unlimited Type</option>
                                                             </select>
                                                             @error('traffic_type')
@@ -172,97 +156,94 @@
                                                         </td>
                                                         <!-- service day -->
                                                         <td>
-                                                            <input type="text"
-                                                                name="rows[{{ $loop->iteration }}][service_day]"
+                                                            <input type="text" name="service_day"
                                                                 class="form-control data-input" data-field="service_day"
-                                                                placeholder="Enter Service Day" readonly
-                                                                value="{{ $plan['service_day'] }}">
+                                                                placeholder="Enter Service Day"
+                                                                value="{{ $plan['service_day'] }}" readonly>
                                                             @error('service_day')
                                                                 <small class="text-danger">{{ $message }}</small>
                                                             @enderror
                                                         </td>
 
                                                         <td>
-                                                            <input type="text" class="form-control data-input"
-                                                                data-field="network_type" placeholder="Enter Network Type"
-                                                                name="rows[{{ $loop->iteration }}][network_type]" readonly
-                                                                value="{{ $plan['network_type'] ?? '' }}">
+                                                            <input type="number" class="form-control data-input"
+                                                                data-field="price" name="price" placeholder="Enter Amount"
+                                                                step="0.01" min="0"
+                                                                value="{{ (float) $plan['price'] }}" readonly>
+                                                            @error('price')
+                                                                <small class="text-danger">{{ $message }}</small>
+                                                            @enderror
                                                         </td>
 
                                                         <td>
-                                                            <input type="number" class="form-control data-input"
-                                                                data-field="price_cny"
-                                                                name="rows[{{ $loop->iteration }}][price_cny]"
-                                                                placeholder="Enter Amount" step="0.01" min="0"
-                                                                readonly value="{{ (float) $plan['price_cny'] }}">
-                                                            @error('price_cny')
-                                                                <small class="text-danger">{{ $message }}</small>
-                                                            @enderror
-                                                        </td>
-                                                        <td>
                                                             <input type="text" class="form-control data-input"
-                                                                data-field="remark"
-                                                                name="rows[{{ $loop->iteration }}][remark]"
+                                                                data-field="type" name="type"
                                                                 placeholder="Enter remark"
-                                                                value="{{ $plan['remark'] ?? '' }}">
-                                                            @error('remark')
+                                                                value="{{ $plan['type'] ?? '' }}" readonly>
+                                                            @error('type')
                                                                 <small class="text-danger">{{ $message }}</small>
                                                             @enderror
                                                         </td>
+
                                                         <td>
-                                                            <input type="date" class="form-control data-input"
-                                                                data-field="expiration_date"
-                                                                name="rows[{{ $loop->iteration }}][expiration_date]"
-                                                                placeholder="Enter Expiration Date" readonly
-                                                                value="{{ $plan['expiration_date'] ?? '' }}">
-                                                            @error('expiration_date')
+                                                            <input type="text" class="form-control data-input"
+                                                                data-field="product_description"
+                                                                name="product_description" placeholder="Enter Description"
+                                                                value="{{ $plan['product_description'] ?? '' }}" readonly>
+                                                            @error('product_description')
                                                                 <small class="text-danger">{{ $message }}</small>
                                                             @enderror
                                                         </td>
                                                         <td>
                                                             <input type="text" class="form-control data-input"
-                                                                data-field="description"
-                                                                name="rows[{{ $loop->iteration }}][description]"
-                                                                placeholder="Enter Description" readonly
-                                                                value="{{ $plan['description'] ?? '' }}">
-                                                            @error('description')
+                                                                data-field="memo" name="memo" placeholder="Enter Memo"
+                                                                value="{{ $plan['memo'] ?? '' }}" readonly>
+                                                            @error('memo')
                                                                 <small class="text-danger">{{ $message }}</small>
                                                             @enderror
                                                         </td>
                                                         <td>
-                                                            <button type="button" class="btn btn-sm btn-danger removeBtn"
-                                                                {{ $key === 0 ? 'disabled' : '' }}>×</button>
+                                                            <input type="text" class="form-control data-input"
+                                                                data-field="activation_type"
+                                                                placeholder="Enter Activation Type" name="activation_type"
+                                                                value="{{ $plan['activation_type'] ?? '' }}" readonly>
+                                                        </td>
+
+                                                        <td>
+                                                            <input type="text" class="form-control data-input"
+                                                                data-field="provider" placeholder="Enter provider"
+                                                                name="provider" value="{{ $plan['provider'] ?? '' }}"
+                                                                readonly>
+                                                        </td>
+
+                                                        <td>
+                                                            <input type="text" class="form-control data-input"
+                                                                data-field="network" placeholder="Enter Network Type"
+                                                                name="network" value="{{ $plan['network'] ?? '' }}"
+                                                                readonly>
+                                                        </td>
+                                                        <td>
+                                                            <input type="text" class="form-control data-input"
+                                                                data-field="hotspot" placeholder="Enter Network Type"
+                                                                name="hotspot" value="{{ $plan['hotspot'] ?? '' }}"
+                                                                readonly>
+                                                        </td>
+
+                                                        <td>
+                                                            <input type="text" class="form-control data-input"
+                                                                data-field="recharge" placeholder="Enter Network Type"
+                                                                name="recharge" value="{{ $plan['recharge'] ?? '' }}"
+                                                                readonly>
                                                         </td>
                                                     </tr>
                                                 @endforeach
 
                                             </tbody>
                                         </table>
-                                        <div class="mt-2 mb-4 d-flex gap-2 justify-content-start">
+                                        {{-- <div class="mt-2 mb-4 d-flex gap-2 justify-content-start">
                                             <button type="button" class="btn btn-primary text-end" id="addBtn"><i
                                                     class="ti ti-plus"></i> Add Item</button>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="col-12">
-                                    <div>
-                                        <label class="form-label">Activation Policy</label>
-                                        <textarea rows="3" name="activation_policy" class="form-control mb-2"
-                                            placeholder="Enter the Activation Policy">{{ old('activation_policy', $recharge->activation_policy) }}</textarea>
-                                        @error('activation_policy')
-                                            <small class="text-danger">{{ $message }}</small>
-                                        @enderror
-                                    </div>
-                                </div>
-
-                                <div class="col-12">
-                                    <div>
-                                        <label class="form-label">Delivery Time</label>
-                                        <textarea rows="3" name="del_time" class="form-control mb-2" placeholder="Enter the Delivery Time">{{ old('del_time', $recharge->delivery_time) }}</textarea>
-                                        @error('del_time')
-                                            <small class="text-danger">{{ $message }}</small>
-                                        @enderror
+                                        </div> --}}
                                     </div>
                                 </div>
 
@@ -286,8 +267,6 @@
                                                 data-filename="{{ basename($photo) }}">
                                         @endforeach
                                     @endif
-
-
 
                                     <div class="dropzone" id="myAwesomeDropzone" data-plugin="dropzone"
                                         data-previews-container="#file-previews"
@@ -340,65 +319,87 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- end file preview template -->
-                                </div>
+                                    <div class="col-12">
+                                        <div class="card mt-3">
+                                            <div class="card-header d-block p-3">
+                                                <h4 class="card-title mb-1">Organize</h4>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="mb-3">
+                                                    <label for="category" class="form-label">Region Name
+                                                        </laplan <div class="app-search">
+                                                        <select
+                                                            class="select2_design form-select form-control my-1 my-md-0"
+                                                            multiple="multiple" name="locations[]" disabled>
+                                                            @php
+                                                                $selectedCoverage = collect($recharge->coverage ?? [])
+                                                                    ->flatMap(function ($item) use ($coverages) {
+                                                                        $values = [$item];
 
-                            </div>
-                        </div> <!-- end card-body-->
-                    </div> <!-- end card-->
-                    <div class="card">
-                        <div class="card-header d-block p-3">
-                            <h4 class="card-title mb-1">Organize</h4>
-                        </div> <!-- end card-header -->
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label for="category" class="form-label">Region Name <span
-                                        class="text-danger">*</span></label>
+                                                                        if (!$coverages->contains($item)) {
+                                                                            $values[] = trim(
+                                                                                preg_replace(
+                                                                                    '/\s*\([^)]*\)$/',
+                                                                                    '',
+                                                                                    $item,
+                                                                                ),
+                                                                            );
+                                                                        }
 
-                                <div class="app-search">
-                                    <select class="select2_design form-select form-control my-1 my-md-0"
-                                        multiple="multiple" name="locations[]">
-                                        @foreach ($usage_locations as $location)
-                                            <option value="{{ $location }}"
-                                                {{ in_array($location, $recharge->usage_location) ? 'selected' : '' }}>
-                                                {{ $location }}</option>
-                                        @endforeach
-                                    </select>
-                                    {{-- <i data-lucide="grid" class="app-search-icon text-muted"></i> --}}
-                                    @error('locations[]')
-                                        <small class="text-danger">{{ $message }}</small>
-                                    @enderror
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <label for="statusOne" class="form-label">Status <span
-                                        class="text-danger">*</span></label>
-                                <div class="app-search">
-                                    <select class="form-select form-control my-1 my-md-0" id="statusOne" name="status">
-                                        <option>Choose Status</option>
-                                        <option value="1" {{ $recharge->status === 1 ? 'selected' : '' }}>Enable
-                                        </option>
-                                        <option value="0" {{ $recharge->status === 0 ? 'selected' : '' }}>Disable
-                                        </option>
-                                    </select>
-                                    <i data-lucide="toggle-left" class="app-search-icon text-muted"></i>
+                                                                        return $values;
+                                                                    })
+                                                                    ->unique()
+                                                                    ->toArray();
+                                                            @endphp
+
+                                                            @foreach ($coverages as $location)
+                                                                <option value="{{ $location }}"
+                                                                    {{ in_array($location, $selectedCoverage) ? 'selected' : '' }}>
+                                                                    {{ $location }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                        @error('locations[]')
+                                                            <small class="text-danger">{{ $message }}</small>
+                                                        @enderror
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="statusOne" class="form-label">Status <span
+                                                            class="text-danger">*</span></label>
+                                                    <div class="app-search">
+                                                        <select class="form-select form-control" id="statusOne"
+                                                            name="status" required>
+                                                            <option value="1"
+                                                                {{ $recharge->status === 1 ? 'selected' : '' }}>Enable
+                                                            </option>
+                                                            <option value="0"
+                                                                {{ $recharge->status === 0 ? 'selected' : '' }}>Disable
+                                                            </option>
+                                                        </select>
+                                                        <i data-lucide="toggle-left"
+                                                            class="app-search-icon text-muted"></i>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                    <div class="mt-2 mb-4 d-flex gap-2 justify-content-end">
+                                        <button type="submit" class="btn btn-primary">Update</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="mt-2 mb-4 d-flex gap-2 justify-content-end">
-                        <button type="submit" class="btn btn-primary">Update</button>
-                    </div>
                 </div>
             </div>
         </form>
-
     </div>
 @endsection
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Drop Zone
+        // Initialize Dropzone
         Dropzone.options.myAwesomeDropzone = {
             autoProcessQueue: false,
             acceptedFiles: 'image/*',
@@ -452,12 +453,13 @@
                             removedInput.value = input.value;
                             myDropzone.element.appendChild(removedInput);
 
+                            // Optionally hide or disable original input so validation passes
                             input.disabled = true;
                         }
                     }
                 });
 
-                // form
+                // Your existing form submit handler
                 form.addEventListener("submit", function(e) {
                     e.preventDefault();
                     const rows = [];
@@ -469,6 +471,7 @@
                         });
                         rows.push(rowData);
                     });
+                    console.log(rows);
 
                     const formData = new FormData(form);
                     formData.append('rows_json', JSON.stringify(rows));
@@ -506,7 +509,9 @@
                             return res.json();
                         })
                         .then(data => {
+                            // console.log(data);
                             if (data.success && data.redirect_url) {
+                                // console.log(data);
                                 window.location.href = data.redirect_url;
                             }
                         })
@@ -515,11 +520,10 @@
             }
 
         };
-
-
-        // clone
+        // Table clone functionality
         const tbody = document.getElementById('invoice-items');
         const addBtn = document.getElementById('addBtn');
+        document.querySelectorAll('.removeBtn').forEach(button => button.disabled = true);
 
         function updateIds() {
             const rows = tbody.querySelectorAll('tr');
@@ -536,17 +540,18 @@
             });
         }
 
-        addBtn.addEventListener('click', function() {
-            const firstRow = tbody.querySelector('tr');
-            const clone = firstRow.cloneNode(true);
-            clone.querySelectorAll('input, select').forEach(input => {
-                input.value = "";
-                input.removeAttribute('value');
-                input.removeAttribute('readonly');
+        if (addBtn) {
+            addBtn.addEventListener('click', function() {
+                const firstRow = tbody.querySelector('tr');
+                const clone = firstRow.cloneNode(true);
+                clone.querySelectorAll('input, select').forEach(input => {
+                    input.value = "";
+                    input.removeAttribute('value');
+                });
+                tbody.appendChild(clone);
+                updateIds();
             });
-            tbody.appendChild(clone);
-            updateIds();
-        });
+        }
 
         tbody.addEventListener('click', (e) => {
             if (e.target.classList.contains('removeBtn')) {

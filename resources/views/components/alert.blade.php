@@ -1,65 +1,66 @@
+<script src="{{ asset('assets/js/sweetalert/sweetalert2@11.js') }}"></script>
 <style>
-    .alert-fixed {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        z-index: 9999;
-        min-width: 250px;
+    #swal2-html-container {
+        font-size: 14px !important;
     }
 </style>
 
-@if (session('success'))
-    <div class="alert alert-success alert-dismissible fade show alert-fixed" role="alert" data-auto-dismiss="5000">
-        {{ session('success') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
+@if (session('success') || request()->get('saved'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                title: 'Success',
+                text: @json(session('success')),
+                icon: 'success',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#0049ad',
+                allowOutsideClick: false,
+                allowEscapeKey: true,
+            });
+        });
+    </script>
 @endif
 
 @if (session('error'))
-    <div class="alert alert-danger alert-dismissible fade show alert-fixed" role="alert" data-auto-dismiss="5000">
-        {{ session('error') }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-@endif
-
-@if ($errors->any())
-    <div class="alert alert-danger alert-dismissible fade show alert-fixed" role="alert" data-auto-dismiss="5000">
-        @foreach ($errors->all() as $error)
-            {{ $error }}
-        @endforeach
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close">
-        </button>
-    </div>
-@endif
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('[data-auto-dismiss]').forEach(function(alertEl) {
-            var timeout = parseInt(alertEl.getAttribute('data-auto-dismiss'), 10) || 5000;
-
-            window.setTimeout(function() {
-                if (!alertEl.isConnected) {
-                    return;
-                }
-
-                if (window.bootstrap && bootstrap.Alert) {
-                    bootstrap.Alert.getOrCreateInstance(alertEl).close();
-                    return;
-                }
-
-                alertEl.remove();
-            }, timeout);
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                title: 'Error',
+                text: @json(session('error')),
+                icon: 'error',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#0049ad',
+            });
         });
-    });
-</script>
+    </script>
+@endif
 
-<!-- @if ($errors->any())
-<div class="alert alert-danger alert-dismissible fade show alert-fixed" role="alert">
-        <ul class="mb-0">
-            @foreach ($errors->all() as $error)
-<li>{{ $error }}</li>
-@endforeach
-        </ul>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-    </div>
-@endif -->
+@if (session('error_popup_html'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                title: 'Error',
+                html: @json(session('error_popup_html')),
+                icon: 'error',
+                showCloseButton: true,
+                closeButtonAriaLabel: 'Close',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#0049ad',
+            });
+        });
+    </script>
+@endif
+
+@if ($errors->any() && !session('error_popup_html'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                title: 'Validation Error',
+                html: @json(implode('<br>', $errors->all())),
+                icon: 'error',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#0049ad',
+            });
+        });
+    </script>
+@endif

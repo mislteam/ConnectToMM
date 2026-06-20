@@ -522,11 +522,6 @@
             </div>
         </div>
     </section>
-    <!-- jQuery first -->
-
-    <script src="{{ asset('assets/js/jquery-3.6.0.min.js') }}"></script>
-    <script src="{{ asset('assets/js/bootstrap.bundle.min.js') }}"></script>
-
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const hasValidPlans = @json($hasValidPlans);

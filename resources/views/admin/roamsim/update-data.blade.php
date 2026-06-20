@@ -10,6 +10,32 @@
 @section('content')
     @include('components.alert')
     <style>
+        .roam-update-page-title,
+        .roam-update-breadcrumb-current {
+            color: #111827;
+        }
+
+        .roam-update-breadcrumb-link {
+            color: #4b5563;
+        }
+
+        .roam-update-breadcrumb-link:hover {
+            color: #1f2937;
+        }
+
+        html[data-bs-theme="dark"] .roam-update-page-title,
+        html[data-bs-theme="dark"] .roam-update-breadcrumb-current {
+            color: #e5edf9;
+        }
+
+        html[data-bs-theme="dark"] .roam-update-breadcrumb-link {
+            color: #9fb1cc;
+        }
+
+        html[data-bs-theme="dark"] .roam-update-breadcrumb-link:hover {
+            color: #dbe7ff;
+        }
+
         #loadingOverlay {
             position: fixed;
             top: 0;
@@ -46,10 +72,10 @@
     <div class="container-fluid">
         <div class="page-title-head d-flex align-items-center">
             <div class="flex-grow-1 py-3">
-                <h4 class="fs-sm fw-bold m-0 text-black">Update Data</h4>
+                <h4 class="fs-sm fw-bold m-0 roam-update-page-title">Update Data</h4>
                 <ol class="breadcrumb m-0 py-0">
-                    <li class="breadcrumb-item"><a href="javascript: void(0);">Home</a></li>
-                    <li class="breadcrumb-item active text-black">Update Data</li>
+                    <li class="breadcrumb-item"><a href="javascript: void(0);" class="roam-update-breadcrumb-link">Home</a></li>
+                    <li class="breadcrumb-item active roam-update-breadcrumb-current">Update Data</li>
                 </ol>
             </div>
         </div>

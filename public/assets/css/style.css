@@ -317,6 +317,7 @@ p {
 .bannermain .bgshape {
     position: absolute;
     top: 0;
+    pointer-events: none;
 }
 
 .bannermain .banner h1 {
@@ -1108,6 +1109,7 @@ p {
 .sub-banner .banner-section .bgshape {
     position: absolute;
     top: 0;
+    pointer-events: none;
 }
 
 .sub-banner .banner-section .banner_content {
