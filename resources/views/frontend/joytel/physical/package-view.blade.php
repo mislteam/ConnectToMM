@@ -302,6 +302,26 @@
                     </div>
                     <div class="row">
                         <div class="col-lg-4 col-md-4 col-sm-12 col-12">
+                            <label class="font-weight-bold">Hotspot : </label>
+                        </div>
+                        <div class="col-lg-8 col-md-8 col-sm-12 col-12">
+                            <div class="content">
+                                <label class="text">{{ $joytel->hotspot }}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-4 col-md-4 col-sm-12 col-12">
+                            <label class="font-weight-bold">recharge : </label>
+                        </div>
+                        <div class="col-lg-8 col-md-8 col-sm-12 col-12">
+                            <div class="content">
+                                <label class="text">{{ $joytel->recharge }}</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-4 col-md-4 col-sm-12 col-12">
                             <label class="font-weight-bold">Coverage : </label>
                         </div>
                         <div class="col-lg-8 col-md-8 col-sm-12 col-12">
@@ -664,7 +684,7 @@
                             </div>
                             <input type="hidden" name="display_price" id="display_price" value>
                             <!-- Add to Cart -->
-                            <button type="submit" id="addToCartBtn" class="button_text">Add To
+                            <button type="submit" id="addToCartBtn" class="button_text" disabled>Add To
                                 Cart</button>
                         </form>
                     @else
@@ -677,6 +697,9 @@
             <div class="services-data">
                 <div class="row">
                     @foreach ($random_packages as $ran_package)
+                        @if ($loop->iteration > 3)
+                            @break
+                        @endif
                         @php
                             $lowest_price = App\Models\JoytelPhysical::where('product_name', $ran_package->product_name)
                                 ->where('status', 1)

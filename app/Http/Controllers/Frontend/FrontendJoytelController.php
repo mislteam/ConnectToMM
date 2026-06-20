@@ -54,6 +54,7 @@ class FrontendJoytelController extends Controller
         $section = Section::where('section_key', 'need_more_help')->first();
 
         $query = JoytelPhysical::whereRaw('LOWER(type) LIKE ?', ['%recharge%']);
+        
 
         $query->whereIn('product_name', function ($subquery) {
             $subquery->select('plan')
@@ -62,9 +63,12 @@ class FrontendJoytelController extends Controller
                 ->where('exchange_rate', '>', 0);
         });
 
+        
+
         $packages = $query->where('status', 1)
             ->get()
             ->unique('product_name');
+
 
         return view('frontend.joytel.physical.search', compact(
             'usage_locations',
@@ -230,7 +234,7 @@ class FrontendJoytelController extends Controller
             ->toArray();
 
         $random_packages = JoytelEsim::where('status', 1)
-            ->where('id', '!=', $joytel->id)
+            ->where('id', '!=', $joytel->product_name)
             ->whereIn('product_name', $validPlans)
             ->inRandomOrder()
             ->get()
@@ -282,7 +286,7 @@ class FrontendJoytelController extends Controller
             ->toArray();
 
         $random_packages = JoytelPhysical::where('status', 1)
-            ->where('id', '!=', $joytel->id)
+            ->where('id', '!=', $joytel->product_name)
             ->whereIn('product_name', $validPlans)
             ->inRandomOrder()
             ->get()
@@ -290,6 +294,7 @@ class FrontendJoytelController extends Controller
 
         $network_types = $packages->pluck('network')->unique();
 
+        
         $price_lists = PriceList::latest()->get();
 
         $joytel_type_label = 'Physical SIM';

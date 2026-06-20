@@ -267,9 +267,9 @@
                                                             <a href="{{ route('roamPhysicalEdit', ['skuid' => $pkg['sku_id']]) }}"
                                                                 class="btn btn-light btn-icon btn-sm rounded-circle"><i
                                                                     class="ti ti-edit fs-lg"></i></a>
-                                                            <a href="#" data-table-delete-row
+                                                            {{-- <a href="#" data-table-delete-row
                                                                 class="btn btn-light btn-icon btn-sm rounded-circle"><i
-                                                                    class="ti ti-trash fs-lg"></i></a>
+                                                                    class="ti ti-trash fs-lg"></i></a> --}}
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -303,6 +303,9 @@
                                             aria-label="Close"></button>
                                     </div>
                                     <div class="modal-body">
+                                        <h4 class="modal-title">
+                                            <span>{{ $pkg->country_name }}</span>
+                                        </h4>
                                         <div class="mt-2">
                                             <form action="{{ route('physicalpricelist.store') }}" method="POST">
                                                 @csrf
@@ -464,6 +467,9 @@
                                             aria-label="Close"></button>
                                     </div>
                                     <div class="modal-body">
+                                        <h4 class="modal-title">
+                                            <span>{{ $pkg->country_name }}</span>
+                                        </h4>
                                         <div class="table-responsive mt-2">
                                             <table class="table table-bordered table-nowrap text-center align-middle">
                                                 <thead class="bg-light align-middle bg-opacity-25 thead-sm">

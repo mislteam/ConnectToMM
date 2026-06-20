@@ -93,8 +93,11 @@
             </figure>
             <div class="services-data mt-4">
                 <div class="row">
-                    @foreach ($packages as $package)
-                        <div class="col-lg-4 col-md-4 col-sm-12 col-12">
+                    @php
+                        $packages = $packages->values();
+                    @endphp
+                    @foreach ($packages as $index => $package)
+                        <div class="col-lg-4 col-md-4 col-sm-12 col-12 package-item {{ $index >= 6 ? 'hidden' : '' }}">
                             <div class="service-box">
                                 <figure class="img img2 mb-3">
                                     @if ($package->photo === null || empty($package->photo))
@@ -138,6 +141,13 @@
                         </div>
                     @endforeach
                 </div>
+                @if ($packages->count() > 6)
+                    <div class="text-center mt-3">
+                        <button id="showAllBtn" class="btn btn-primary">
+                            Show All
+                        </button>
+                    </div>
+                @endif
             </div>
             <figure class="element2 mb-0">
                 <img src="{{ asset('assets/images/what-we-do-icon-2.png') }}" class="img-fluid" alt="">
@@ -146,4 +156,20 @@
     </section>
     <!-- need more help? -->
     <x-frontend.section-item :section="$section" />
+
+    <style>
+        .hidden {
+            display: none;
+        }
+    </style>
+    <script>
+        document.getElementById('showAllBtn')?.addEventListener('click', function() {
+
+            document.querySelectorAll('.package-item.hidden').forEach(function(item) {
+                item.classList.remove('hidden');
+            });
+
+            this.style.display = 'none';
+        });
+    </script>
 @endsection

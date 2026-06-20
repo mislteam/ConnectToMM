@@ -33,7 +33,7 @@
     @php
         $orderTabs = $orderTabs ?? [
             'new_esim' => ['label' => 'New eSIM'],
-            'recharge_esim' => ['label' => 'Recharge'],
+            // 'recharge_esim' => ['label' => 'Recharge'],
         ];
         $selectedSimType = $selectedSimType ?? 'new_esim';
     @endphp

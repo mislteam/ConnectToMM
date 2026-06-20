@@ -5,7 +5,7 @@
     }
 </style>
 
-@if (session('success'))
+@if (session('success') || request()->get('saved'))
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             Swal.fire({

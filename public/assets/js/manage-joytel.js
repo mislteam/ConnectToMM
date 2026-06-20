@@ -80,6 +80,12 @@ function getJoytelType(trigger) {
 if (manageStatusModal) {
     manageStatusModal.addEventListener('show.bs.modal', function (event) {
         currentStatusTrigger = event.relatedTarget;
+        const productName =
+            currentStatusTrigger?.getAttribute('data-product-name') || '';
+
+        document.getElementById('product-title').textContent =
+            productName;
+
         const planData = JSON.parse(currentStatusTrigger?.getAttribute('data-plan') || '[]');
         const joytelType = getJoytelType(currentStatusTrigger);
         const tbody = manageStatusModal.querySelector('#invoice-items');
@@ -97,7 +103,7 @@ if (manageStatusModal) {
             tr.innerHTML = `
                 <td>${index + 1}</td>
                 <td class="text-start"><label class="form-label">${productCode}</label></td>
-                <td class="text-start"><label class="form-label">${data}:${trafficType}:${serviceDay}</label></td>
+                <td class="text-start"><label class="form-label">${data}: ${trafficType.charAt(0).toUpperCase() + trafficType.slice(1)}: ${serviceDay}</label></td>
                 <td>
                     <div class="form-check form-switch form-check-secondary fs-xxl mb-2">
                         <input
@@ -179,6 +185,13 @@ if (manageStatusModal) {
 if (managePriceModal) {
     managePriceModal.addEventListener('show.bs.modal', function (event) {
         currentPriceTrigger = event.relatedTarget;
+
+        const productName =
+            currentPriceTrigger?.getAttribute('data-product-name') || '';
+
+        document.getElementById('product-name-title').textContent =
+            productName;
+
         const planData = JSON.parse(currentPriceTrigger?.getAttribute('data-plan') || '[]');
         const existingRates = mergeExistingRates(currentPriceTrigger);
         const joytelType = getJoytelType(currentPriceTrigger);
@@ -201,7 +214,7 @@ if (managePriceModal) {
             tr.innerHTML = `
                 <td>${index + 1}</td>
                 <td class="text-start">${productCode}</td>
-                <td>${data}: ${trafficType}: ${serviceDay}</td>
+                <td>${data}: ${trafficType.charAt(0).toUpperCase() + trafficType.slice(1)}: ${serviceDay}</td>
                 <td class="exchange-auto">${exchangeRateAuto.toLocaleString()}</td>
                 <td class="portal-price">${portalPrice}</td>
                 <td>

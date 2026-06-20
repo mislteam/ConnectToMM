@@ -2,12 +2,12 @@
 @section('title', 'Joytel Physical sim')
 @section('content')
     @include('components.alert')
-    @if (request()->get('saved'))
+    {{-- @if (request()->get('saved'))
         <div class="alert alert-success alert-dismissible fade show alert-fixed" role="alert">
             Saved successfully!
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-    @endif
+    @endif --}}
     <div class="container-fluid">
         <div class="page-title-head d-flex align-items-center">
             <div class="flex-grow-1 py-3">
@@ -246,6 +246,9 @@
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                 </div>
                                 <div class="modal-body">
+                                    <h4 class="modal-title">
+                                        <span id="product-name-title"></span>
+                                    </h4>
                                     <div class="mt-2">
                                         <table class="table table-bordered text-center align-middle"
                                             style="white-space: nowrap; min-width: 800px;">
@@ -288,6 +291,9 @@
                                         aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body">
+                                    <h4 class="modal-title">
+                                        <span id="product-title"></span>
+                                    </h4>
                                     <div class="table-responsive mt-2">
                                         <table class="table table-bordered table-nowrap text-center align-middle">
                                             <thead class="bg-light align-middle bg-opacity-25 thead-sm">
