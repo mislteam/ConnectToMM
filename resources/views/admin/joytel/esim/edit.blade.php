@@ -5,6 +5,32 @@
         min-width: 200px;
     }
 
+    .joytel-esim-edit-page-title,
+    .joytel-esim-edit-breadcrumb-current {
+        color: #111827;
+    }
+
+    .joytel-esim-edit-breadcrumb-link {
+        color: #4b5563;
+    }
+
+    .joytel-esim-edit-breadcrumb-link:hover {
+        color: #1f2937;
+    }
+
+    html[data-bs-theme="dark"] .joytel-esim-edit-page-title,
+    html[data-bs-theme="dark"] .joytel-esim-edit-breadcrumb-current {
+        color: #e5edf9;
+    }
+
+    html[data-bs-theme="dark"] .joytel-esim-edit-breadcrumb-link {
+        color: #9fb1cc;
+    }
+
+    html[data-bs-theme="dark"] .joytel-esim-edit-breadcrumb-link:hover {
+        color: #dbe7ff;
+    }
+
     .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__choice {
         color: #fff !important;
     }
@@ -17,11 +43,12 @@
     <div class="container-fluid">
         <div class="page-title-head d-flex align-items-center">
             <div class="flex-grow-1 py-3">
-                <h4 class="fs-sm fw-bold m-0 text-black">{{ $settings['joytel_title']->value ?? 'Joytel' }}</h4>
+                <h4 class="fs-sm fw-bold m-0 joytel-esim-edit-page-title">{{ $settings['joytel_title']->value ?? 'Joytel' }}</h4>
                 <ol class="breadcrumb m-0 py-0">
-                    <li class="breadcrumb-item"><a href="javascript: void(0);">Home</a></li>
+                    <li class="breadcrumb-item"><a href="javascript: void(0);"
+                            class="joytel-esim-edit-breadcrumb-link">Home</a></li>
 
-                    <li class="breadcrumb-item active text-black">Edit Product</li>
+                    <li class="breadcrumb-item active joytel-esim-edit-breadcrumb-current">Edit Product</li>
                 </ol>
             </div>
             <div class="d-flex gap-2 justify-content-end">

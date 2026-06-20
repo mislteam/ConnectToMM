@@ -1,6 +1,33 @@
 @extends('admin.layouts.index')
 @section('title', 'Joytel eSim')
 @section('content')
+    <style>
+        .joytel-esim-page-title,
+        .joytel-esim-breadcrumb-current {
+            color: #111827;
+        }
+
+        .joytel-esim-breadcrumb-link {
+            color: #4b5563;
+        }
+
+        .joytel-esim-breadcrumb-link:hover {
+            color: #1f2937;
+        }
+
+        html[data-bs-theme="dark"] .joytel-esim-page-title,
+        html[data-bs-theme="dark"] .joytel-esim-breadcrumb-current {
+            color: #e5edf9;
+        }
+
+        html[data-bs-theme="dark"] .joytel-esim-breadcrumb-link {
+            color: #9fb1cc;
+        }
+
+        html[data-bs-theme="dark"] .joytel-esim-breadcrumb-link:hover {
+            color: #dbe7ff;
+        }
+    </style>
     @include('components.alert')
     {{-- @if (request()->get('saved'))
         <div class="alert alert-success alert-dismissible fade show alert-fixed" role="alert">
@@ -11,10 +38,11 @@
     <div class="container-fluid">
         <div class="page-title-head d-flex align-items-center">
             <div class="flex-grow-1 py-3">
-                <h4 class="fs-sm fw-bold m-0 text-black">{{ $settings['joytel_title']->value ?? 'Joytel' }}</h4>
+                <h4 class="fs-sm fw-bold m-0 joytel-esim-page-title">{{ $settings['joytel_title']->value ?? 'Joytel' }}</h4>
                 <ol class="breadcrumb m-0 py-0">
-                    <li class="breadcrumb-item"><a href="javascript: void(0);">Home</a></li>
-                    <li class="breadcrumb-item active text-black">{{ $settings['joytel_title']->value ?? 'Joytel' }} - Esim
+                    <li class="breadcrumb-item"><a href="javascript: void(0);"
+                            class="joytel-esim-breadcrumb-link">Home</a></li>
+                    <li class="breadcrumb-item active joytel-esim-breadcrumb-current">{{ $settings['joytel_title']->value ?? 'Joytel' }} - Esim
                     </li>
                 </ol>
             </div>

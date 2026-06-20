@@ -100,49 +100,41 @@
     <script>
         (function() {
             var STORAGE_KEY = "c2mm-theme";
-            var CONFIG_KEY = "__INSPINIA_CONFIG__";
-
-            function currentTheme() {
-                return document.documentElement.getAttribute("data-bs-theme") === "dark" ? "dark" : "light";
-            }
-
-            function setTheme(theme, persist) {
-                var next = theme === "dark" ? "dark" : "light";
-                document.documentElement.setAttribute("data-bs-theme", next);
-
-                if (persist) {
-                    try {
-                        localStorage.setItem(STORAGE_KEY, next);
-                    } catch (e) {}
-                }
-
-                try {
-                    var raw = sessionStorage.getItem(CONFIG_KEY);
-                    var cfg = raw ? JSON.parse(raw) : {};
-                    cfg.theme = next;
-                    sessionStorage.setItem(CONFIG_KEY, JSON.stringify(cfg));
-                } catch (e) {}
-
-                var toggle = document.getElementById("themeToggleAdmin");
-                if (toggle) {
-                    toggle.setAttribute(
-                        "aria-label",
-                        next === "dark" ? "Switch to light mode" : "Switch to dark mode",
-                    );
-                }
-            }
 
             document.addEventListener("DOMContentLoaded", function() {
-                var toggle = document.getElementById("themeToggleAdmin");
+                var toggle = document.getElementById("light-dark-mode");
                 if (!toggle) {
                     return;
                 }
 
-                toggle.addEventListener("click", function() {
-                    setTheme(currentTheme() === "dark" ? "light" : "dark", true);
+                function syncThemeState() {
+                    var theme = document.documentElement.getAttribute("data-bs-theme") === "dark" ? "dark" : "light";
+
+                    toggle.setAttribute(
+                        "aria-label",
+                        theme === "dark" ? "Switch to light mode" : "Switch to dark mode",
+                    );
+
+                    try {
+                        localStorage.setItem(STORAGE_KEY, theme);
+                    } catch (e) {}
+                }
+
+                syncThemeState();
+
+                var observer = new MutationObserver(function(mutations) {
+                    for (var i = 0; i < mutations.length; i++) {
+                        if (mutations[i].attributeName === "data-bs-theme") {
+                            syncThemeState();
+                            break;
+                        }
+                    }
                 });
 
-                setTheme(currentTheme(), false);
+                observer.observe(document.documentElement, {
+                    attributes: true,
+                    attributeFilter: ["data-bs-theme"]
+                });
             });
         })();
     </script>

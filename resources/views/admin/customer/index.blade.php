@@ -1,14 +1,41 @@
 @extends('admin.layouts.index')
 @section('title', 'Customer')
 @section('content')
+    <style>
+        .customer-page-title,
+        .customer-breadcrumb-current {
+            color: #111827;
+        }
+
+        .customer-breadcrumb-link {
+            color: #4b5563;
+        }
+
+        .customer-breadcrumb-link:hover {
+            color: #1f2937;
+        }
+
+        html[data-bs-theme="dark"] .customer-page-title,
+        html[data-bs-theme="dark"] .customer-breadcrumb-current {
+            color: #e5edf9;
+        }
+
+        html[data-bs-theme="dark"] .customer-breadcrumb-link {
+            color: #9fb1cc;
+        }
+
+        html[data-bs-theme="dark"] .customer-breadcrumb-link:hover {
+            color: #dbe7ff;
+        }
+    </style>
     <div class="container-fluid">
         <div class="page-title-head d-flex align-items-center">
             <div class="flex-grow-1 py-3">
-                <h4 class="fs-sm fw-bold m-0 text-black">All Customer</h4>
+                <h4 class="fs-sm fw-bold m-0 customer-page-title">All Customer</h4>
                 <ol class="breadcrumb m-0 py-0">
-                    <li class="breadcrumb-item"><a href="javascript: void(0);">Home</a></li>
+                    <li class="breadcrumb-item"><a href="javascript: void(0);" class="customer-breadcrumb-link">Home</a></li>
 
-                    <li class="breadcrumb-item active text-black">Customer List</li>
+                    <li class="breadcrumb-item active customer-breadcrumb-current">Customer List</li>
                 </ol>
             </div>
         </div>

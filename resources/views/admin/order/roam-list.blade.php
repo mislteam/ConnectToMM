@@ -162,7 +162,7 @@
                             </div>
                             <h3 class="mb-0">{{ number_format((int) ($stats['completed'] ?? 0)) }}</h3>
                         </div>
-                        <p class="mb-0">Completed Orders <span class="float-end badge badge-soft-success">Roam</span></p>
+                        <p class="mb-0">Completed Orders</p>
                     </div>
                 </div>
             </div>
@@ -178,7 +178,7 @@
                             </div>
                             <h3 class="mb-0">{{ number_format((int) ($stats['pending_payment'] ?? 0)) }}</h3>
                         </div>
-                        <p class="mb-0">Pending Payment <span class="float-end badge badge-soft-warning">Roam</span></p>
+                        <p class="mb-0">Pending Payment</p>
                     </div>
                 </div>
             </div>
@@ -194,7 +194,7 @@
                             </div>
                             <h3 class="mb-0">{{ number_format((int) ($stats['cancelled'] ?? 0)) }}</h3>
                         </div>
-                        <p class="mb-0">Canceled Orders <span class="float-end badge badge-soft-danger">Roam</span></p>
+                        <p class="mb-0">Canceled Orders</p>
                     </div>
                 </div>
             </div>
@@ -210,7 +210,7 @@
                             </div>
                             <h3 class="mb-0">{{ number_format((int) ($stats['new'] ?? 0)) }}</h3>
                         </div>
-                        <p class="mb-0">Order Started <span class="float-end badge badge-soft-info">Roam</span></p>
+                        <p class="mb-0">Order Started</p>
                     </div>
                 </div>
             </div>
@@ -226,7 +226,7 @@
                             </div>
                             <h3 class="mb-0">{{ number_format((int) ($stats['failed'] ?? 0)) }}</h3>
                         </div>
-                        <p class="mb-0">Failed Orders <span class="float-end badge badge-soft-primary">Roam</span></p>
+                        <p class="mb-0">Failed Orders</p>
                     </div>
                 </div>
             </div>

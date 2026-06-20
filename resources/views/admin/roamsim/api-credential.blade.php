@@ -1,15 +1,43 @@
 @extends('admin.layouts.index')
 @section('title', 'All Admin')
 @section('content')
+    <style>
+        .roam-api-page-title,
+        .roam-api-breadcrumb-current {
+            color: #111827;
+        }
+
+        .roam-api-breadcrumb-link {
+            color: #4b5563;
+        }
+
+        .roam-api-breadcrumb-link:hover {
+            color: #1f2937;
+        }
+
+        html[data-bs-theme="dark"] .roam-api-page-title,
+        html[data-bs-theme="dark"] .roam-api-breadcrumb-current,
+        html[data-bs-theme="dark"] .roam-api-card-title {
+            color: #e5edf9 !important;
+        }
+
+        html[data-bs-theme="dark"] .roam-api-breadcrumb-link {
+            color: #9fb1cc;
+        }
+
+        html[data-bs-theme="dark"] .roam-api-breadcrumb-link:hover {
+            color: #dbe7ff;
+        }
+    </style>
     @include('components.alert')
     <div class="container-fluid">
         <div class="page-title-head d-flex align-items-center">
             <div class="flex-grow-1 py-3">
-                <h4 class="fs-sm fw-bold m-0 text-black">{{ $settings['roam_title']->value ?? 'Roam' }} API Credentials</h4>
+                <h4 class="fs-sm fw-bold m-0 roam-api-page-title">{{ $settings['roam_title']->value ?? 'Roam' }} API Credentials</h4>
                 <ol class="breadcrumb m-0 py-0">
-                    <li class="breadcrumb-item"><a href="javascript: void(0);">Home</a></li>
+                    <li class="breadcrumb-item"><a href="javascript: void(0);" class="roam-api-breadcrumb-link">Home</a></li>
 
-                    <li class="breadcrumb-item active text-black">{{ $settings['roam_title']->value ?? 'Roam' }} API
+                    <li class="breadcrumb-item active roam-api-breadcrumb-current">{{ $settings['roam_title']->value ?? 'Roam' }} API
                         Credentials</li>
                 </ol>
             </div>
@@ -18,7 +46,7 @@
             <div class="col-12">
                 <div class="card card-h-100 rounded-0 rounded-start">
                     <div class="card-header align-items-start">
-                        <h3 class="mb-1 d-flex fs-xl align-items-center fw-semibold text-black">API Credentials</h3>
+                        <h3 class="mb-1 d-flex fs-xl align-items-center fw-semibold text-black roam-api-card-title">API Credentials</h3>
                     </div>
                     <form method="POST" action="{{ route('roam-api.store') }}">
                         @csrf

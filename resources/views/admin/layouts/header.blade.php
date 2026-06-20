@@ -176,10 +176,10 @@
 
             <!-- Theme Toggle -->
             <div class="topbar-item">
-                <button type="button" class="topbar-link px-2 c2mm-theme-toggle" id="themeToggleAdmin"
+                <button type="button" class="topbar-link px-2" id="light-dark-mode"
                     aria-label="Toggle dark mode" title="Toggle theme">
-                    <i data-lucide="moon" class="fs-xxl c2mm-theme-icon-dark" aria-hidden="true"></i>
-                    <i data-lucide="sun" class="fs-xxl c2mm-theme-icon-light" aria-hidden="true"></i>
+                    <i data-lucide="moon" class="fs-xxl mode-light-moon" aria-hidden="true"></i>
+                    <i data-lucide="sun" class="fs-xxl mode-light-sun" aria-hidden="true"></i>
                 </button>
             </div>
 

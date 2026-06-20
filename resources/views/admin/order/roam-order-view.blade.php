@@ -6,6 +6,19 @@
             color: #1f2937;
         }
 
+        .order-detail-page-title,
+        .order-detail-breadcrumb-current {
+            color: #111827;
+        }
+
+        .order-detail-breadcrumb-link {
+            color: #4b5563;
+        }
+
+        .order-detail-breadcrumb-link:hover {
+            color: #1f2937;
+        }
+
         .order-detail-shell {
             display: grid;
             gap: 1.5rem;
@@ -292,6 +305,135 @@
             transform: translateY(-1px);
         }
 
+        html[data-bs-theme="dark"] .order-detail-page {
+            color: #d6e0f0;
+        }
+
+        html[data-bs-theme="dark"] .order-detail-page-title,
+        html[data-bs-theme="dark"] .order-detail-breadcrumb-current {
+            color: #e8eef9;
+        }
+
+        html[data-bs-theme="dark"] .order-detail-breadcrumb-link {
+            color: #9fb1cc;
+        }
+
+        html[data-bs-theme="dark"] .order-detail-breadcrumb-link:hover {
+            color: #dce7f8;
+        }
+
+        html[data-bs-theme="dark"] .order-detail-card,
+        html[data-bs-theme="dark"] .order-meta-panel,
+        html[data-bs-theme="dark"] .order-action-block {
+            background: #252935;
+            border-color: #394051;
+            box-shadow: 0 16px 32px rgba(2, 6, 23, 0.24);
+        }
+
+        html[data-bs-theme="dark"] .order-detail-card-header {
+            background: #2b3040;
+            border-bottom-color: #394051;
+        }
+
+        html[data-bs-theme="dark"] .order-detail-title,
+        html[data-bs-theme="dark"] .order-meta-heading,
+        html[data-bs-theme="dark"] .order-action-section-title,
+        html[data-bs-theme="dark"] .order-action-block h6,
+        html[data-bs-theme="dark"] .order-item-name,
+        html[data-bs-theme="dark"] .order-summary-row strong,
+        html[data-bs-theme="dark"] .table.order-item-table tbody td {
+            color: #f3f7ff;
+        }
+
+        html[data-bs-theme="dark"] .order-meta-label,
+        html[data-bs-theme="dark"] .order-action-caption,
+        html[data-bs-theme="dark"] .order-item-subtext,
+        html[data-bs-theme="dark"] .order-summary-row span,
+        html[data-bs-theme="dark"] .text-muted,
+        html[data-bs-theme="dark"] .small.text-muted {
+            color: #9fb1cc !important;
+        }
+
+        html[data-bs-theme="dark"] .order-meta-value,
+        html[data-bs-theme="dark"] .order-item-list span,
+        html[data-bs-theme="dark"] .order-item-list a {
+            color: #dbe7f8;
+        }
+
+        html[data-bs-theme="dark"] .order-meta-value a,
+        html[data-bs-theme="dark"] .order-item-list a {
+            color: #7dd3fc;
+        }
+
+        html[data-bs-theme="dark"] .order-meta-value a:hover,
+        html[data-bs-theme="dark"] .order-item-list a:hover {
+            color: #bae6fd;
+        }
+
+        html[data-bs-theme="dark"] .table.order-item-table,
+        html[data-bs-theme="dark"] .table.order-item-table tbody,
+        html[data-bs-theme="dark"] .table.order-item-table tbody tr,
+        html[data-bs-theme="dark"] .table.order-item-table tbody td {
+            background: #252935;
+            border-color: #394051;
+        }
+
+        html[data-bs-theme="dark"] .table.order-item-table thead.bg-light {
+            background: #32394a !important;
+        }
+
+        html[data-bs-theme="dark"] .table.order-item-table thead th,
+        html[data-bs-theme="dark"] .table.order-item-table thead tr {
+            color: #9fb1cc;
+            border-color: #445066;
+        }
+
+        html[data-bs-theme="dark"] .table.order-item-table.table-hover tbody tr:hover > * {
+            background: #2d3444;
+            color: inherit;
+        }
+
+        html[data-bs-theme="dark"] .order-tag-warning {
+            background: rgba(245, 158, 11, 0.18);
+            color: #fbbf24;
+        }
+
+        html[data-bs-theme="dark"] .order-tag-success {
+            background: rgba(34, 197, 94, 0.16);
+            color: #4ade80;
+        }
+
+        html[data-bs-theme="dark"] .order-tag-danger {
+            background: rgba(239, 68, 68, 0.16);
+            color: #f87171;
+        }
+
+        html[data-bs-theme="dark"] .order-tag-info {
+            background: rgba(56, 189, 248, 0.16);
+            color: #7dd3fc;
+        }
+
+        html[data-bs-theme="dark"] .order-tag-primary {
+            background: rgba(96, 165, 250, 0.16);
+            color: #93c5fd;
+        }
+
+        html[data-bs-theme="dark"] .btn-secondary.order-action-btn-solid {
+            background: #4b5563;
+            border-color: #4b5563;
+        }
+
+        html[data-bs-theme="dark"] .btn-info.order-action-btn-solid {
+            background: #0891b2;
+            border-color: #0891b2;
+        }
+
+        html[data-bs-theme="dark"] .btn-warning.order-action-btn-solid {
+            background: #d97706;
+            border-color: #d97706;
+            color: #fff !important;
+        }
+
         @media (max-width: 1199.98px) {
             .order-detail-shell {
                 grid-template-columns: 1fr;
@@ -333,10 +475,11 @@
 
         <div class="page-title-head d-flex align-items-center">
             <div class="flex-grow-1 py-3">
-                <h4 class="fs-sm fw-bold m-0 text-black">Order Details</h4>
+                <h4 class="fs-sm fw-bold m-0 order-detail-page-title">Order Details</h4>
                 <ol class="breadcrumb m-0 py-0">
-                    <li class="breadcrumb-item"><a href="{{ route('order.index') }}">Orders</a></li>
-                    <li class="breadcrumb-item active text-black">{{ $summary['reference'] }}</li>
+                    <li class="breadcrumb-item"><a href="{{ route('order.index') }}"
+                            class="order-detail-breadcrumb-link">Orders</a></li>
+                    <li class="breadcrumb-item active order-detail-breadcrumb-current">{{ $summary['reference'] }}</li>
                 </ol>
             </div>
             <div class="py-3">
