@@ -2502,3 +2502,14 @@ label {
 [data-bs-theme="dark"] {
     --ins-btn-close-filter: invert(1) grayscale(100%) brightness(200%);
 }
+.content-description,
+.content-description * {
+    font-size: 16px !important;
+    font-family: "Oxygen", sans-serif !important;
+}
+
+.content-description ul,
+.content-description ol {
+    padding-left: 24px;
+    margin-bottom: 1rem;
+}

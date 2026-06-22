@@ -39,9 +39,7 @@
                                             {{ $im->link }}
                                         </td>
                                         <td class="text-right">
-                                            <a href="{{ route('footer.important.edit', $im->id) }}"
-                                                class="btn btn-light btn-icon btn-sm rounded-circle"><i
-                                                    class="ti ti-edit fs-lg"></i></a>
+                                            <x-action-button :url="route('footer.important.edit', $im->id)" permission="page.edit" icon="ti-edit" />
                                         </td>
                                     </tr>
                                 @endforeach

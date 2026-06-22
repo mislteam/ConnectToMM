@@ -3,7 +3,7 @@
       <div class="container-fluid">
           <div class="row">
               <div class="col-md-6 text-center text-md-start">
-                  Copyright © {{ date('Y') . ' ' . $title->value }}
+                  Copyright © {{ date('Y') . ' ' . $settings['title'] ? $settings['title']->value : '' }}
               </div>
               <div class="col-md-6">
                   <div class="text-md-end d-none d-md-block">

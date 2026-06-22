@@ -847,7 +847,7 @@
                                 id="file" name="file">
                             @if (auth()->user()->profile_image)
                                 <div class="mt-2">
-                                    <a class="text-primary" target="_blank"
+                                    <a class="text-primary text-break" target="_blank"
                                         href="{{ asset('storage/profile_images/' . auth()->user()->profile_image) }}">{{ asset('storage/profile_images/' . auth()->user()->profile_image) }}</a>
                                 </div>
                             @endif

@@ -14,7 +14,7 @@
                                             @php
                                                 $index = $loop->index;
                                             @endphp
-                                            <div class="accordion-card">
+                                            <div class="accordion-card" style="overflow-x:auto;">
                                                 <div class="card-header" id="heading{{ $index }}">
                                                     <a href="#" class="btn btn-link collapsed"
                                                         data-toggle="collapse"
@@ -25,9 +25,8 @@
                                                 </div>
                                                 <div id="collapse{{ $index }}" class="collapse"
                                                     aria-labelledby="heading{{ $index }}" data-parent>
-                                                    <div class="card-body">
-                                                        <p class="text-size-16 text-left mb-0 p-0">
-                                                            {{ $faq->description }}</p>
+                                                    <div class="card-body content-description">
+                                                        {!! $faq->description !!}
                                                     </div>
                                                 </div>
                                             </div>

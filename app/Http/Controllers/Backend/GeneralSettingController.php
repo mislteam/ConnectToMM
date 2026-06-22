@@ -18,10 +18,23 @@ class GeneralSettingController extends Controller
 
     public function edit($type)
     {
+        $orderTypes = null;
+        if ($type === "roam") {
+            $orderTypes = json_decode(
+                GeneralSetting::where('name', 'roam_order_types')->value('value'),
+                true
+            ) ?? [];
+        } else if ($type === "joytel") {
+            $orderTypes = json_decode(
+                GeneralSetting::where('name', 'joytel_order_types')->value('value'),
+                true
+            ) ?? [];
+        }
+
         $data = GeneralSetting::where('name', 'like', $type . '%')->get()->keyBy('name');
         $logo = GeneralSetting::where('type', 'file')->first();
         $title = GeneralSetting::where('type', 'string')->first();
-        return view('admin.setting.general.edit', compact('data', 'type', 'logo', 'title'));
+        return view('admin.setting.general.edit', compact('data', 'type', 'logo', 'title', 'orderTypes'));
     }
 
     public function update($type, Request $request)
@@ -74,6 +87,44 @@ class GeneralSettingController extends Controller
                 $image->value = $value ?? $image->value;
                 $image->save();
             }
+
+            $orderTypes = [];
+            if ($request->has($type . '_esim_new')) {
+                $orderTypes[] = 'esim_new';
+            }
+            if ($request->has($type . '_esim_recharge')) {
+                $orderTypes[] = 'esim_recharge';
+            }
+            if ($request->has($type . '_physical_new')) {
+                $orderTypes[] = 'physical_new';
+            }
+            if ($request->has($type . '_physical_recharge')) {
+                $orderTypes[] = 'physical_recharge';
+            }
+
+            $hasEsim = in_array('esim_new', $orderTypes) || in_array('esim_recharge', $orderTypes);
+
+            if (!$hasEsim) {
+                return back()
+                    ->withInput()
+                    ->with('error', 'At least one eSIM order type must be enabled.');
+            }
+
+            $hasPhysical =
+                in_array('physical_new', $orderTypes) ||
+                in_array('physical_recharge', $orderTypes);
+
+            if (!$hasPhysical) {
+                return back()
+                    ->withInput()
+                    ->with('error', 'At least one Physical order type must be enabled.');
+            }
+            $ordertype = GeneralSetting::firstOrNew([
+                'name' => $type . '_order_types'
+            ]);
+            $ordertype->value = json_encode($orderTypes);
+            $ordertype->type = 'string';
+            $ordertype->save();
         }
 
         return redirect()->route('generalIndex')->with('success', 'Update Successfully!');

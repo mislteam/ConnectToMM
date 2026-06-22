@@ -43,7 +43,8 @@
     <div class="container-fluid">
         <div class="page-title-head d-flex align-items-center">
             <div class="flex-grow-1 py-3">
-                <h4 class="fs-sm fw-bold m-0 joytel-esim-edit-page-title">{{ $settings['joytel_title']->value ?? 'Joytel' }}</h4>
+                <h4 class="fs-sm fw-bold m-0 joytel-esim-edit-page-title">{{ $settings['joytel_title']->value ?? 'Joytel' }}
+                </h4>
                 <ol class="breadcrumb m-0 py-0">
                     <li class="breadcrumb-item"><a href="javascript: void(0);"
                             class="joytel-esim-edit-breadcrumb-link">Home</a></li>
@@ -326,10 +327,12 @@
                                             <div class="card-body">
                                                 <div class="mb-3">
                                                     <label for="category" class="form-label">Region Name
-                                                        </laplan <div class="app-search">
+                                                    </label>
+                                                    <div class="app-search">
                                                         <select
                                                             class="select2_design form-select form-control my-1 my-md-0"
-                                                            multiple="multiple" name="locations[]" disabled>
+                                                            multiple="multiple" name="locations[]"
+                                                            data-placeholder="Choose Region" disabled>
                                                             @php
                                                                 $selectedCoverage = collect($esim->coverage ?? [])
                                                                     ->flatMap(function ($item) use ($coverages) {
@@ -363,36 +366,37 @@
                                                         @error('locations[]')
                                                             <small class="text-danger">{{ $message }}</small>
                                                         @enderror
-                                                </div>
-                                                <div class="mb-3">
-                                                    <label for="statusOne" class="form-label">Status <span
-                                                            class="text-danger">*</span></label>
-                                                    <div class="app-search">
-                                                        <select class="form-select form-control" id="statusOne"
-                                                            name="status" required>
-                                                            <option value="1"
-                                                                {{ $esim->status === 1 ? 'selected' : '' }}>Enable</option>
-                                                            <option value="0"
-                                                                {{ $esim->status === 0 ? 'selected' : '' }}>Disable
-                                                            </option>
-                                                        </select>
-                                                        <i data-lucide="toggle-left"
-                                                            class="app-search-icon text-muted"></i>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="statusOne" class="form-label">Status <span
+                                                                class="text-danger">*</span></label>
+                                                        <div class="app-search">
+                                                            <select class="form-select form-control" id="statusOne"
+                                                                name="status" required>
+                                                                <option value="1"
+                                                                    {{ $esim->status === 1 ? 'selected' : '' }}>Enable
+                                                                </option>
+                                                                <option value="0"
+                                                                    {{ $esim->status === 0 ? 'selected' : '' }}>Disable
+                                                                </option>
+                                                            </select>
+                                                            <i data-lucide="toggle-left"
+                                                                class="app-search-icon text-muted"></i>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
 
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="mt-2 mb-4 d-flex gap-2 justify-content-end">
-                                        <button type="submit" class="btn btn-primary">Update</button>
+                                        <div class="mt-2 mb-4 d-flex gap-2 justify-content-end">
+                                            <button type="submit" class="btn btn-primary">Update</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
         </form>
     </div>
 

@@ -34,9 +34,11 @@
             <div class="flex-grow-1 py-3">
                 <h4 class="fs-sm fw-bold m-0 roam-physical-page-title">{{ $settings['roam_title']->value ?? 'Roam' }}</h4>
                 <ol class="breadcrumb m-0 py-0">
-                    <li class="breadcrumb-item"><a href="javascript: void(0);" class="roam-physical-breadcrumb-link">Home</a></li>
+                    <li class="breadcrumb-item"><a href="javascript: void(0);" class="roam-physical-breadcrumb-link">Home</a>
+                    </li>
 
-                    <li class="breadcrumb-item active roam-physical-breadcrumb-current">{{ $settings['roam_title']->value ?? 'Roam' }} - Physical
+                    <li class="breadcrumb-item active roam-physical-breadcrumb-current">
+                        {{ $settings['roam_title']->value ?? 'Roam' }} - Physical
                         Sim</li>
                 </ol>
             </div>
@@ -138,29 +140,34 @@
                                                     </td>
                                                     <td>
                                                         <div class="d-flex justify-content-center gap-1">
-                                                            <div class="btn-group">
-                                                                <button type="button"
-                                                                    class="btn btn-light btn-icon btn-sm rounded-circle"
-                                                                    data-bs-toggle="dropdown" aria-expanded="false"> <i
-                                                                        class="ti ti-dots-vertical fs-lg"></i></button>
-                                                                <div class="dropdown-menu">
-                                                                    <!-- Dynamic modal target using SKU ID -->
-                                                                    <button type="button" class="dropdown-item"
-                                                                        data-bs-toggle="modal"
-                                                                        data-bs-target="#manage-price-{{ $pkg->sku_id }}">
-                                                                        <i class="ti ti-currency-dollar fs-lg"></i>
-                                                                        Manage Price
-                                                                    </button>
-                                                                    <button type="button" class="dropdown-item"
-                                                                        data-bs-toggle="modal"
-                                                                        data-bs-target="#manage-status-{{ $pkg->sku_id }}">
-                                                                        <i class="ti ti-box fs-lg"></i> Manage Status
-                                                                    </button>
+                                                            @can('roam.physical.edit')
+                                                                <div class="btn-group">
+                                                                    <button type="button"
+                                                                        class="btn btn-light btn-icon btn-sm rounded-circle"
+                                                                        data-bs-toggle="dropdown" aria-expanded="false"> <i
+                                                                            class="ti ti-dots-vertical fs-lg"></i></button>
+                                                                    <div class="dropdown-menu">
+                                                                        <!-- Dynamic modal target using SKU ID -->
+                                                                        <button type="button" class="dropdown-item"
+                                                                            data-bs-toggle="modal"
+                                                                            data-bs-target="#manage-price-{{ $pkg->sku_id }}">
+                                                                            <i class="ti ti-currency-dollar fs-lg"></i>
+                                                                            Manage Price
+                                                                        </button>
+                                                                        <button type="button" class="dropdown-item"
+                                                                            data-bs-toggle="modal"
+                                                                            data-bs-target="#manage-status-{{ $pkg->sku_id }}">
+                                                                            <i class="ti ti-box fs-lg"></i> Manage Status
+                                                                        </button>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                            <a href="{{ route('roamPhysicalEdit', ['skuid' => $pkg['sku_id']]) }}"
-                                                                class="btn btn-light btn-icon btn-sm rounded-circle"><i
-                                                                    class="ti ti-edit fs-lg"></i></a>
+                                                            @endcan
+
+                                                            <x-action-button :url="route('roamPhysicalEdit', [
+                                                                'skuid' => $pkg['sku_id'],
+                                                            ])"
+                                                                permission="roam.physical.edit" icon="ti-edit" />
+
                                                             <a href="#" data-table-delete-row
                                                                 class="btn btn-light btn-icon btn-sm rounded-circle"><i
                                                                     class="ti ti-trash fs-lg"></i></a>
@@ -271,24 +278,26 @@
                                                     </td>
                                                     <td>
                                                         <div class="d-flex justify-content-center gap-1">
-                                                            <div class="btn-group">
-                                                                <button type="button"
-                                                                    class="btn btn-light btn-icon btn-sm rounded-circle"
-                                                                    data-bs-toggle="dropdown" aria-expanded="false">
-                                                                    <i class="ti ti-dots-vertical fs-lg"></i></button>
-                                                                <div class="dropdown-menu">
-                                                                    <!-- Dynamic modal target using SKU ID -->
-                                                                    <button type="button" class="dropdown-item"
-                                                                        data-bs-toggle="modal"
-                                                                        data-bs-target="#manage-price-{{ $pkg->sku_id }}">
-                                                                        <i class="ti ti-currency-dollar fs-lg"></i>
-                                                                        Manage Price
-                                                                    </button>
-                                                                    <button type="button" class="dropdown-item"
-                                                                        data-bs-toggle="modal"
-                                                                        data-bs-target="#manage-status-{{ $pkg->sku_id }}">
-                                                                        <i class="ti ti-box fs-lg"></i> Manage Status
-                                                                    </button>
+                                                            @can('roam.physical.edit')
+                                                                <div class="btn-group">
+                                                                    <button type="button"
+                                                                        class="btn btn-light btn-icon btn-sm rounded-circle"
+                                                                        data-bs-toggle="dropdown" aria-expanded="false">
+                                                                        <i class="ti ti-dots-vertical fs-lg"></i></button>
+                                                                    <div class="dropdown-menu">
+                                                                        <!-- Dynamic modal target using SKU ID -->
+                                                                        <button type="button" class="dropdown-item"
+                                                                            data-bs-toggle="modal"
+                                                                            data-bs-target="#manage-price-{{ $pkg->sku_id }}">
+                                                                            <i class="ti ti-currency-dollar fs-lg"></i>
+                                                                            Manage Price
+                                                                        </button>
+                                                                        <button type="button" class="dropdown-item"
+                                                                            data-bs-toggle="modal"
+                                                                            data-bs-target="#manage-status-{{ $pkg->sku_id }}">
+                                                                            <i class="ti ti-box fs-lg"></i> Manage Status
+                                                                        </button>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                             <a href="{{ route('roamPhysicalEdit', ['skuid' => $pkg['sku_id']]) }}"
@@ -297,11 +306,11 @@
                                                             {{-- <a href="#" data-table-delete-row
                                                                 class="btn btn-light btn-icon btn-sm rounded-circle"><i
                                                                     class="ti ti-trash fs-lg"></i></a> --}}
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
+                                    </div>
+                                    </td>
+                                    </tr>
+                                    @endforeach
+                                    </tbody>
                                     </table>
 
                                 </div>
@@ -418,11 +427,9 @@
                                                                             Fixed : {{ $plan['days'] }} days
                                                                         @endif
                                                                     </td>
-                                                                    <td><label
-                                                                            class="form-label">{{ $exchange_rate }}</label>
+                                                                    <td><label class="form-label">{{ $exchange_rate }}</label>
                                                                     </td>
-                                                                    <td><label
-                                                                            class="form-label">{{ $portal_price }}</label>
+                                                                    <td><label class="form-label">{{ $portal_price }}</label>
                                                                     </td>
                                                                     <td>
                                                                         <input type="number"
@@ -547,13 +554,11 @@
                                                                         <input type="hidden" name="index"
                                                                             value="{{ $index }}">
 
-                                                                        <input type="hidden" name="status"
-                                                                            value="0">
+                                                                        <input type="hidden" name="status" value="0">
                                                                         <div
                                                                             class="form-check form-switch form-check-secondary fs-xxl mb-2">
-                                                                            <input type="checkbox"
-                                                                                class="form-check-input" name="status"
-                                                                                value="1"
+                                                                            <input type="checkbox" class="form-check-input"
+                                                                                name="status" value="1"
                                                                                 onchange="this.form.submit()"
                                                                                 {{ ($plan['status'] ?? 0) == 1 ? 'checked' : '' }}>
                                                                             <label
@@ -589,9 +594,9 @@
             </div><!-- end col -->
         </div><!-- end row -->
 
-    </div>
+        </div>
 
-    {{-- <script>
+        {{-- <script>
         document.addEventListener("input", function(e) {
 
             if (!e.target.classList.contains("exchange-input")) return;
@@ -614,64 +619,64 @@
     </script> --}}
 
 
-    <script>
-        function formatNumber(num) {
-            return new Intl.NumberFormat().format(num);
-        }
+        <script>
+            function formatNumber(num) {
+                return new Intl.NumberFormat().format(num);
+            }
 
-        function updateRowCalculation(row) {
+            function updateRowCalculation(row) {
 
-            let rawValue = row.querySelector(".exchange-input")?.value;
-            let sellingRate = rawValue !== "" ? parseFloat(rawValue) : null;
+                let rawValue = row.querySelector(".exchange-input")?.value;
+                let sellingRate = rawValue !== "" ? parseFloat(rawValue) : null;
 
-            let portalPrice = parseFloat(row.querySelector(".portal-price")?.value) || 0;
-            let exchangeRate = parseFloat(row.querySelector(".base-exchange-rate")?.value) || 0;
+                let portalPrice = parseFloat(row.querySelector(".portal-price")?.value) || 0;
+                let exchangeRate = parseFloat(row.querySelector(".base-exchange-rate")?.value) || 0;
 
-            let total = 0;
-            let profit = 0;
+                let total = 0;
+                let profit = 0;
 
-            // TOTAL
-            let totalLabel = row.querySelector(".total-label");
-            if (totalLabel) {
-                if (sellingRate !== null && sellingRate > 0) {
-                    total = sellingRate * portalPrice;
-                    totalLabel.textContent = formatNumber(Math.round(total));
-                } else {
-                    totalLabel.textContent = "-";
+                // TOTAL
+                let totalLabel = row.querySelector(".total-label");
+                if (totalLabel) {
+                    if (sellingRate !== null && sellingRate > 0) {
+                        total = sellingRate * portalPrice;
+                        totalLabel.textContent = formatNumber(Math.round(total));
+                    } else {
+                        totalLabel.textContent = "-";
+                    }
+                }
+
+                // PROFIT
+                let profitLabel = row.querySelector(".profit-label");
+                if (profitLabel) {
+                    if (sellingRate !== null && sellingRate > 0 && exchangeRate > 0) {
+                        profit = total - exchangeRate;
+                        profitLabel.textContent = formatNumber(Math.round(profit));
+                    } else {
+                        profitLabel.textContent = "-";
+                    }
+                }
+
+                // hidden input
+                let profitInput = row.querySelector(".profit-input");
+                if (profitInput) {
+                    profitInput.value = profit > 0 ? profit : '';
                 }
             }
 
-            // PROFIT
-            let profitLabel = row.querySelector(".profit-label");
-            if (profitLabel) {
-                if (sellingRate !== null && sellingRate > 0 && exchangeRate > 0) {
-                    profit = total - exchangeRate;
-                    profitLabel.textContent = formatNumber(Math.round(profit));
-                } else {
-                    profitLabel.textContent = "-";
+            document.addEventListener("input", function(e) {
+                if (e.target.classList.contains("exchange-input")) {
+                    let row = e.target.closest("tr");
+                    if (row) {
+                        updateRowCalculation(row);
+                    }
                 }
-            }
-
-            // hidden input
-            let profitInput = row.querySelector(".profit-input");
-            if (profitInput) {
-                profitInput.value = profit > 0 ? profit : '';
-            }
-        }
-
-        document.addEventListener("input", function(e) {
-            if (e.target.classList.contains("exchange-input")) {
-                let row = e.target.closest("tr");
-                if (row) {
-                    updateRowCalculation(row);
-                }
-            }
-        });
-
-        document.addEventListener("DOMContentLoaded", function() {
-            document.querySelectorAll("#invoice-items tr").forEach(function(row) {
-                updateRowCalculation(row);
             });
-        });
-    </script>
-@endsection
+
+            document.addEventListener("DOMContentLoaded", function() {
+                document.querySelectorAll("#invoice-items tr").forEach(function(row) {
+                    updateRowCalculation(row);
+                });
+            });
+        </script>
+    @endsection

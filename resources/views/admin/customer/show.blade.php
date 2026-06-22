@@ -68,9 +68,10 @@
                         <h4 class="card-title mb-1 customer-account-title">Account Information</h4>
                     </div>
                     <div class="card-body">
-                        <div class="d-flex justify-content-start align-items-center gap-3">
+                        <div class="d-block d-md-flex justify-content-start align-items-center gap-3">
                             <div class="avatar avatar-xxl">
-                                <img src="{{ $customer->profile_image ? asset('storage/profile_images/' . $customer->profile_image) : asset('assets/images/user-3.jpg') }}"
+                                <img style="width: 75px; height: 75px; object-fit: cover;"
+                                    src="{{ $customer->profile_image ? asset('storage/profile_images/' . $customer->profile_image) : asset('assets/images/user-3.jpg') }}"
                                     alt="avatar-2" class="img-fluid rounded-circle">
                             </div>
                             <div>
@@ -82,7 +83,7 @@
                                 <p class="customer-account-text mb-1"><strong>Date
                                         : </strong>{{ \Carbon\Carbon::parse($customer->created_at)->format('d M, Y') }}</p>
                                 <p class="customer-account-text mb-1"><strong>Status
-                                        : </strong>{{ $customer->status == 0 ? 'Active' : 'Inactive' }}</p>
+                                        : </strong>{{ $customer->status == 0 ? 'Inactive' : 'Active' }}</p>
                             </div>
                         </div>
                     </div>

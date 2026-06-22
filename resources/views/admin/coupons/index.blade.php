@@ -48,8 +48,7 @@
                                     <option value="20">20</option>
                                 </select>
                             </div>
-
-                            <a href="{{ route('coupon.create') }}" class="btn btn-primary">Create Coupon</a>
+                            <x-create-action menu-text="Create Coupon" permission="coupon.create" :url="route('coupon.create')" />
                         </div>
                     </div>
 
@@ -91,12 +90,11 @@
                                         </td>
                                         <td>
                                             <div class="d-flex justify-content-center gap-1">
-                                                <a href="{{ route('coupon.show', $coupon->id) }}"
-                                                    class="btn btn-light btn-icon btn-sm rounded-circle"><i
-                                                        class="ti ti-eye fs-lg"></i></a>
-                                                <a href="{{ route('coupon.edit', $coupon->id) }}"
-                                                    class="btn btn-light btn-icon btn-sm rounded-circle"><i
-                                                        class="ti ti-edit fs-lg"></i></a>
+                                                <x-action-button :url="route('coupon.show', $coupon->id)" permission="coupon.view"
+                                                    icon="ti-eye" />
+                                                <x-action-button :url="route('coupon.edit', $coupon->id)" permission="coupon.edit"
+                                                    icon="ti-edit" />
+
                                             </div>
                                         </td>
                                     </tr>

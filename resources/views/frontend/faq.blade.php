@@ -50,7 +50,7 @@
                                 <div class="accordian-inner">
                                     <div id="accordion{{ $loop->index }}">
                                         @foreach ($chunk as $faq)
-                                            <div class="accordion-card">
+                                            <div class="accordion-card" style="overflow-x:auto;">
                                                 <div class="card-header"
                                                     id="heading{{ $loop->parent->index }}{{ $loop->index }}">
                                                     <a href="#" class="btn btn-link collapsed" data-toggle="collapse"
@@ -63,10 +63,8 @@
                                                 <div id="collapse{{ $loop->parent->index }}{{ $loop->index }}"
                                                     class="collapse"
                                                     aria-labelledby="heading{{ $loop->parent->index }}{{ $loop->index }}">
-                                                    <div class="card-body">
-                                                        <p class="text-size-16 text-left mb-0 p-0">
-                                                            {{ $faq->description }}
-                                                        </p>
+                                                    <div class="card-body content-description">
+                                                        {!! $faq->description !!}
                                                     </div>
                                                 </div>
                                             </div>

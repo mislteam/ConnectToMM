@@ -53,8 +53,8 @@
                                             <h2>
                                                 <a href="#">{{ $blog->title }}</a>
                                             </h2>
-                                            <p class="text-size-16">{{ Str::Limit($blog->desc, 150) }}</p>
-                                            <a href="#" class="item-link">Read More <i
+                                            <div class="content-description">{!! Str::Limit($blog->desc, 150) !!}</div>
+                                            <a href="{{ route('blogDetail', $blog->id) }}" class="item-link">Read More <i
                                                     class="fa fa-arrow-right"></i></a>
                                             <!--post-item-description-->
                                         </div>

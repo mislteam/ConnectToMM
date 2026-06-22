@@ -54,10 +54,87 @@
     <!-- spinner -->
     <link rel="stylesheet" href="{{ asset('assets/plugins/spinkit/spinkit.min.css') }}">
 
+    <link href="{{ asset('assets/plugins/summernote/summernote-bs5.min.css') }}" rel="stylesheet">
+
+    <style>
+        body:not(.app-ready),
+        body.request-loader-active {
+            overflow: hidden;
+        }
+
+        .request-loader-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: rgba(8, 15, 31, 0.62);
+            backdrop-filter: blur(4px);
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.2s ease, visibility 0.2s ease;
+        }
+
+        body:not(.app-ready) .request-loader-overlay,
+        body.request-loader-active .request-loader-overlay {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+
+        .request-loader-panel {
+            max-width: 320px;
+            width: 100%;
+            text-align: center;
+            padding: 28px 24px;
+            border-radius: 18px;
+            background: rgba(255, 255, 255, 0.96);
+            box-shadow: 0 18px 60px rgba(0, 0, 0, 0.18);
+        }
+
+        .request-loader-spinner {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 16px;
+            border-radius: 50%;
+            border: 6px solid rgba(0, 123, 255, 0.15);
+            border-top-color: #0d6efd;
+            animation: request-loader-spin 0.9s linear infinite;
+        }
+
+        .request-loader-title {
+            margin: 0;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .request-loader-text {
+            margin: 0;
+            color: #6b7280;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        @keyframes request-loader-spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+
 </head>
 
 <body>
-    <!-- Begin page -->
+    <div class="request-loader-overlay" data-request-loader-overlay aria-hidden="true">
+        <div class="request-loader-panel" role="status" aria-live="polite">
+            <div class="request-loader-spinner" aria-hidden="true"></div>
+            <h2 class="request-loader-title">Loading</h2>
+        </div>
+    </div>
     <div class="wrapper">
         <!-- Sidenav Menu Start -->
         @include('admin.layouts.sidebar')
@@ -75,14 +152,12 @@
             @include('admin.layouts.footer')
             <!-- Footer End -->
         </div>
-        <!-- ============================================================== -->
-        <!-- End of Main Content -->
-        <!-- ============================================================== -->
 
 
 
     </div>
     <!-- END wrapper -->
+    <script src="{{ asset('assets/js/jquery-3.6.0.min.js') }}"></script>
 
     <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2/dist/fuse.min.js"></script>
 
@@ -108,7 +183,8 @@
                 }
 
                 function syncThemeState() {
-                    var theme = document.documentElement.getAttribute("data-bs-theme") === "dark" ? "dark" : "light";
+                    var theme = document.documentElement.getAttribute("data-bs-theme") === "dark" ? "dark" :
+                        "light";
 
                     toggle.setAttribute(
                         "aria-label",
@@ -162,11 +238,15 @@
     <script src="{{ asset('assets/plugins/dropzone/dropzone-min.js') }}"></script>
     <script src="{{ asset('assets/js/select2/select2.full.min.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- Summernote Plugin Js -->
+    <script src="{{ asset('assets/plugins/summernote/summernote-bs5.min.js') }}"></script>
+    <!-- Summernote Demo Js -->
+    <script src="{{ asset('assets/js/pages/form-summernote.js') }}"></script>
 
     <script type="text/javascript">
         $(".select2_design").select2({
             theme: 'bootstrap4',
-            placeholder: "Choose Region",
+            placeholder: $(this).data('placeholder'),
             allowClear: true
         });
     </script>
@@ -179,7 +259,6 @@
     </script>
     <script>
         $(document).ready(function() {
-
             $('.megamenu').hover(
                 function() {
                     $(this).addClass('show');

@@ -1,6 +1,6 @@
 class App {
     init() {
-        this.initComponents(),
+        (this.initComponents(),
             this.initPreloader(),
             this.initPortletCard(),
             this.initMultiDropdown(),
@@ -10,10 +10,10 @@ class App {
             this.initToggle(),
             this.initDismissible(),
             this.initLeftSidebar(),
-            this.initTopbarMenu();
+            this.initTopbarMenu());
     }
     initComponents() {
-        "function" == typeof lucide.createIcons && lucide.createIcons(),
+        ("function" == typeof lucide.createIcons && lucide.createIcons(),
             document
                 .querySelectorAll('[data-bs-toggle="popover"]')
                 .forEach((e) => {
@@ -29,18 +29,18 @@ class App {
             }),
             document.querySelectorAll(".toast").forEach((e) => {
                 new bootstrap.Toast(e);
-            });
+            }));
     }
     initPreloader() {
         window.addEventListener("load", () => {
             var e = document.getElementById("status");
             let t = document.getElementById("preloader");
-            e && (e.style.display = "none"),
-                t && setTimeout(() => (t.style.display = "none"), 350);
+            (e && (e.style.display = "none"),
+                t && setTimeout(() => (t.style.display = "none"), 350));
         });
     }
     initPortletCard() {
-        $('[data-action="card-close"]').on("click", function (e) {
+        ($('[data-action="card-close"]').on("click", function (e) {
             e.preventDefault();
             let t = $(this).closest(".card");
             t.fadeOut(300, function () {
@@ -53,42 +53,42 @@ class App {
                     t = $(this).find("i").eq(0),
                     a = e.find(".card-body"),
                     i = e.find(".card-footer");
-                a.slideToggle(300),
+                (a.slideToggle(300),
                     i.slideToggle(200),
                     t.toggleClass("ti-chevron-up ti-chevron-down"),
-                    e.toggleClass("card-collapse");
-            });
+                    e.toggleClass("card-collapse"));
+            }));
         var e = document.querySelectorAll('[data-action="card-refresh"]');
-        e &&
+        (e &&
             e.forEach(function (e) {
                 e.addEventListener("click", function (e) {
                     e.preventDefault();
                     var t,
                         e = e.target.closest(".card");
                     let a = e.querySelector(".card-overlay");
-                    a ||
+                    (a ||
                         ((a = document.createElement("div")).classList.add(
-                            "card-overlay"
+                            "card-overlay",
                         ),
                         (t = document.createElement("div")).classList.add(
                             "spinner-border",
-                            "text-primary"
+                            "text-primary",
                         ),
                         a.appendChild(t),
                         e.appendChild(a)),
                         (a.style.display = "flex"),
                         setTimeout(function () {
                             a.style.display = "none";
-                        }, 1500);
+                        }, 1500));
                 });
             }),
             $('[data-action="code-collapse"]').on("click", function (e) {
                 e.preventDefault();
                 var e = $(this).closest(".card"),
                     t = $(this).find("i").eq(0);
-                e.find(".code-body").slideToggle(300),
-                    t.toggleClass("ti-chevron-up ti-chevron-down");
-            });
+                (e.find(".code-body").slideToggle(300),
+                    t.toggleClass("ti-chevron-up ti-chevron-down"));
+            }));
     }
     initMultiDropdown() {
         $(".dropdown-menu a.dropdown-toggle").on("click", function () {
@@ -106,11 +106,11 @@ class App {
             t.addEventListener(
                 "submit",
                 (e) => {
-                    t.checkValidity() ||
+                    (t.checkValidity() ||
                         (e.preventDefault(), e.stopPropagation()),
-                        t.classList.add("was-validated");
+                        t.classList.add("was-validated"));
                 },
-                !1
+                !1,
             );
         });
     }
@@ -143,11 +143,11 @@ class App {
                                       maximumFractionDigits: 2,
                                   });
                         }
-                        s(), n.unobserve(e);
+                        (s(), n.unobserve(e));
                     }
                 });
             },
-            { threshold: 1 }
+            { threshold: 1 },
         );
         e.forEach((e) => t.observe(e));
     }
@@ -176,13 +176,13 @@ class App {
                         : (t?.classList.add("d-none"),
                           a?.classList.remove("d-none"));
                 };
-            t?.addEventListener("click", () => {
-                (i = !1), s();
+            (t?.addEventListener("click", () => {
+                ((i = !1), s());
             }),
                 a?.addEventListener("click", () => {
-                    (i = !0), s();
+                    ((i = !0), s());
                 }),
-                s();
+                s());
         });
     }
     initDismissible() {
@@ -200,7 +200,7 @@ class App {
             o.querySelectorAll("li [data-bs-toggle='collapse']").forEach(
                 (e) => {
                     e.addEventListener("click", (e) => e.preventDefault());
-                }
+                },
             );
             let s = o.querySelectorAll("li .collapse"),
                 e =
@@ -210,8 +210,8 @@ class App {
                                 a = [],
                                 i = t.parentElement;
                             for (; i && i !== o; )
-                                i.classList.contains("collapse") && a.push(i),
-                                    (i = i.parentElement);
+                                (i.classList.contains("collapse") && a.push(i),
+                                    (i = i.parentElement));
                             s.forEach((e) => {
                                 e === t ||
                                     a.includes(e) ||
@@ -222,15 +222,15 @@ class App {
                         });
                     }),
                     window.location.href.split(/[?#]/)[0]);
-            o.querySelectorAll("a").forEach((t) => {
+            (o.querySelectorAll("a").forEach((t) => {
                 if (t.href === e) {
-                    o
+                    (o
                         .querySelectorAll("a.active, li.active, .collapse.show")
                         .forEach((e) => {
-                            e.classList.remove("active"),
-                                e.classList.remove("show");
+                            (e.classList.remove("active"),
+                                e.classList.remove("show"));
                         }),
-                        t.classList.add("active");
+                        t.classList.add("active"));
                     let e = t.closest("li");
                     for (; e && e !== o; ) {
                         e.classList.add("active");
@@ -247,7 +247,7 @@ class App {
                 setTimeout(() => {
                     var e = o.querySelector("li.active .active"),
                         t = document.querySelector(
-                            ".sidenav-menu .simplebar-content-wrapper"
+                            ".sidenav-menu .simplebar-content-wrapper",
                         );
                     if (e && t) {
                         e = e.offsetTop - 300;
@@ -260,7 +260,7 @@ class App {
                                 r = 0;
                             !(function e() {
                                 var t, a, i;
-                                (r += 20),
+                                ((r += 20),
                                     (n.scrollTop =
                                         ((t = r),
                                         (a = s),
@@ -269,11 +269,11 @@ class App {
                                             ? (i / 2) * t * t + a
                                             : (-i / 2) * (--t * (t - 2) - 1) +
                                               a)),
-                                    r < l && setTimeout(e, 20);
+                                    r < l && setTimeout(e, 20));
                             })();
                         }
                     }
-                }, 200);
+                }, 200));
         }
     }
     initTopbarMenu() {
@@ -285,10 +285,10 @@ class App {
                     e.classList.add("active");
                     let t = e.parentElement;
                     for (let e = 0; e < 6 && t && t !== document.body; e++)
-                        ("LI" !== t.tagName &&
+                        (("LI" !== t.tagName &&
                             !t.classList.contains("dropdown")) ||
                             t.classList.add("active"),
-                            (t = t.parentElement);
+                            (t = t.parentElement));
                 }
             });
             let e = document.querySelector(".navbar-toggle"),
@@ -296,10 +296,10 @@ class App {
             e &&
                 a &&
                 e.addEventListener("click", () => {
-                    e.classList.toggle("open"),
+                    (e.classList.toggle("open"),
                         "block" === a.style.display
                             ? (a.style.display = "none")
-                            : (a.style.display = "block");
+                            : (a.style.display = "block"));
                 });
         }
     }
@@ -344,20 +344,22 @@ let skinPresets = {
 };
 class LayoutCustomizer {
     constructor() {
-        (this.html = document.documentElement), (this.config = {});
+        ((this.html = document.documentElement), (this.config = {}));
     }
     init() {
-        this.initConfig(),
+        (this.initConfig(),
             this.initSwitchListener(),
             this.initWindowSize(),
             this._adjustLayout(),
             this.setSwitchFromConfig(),
-            this.openCustomizer();
+            this.openCustomizer());
     }
     initConfig() {
-        (this.defaultConfig = JSON.parse(JSON.stringify(window.defaultConfig))),
+        ((this.defaultConfig = JSON.parse(
+            JSON.stringify(window.defaultConfig),
+        )),
             (this.config = JSON.parse(JSON.stringify(window.config))),
-            this.setSwitchFromConfig();
+            this.setSwitchFromConfig());
     }
     isFirstVisit() {
         return (
@@ -396,24 +398,24 @@ class LayoutCustomizer {
                 : this.html.removeAttribute("data-sidenav-user"));
     }
     changeSkin(e) {
-        (this.config.skin = e),
+        ((this.config.skin = e),
             this.html.setAttribute("data-skin", e),
             this.applyPreset(e),
-            this.setSwitchFromConfig();
+            this.setSwitchFromConfig());
     }
     changeMenuColor(e) {
-        (this.config.menu.color = e),
+        ((this.config.menu.color = e),
             this.html.setAttribute("data-menu-color", e),
-            this.setSwitchFromConfig();
+            this.setSwitchFromConfig());
     }
     changeLeftbarSize(e, t = !0) {
-        this.html.setAttribute("data-sidenav-size", e),
-            t && ((this.config.sidenav.size = e), this.setSwitchFromConfig());
+        (this.html.setAttribute("data-sidenav-size", e),
+            t && ((this.config.sidenav.size = e), this.setSwitchFromConfig()));
     }
     changeLayoutPosition(e) {
-        (this.config.layout.position = e),
+        ((this.config.layout.position = e),
             this.html.setAttribute("data-layout-position", e),
-            this.setSwitchFromConfig();
+            this.setSwitchFromConfig());
     }
     getSystemTheme() {
         return window.matchMedia("(prefers-color-scheme: dark)").matches
@@ -422,26 +424,26 @@ class LayoutCustomizer {
     }
     changeTheme(e) {
         "system" === e && this.getSystemTheme();
-        (this.config.theme = e),
+        ((this.config.theme = e),
             this.html.setAttribute(
                 "data-bs-theme",
-                "system" === e ? this.getSystemTheme() : e
+                "system" === e ? this.getSystemTheme() : e,
             ),
-            this.setSwitchFromConfig();
+            this.setSwitchFromConfig());
     }
     changeTopbarColor(e) {
-        (this.config.topbar.color = e),
+        ((this.config.topbar.color = e),
             this.html.setAttribute("data-topbar-color", e),
-            this.setSwitchFromConfig();
+            this.setSwitchFromConfig());
     }
     changeSidebarUser(e) {
-        (this.config.sidenav.user = e)
+        ((this.config.sidenav.user = e)
             ? this.html.setAttribute("data-sidenav-user", e)
             : this.html.removeAttribute("data-sidenav-user"),
-            this.setSwitchFromConfig();
+            this.setSwitchFromConfig());
     }
     resetTheme() {
-        (this.config = JSON.parse(JSON.stringify(window.defaultConfig))),
+        ((this.config = JSON.parse(JSON.stringify(window.defaultConfig))),
             this.changeSkin(this.config.skin),
             this.changeMenuColor(this.config.menu.color),
             this.changeLeftbarSize(this.config.sidenav.size),
@@ -449,15 +451,15 @@ class LayoutCustomizer {
             this.changeLayoutPosition(this.config.layout.position),
             this.changeTopbarColor(this.config.topbar.color),
             this.changeSidebarUser(this.config.sidenav.user),
-            this._adjustLayout();
+            this._adjustLayout());
     }
     setSwitchFromConfig() {
         var e = this.config;
-        sessionStorage.setItem("__INSPINIA_CONFIG__", JSON.stringify(e)),
+        (sessionStorage.setItem("__INSPINIA_CONFIG__", JSON.stringify(e)),
             document
                 .querySelectorAll("#theme-settings-offcanvas input[type=radio]")
-                .forEach((e) => (e.checked = !1));
-        ((e, t) => {
+                .forEach((e) => (e.checked = !1)));
+        (((e, t) => {
             e = document.querySelector(e);
             e && (e.checked = t);
         })('input[name="sidebar-user"]', !0 === e.sidenav.user),
@@ -471,7 +473,7 @@ class LayoutCustomizer {
             ].forEach(([e, t]) => {
                 e = document.querySelector(`input[name="${e}"][value="${t}"]`);
                 e && (e.checked = !0);
-            });
+            }));
     }
     initSwitchListener() {
         var e = (e, t) => {
@@ -482,22 +484,22 @@ class LayoutCustomizer {
             e =
                 (e('input[name="data-skin"]', (e) => this.changeSkin(e.value)),
                 e('input[name="data-bs-theme"]', (e) =>
-                    this.changeTheme(e.value)
+                    this.changeTheme(e.value),
                 ),
                 e('input[name="data-menu-color"]', (e) =>
-                    this.changeMenuColor(e.value)
+                    this.changeMenuColor(e.value),
                 ),
                 e('input[name="data-sidenav-size"]', (e) =>
-                    this.changeLeftbarSize(e.value)
+                    this.changeLeftbarSize(e.value),
                 ),
                 e('input[name="data-layout-position"]', (e) =>
-                    this.changeLayoutPosition(e.value)
+                    this.changeLayoutPosition(e.value),
                 ),
                 e('input[name="data-topbar-color"]', (e) =>
-                    this.changeTopbarColor(e.value)
+                    this.changeTopbarColor(e.value),
                 ),
                 e('input[name="sidebar-user"]', (e) =>
-                    this.changeSidebarUser(e.checked)
+                    this.changeSidebarUser(e.checked),
                 ),
                 document.getElementById("light-dark-mode")),
             e =
@@ -514,10 +516,10 @@ class LayoutCustomizer {
             e =
                 (e && e.addEventListener("click", () => this._toggleSidebar()),
                 document.querySelector(".button-close-offcanvas"));
-        e &&
+        (e &&
             e.addEventListener("click", () => {
-                this.html.classList.remove("sidebar-enable"),
-                    this.hideBackdrop();
+                (this.html.classList.remove("sidebar-enable"),
+                    this.hideBackdrop());
             }),
             document.querySelectorAll(".button-on-hover").forEach((e) => {
                 e.addEventListener("click", () => {
@@ -526,39 +528,39 @@ class LayoutCustomizer {
                         "on-hover-active" === e
                             ? "on-hover"
                             : "on-hover-active",
-                        !0
+                        !0,
                     );
                 });
-            });
+            }));
     }
     _toggleSidebar() {
         var e = this.html.getAttribute("data-sidenav-size"),
             t = this.config.sidenav.size;
-        "offcanvas" === e
+        ("offcanvas" === e
             ? this.showBackdrop()
             : "compact" === t
-            ? this.changeLeftbarSize(
-                  "condensed" === e ? "compact" : "condensed",
-                  !1
-              )
-            : this.changeLeftbarSize(
-                  "condensed" === e ? "default" : "condensed",
-                  !0
-              ),
-            this.html.classList.toggle("sidebar-enable");
+              ? this.changeLeftbarSize(
+                    "condensed" === e ? "compact" : "condensed",
+                    !1,
+                )
+              : this.changeLeftbarSize(
+                    "condensed" === e ? "default" : "condensed",
+                    !0,
+                ),
+            this.html.classList.toggle("sidebar-enable"));
     }
     showBackdrop() {
         var e = document.createElement("div");
-        (e.id = "custom-backdrop"),
+        ((e.id = "custom-backdrop"),
             (e.className = "offcanvas-backdrop fade show"),
             document.body.appendChild(e),
             (document.body.style.overflow = "hidden"),
             767 < window.innerWidth &&
                 (document.body.style.paddingRight = "15px"),
             e.addEventListener("click", () => {
-                this.html.classList.remove("sidebar-enable"),
-                    this.hideBackdrop();
-            });
+                (this.html.classList.remove("sidebar-enable"),
+                    this.hideBackdrop());
+            }));
     }
     hideBackdrop() {
         var e = document.getElementById("custom-backdrop");
@@ -573,8 +575,8 @@ class LayoutCustomizer {
         e <= 767.98
             ? this.changeLeftbarSize("offcanvas", !1)
             : e <= 1140 && !["offcanvas"].includes(t)
-            ? this.changeLeftbarSize("condensed", !1)
-            : this.changeLeftbarSize(t);
+              ? this.changeLeftbarSize("condensed", !1)
+              : this.changeLeftbarSize(t);
     }
     initWindowSize() {
         window.addEventListener("resize", () => this._adjustLayout());
@@ -582,7 +584,7 @@ class LayoutCustomizer {
 }
 class Plugins {
     init() {
-        this.initFlatPicker(), this.initTouchSpin();
+        (this.initFlatPicker(), this.initTouchSpin());
     }
     initFlatPicker() {
         document.querySelectorAll("[data-provider]").forEach((e) => {
@@ -655,7 +657,7 @@ class Plugins {
     }
 }
 document.addEventListener("DOMContentLoaded", function (e) {
-    new App().init(), new LayoutCustomizer().init(), new Plugins().init();
+    (new App().init(), new LayoutCustomizer().init(), new Plugins().init());
 });
 let ins = (e, t = 1) => {
     var a = getComputedStyle(document.documentElement)
@@ -666,7 +668,7 @@ let ins = (e, t = 1) => {
 function debounce(e, t) {
     let a;
     return function () {
-        clearTimeout(a), (a = setTimeout(e, t));
+        (clearTimeout(a), (a = setTimeout(e, t)));
     };
 }
 class CustomApexChart {
@@ -677,20 +679,20 @@ class CustomApexChart {
         colors: i = [],
     }) {
         if (e) {
-            (this.selector = e),
+            ((this.selector = e),
                 (this.series = t),
                 (this.getOptions = a),
                 (this.colors = i),
                 this.selector instanceof HTMLElement
                     ? (this.element = this.selector)
                     : (this.element = document.querySelector(this.selector)),
-                (this.chart = null);
+                (this.chart = null));
             try {
-                this.render(), CustomApexChart.instances.push(this);
+                (this.render(), CustomApexChart.instances.push(this));
             } catch (e) {
                 console.error(
                     "CustomApexChart: Error during chart initialization:",
-                    e
+                    e,
                 );
             }
         } else console.warn("CustomApexChart: 'selector' is required.");
@@ -705,7 +707,7 @@ class CustomApexChart {
                     .split(",")
                     .map((e) => e.trim())
                     .map((e) =>
-                        e.startsWith("#") || e.includes("rgb") ? e : ins(e)
+                        e.startsWith("#") || e.includes("rgb") ? e : ins(e),
                     );
                 if (e.length) return e;
             }
@@ -715,14 +717,14 @@ class CustomApexChart {
     render() {
         if ((this.chart && this.chart.destroy(), this.element)) {
             let e = JSON.parse(JSON.stringify(this.getOptions()));
-            (e.colors = this.getColors()),
+            ((e.colors = this.getColors()),
                 (e = this.injectDynamicColors(e, e.colors)).series ||
                     (e.series = this.series),
                 (this.chart = new ApexCharts(this.element, e)),
-                this.chart.render();
+                this.chart.render());
         } else
             console.warn(
-                `CustomApexChart: No element found for selector '${this.selector}'.`
+                `CustomApexChart: No element found for selector '${this.selector}'.`,
             );
     }
     injectDynamicColors(e, a) {
@@ -740,11 +742,11 @@ class CustomApexChart {
             Array.isArray(e.yaxis) &&
                 e.yaxis.forEach((e, t) => {
                     t = a[t] || this.colors[t] || "#999";
-                    (e.axisBorder = e.axisBorder || {}),
+                    ((e.axisBorder = e.axisBorder || {}),
                         (e.axisBorder.color = e.axisBorder.color || t),
                         (e.labels = e.labels || {}),
                         (e.labels.style = e.labels.style || {}),
-                        (e.labels.style.color = e.labels.style.color || t);
+                        (e.labels.style.color = e.labels.style.color || t));
                 }),
             e.markers && !e.markers.strokeColor && (e.markers.strokeColor = a),
             "gradient" === e.fill?.type &&
@@ -774,14 +776,14 @@ class CustomEChart {
         initOptions: i = {},
     }) {
         if (e) {
-            (this.selector = e),
+            ((this.selector = e),
                 (this.element = null),
                 (this.getOptions = t),
                 (this.theme = a),
                 (this.initOptions = i),
-                (this.chart = null);
+                (this.chart = null));
             try {
-                this.render(), CustomEChart.instances.push(this);
+                (this.render(), CustomEChart.instances.push(this));
             } catch (e) {
                 console.error("CustomEChart: Initialization error", e);
             }
@@ -790,7 +792,7 @@ class CustomEChart {
     render() {
         try {
             var e;
-            this.selector instanceof HTMLElement
+            (this.selector instanceof HTMLElement
                 ? (this.element = this.selector)
                 : (this.element = document.querySelector(this.selector)),
                 this.chart && this.chart.dispose(),
@@ -799,22 +801,22 @@ class CustomEChart {
                       (this.chart = echarts.init(
                           this.element,
                           this.theme,
-                          this.initOptions
+                          this.initOptions,
                       )),
                       this.chart.setOption(e),
                       window.addEventListener(
                           "resize",
                           debounce(() => {
                               this.chart.resize();
-                          }, 200)
+                          }, 200),
                       ))
                     : console.warn(
-                          `CustomEChart: No element found for selector '${this.selector}'.`
-                      );
+                          `CustomEChart: No element found for selector '${this.selector}'.`,
+                      ));
         } catch (e) {
             console.error(
                 `CustomEChart: Render error for '${this.selector}'`,
-                e
+                e,
             );
         }
     }
@@ -836,9 +838,9 @@ class CustomEChart {
             for (var e of CustomEChart.instances) e.render();
     }
 }
-(CustomApexChart.instances = []), (CustomEChart.instances = []);
+((CustomApexChart.instances = []), (CustomEChart.instances = []));
 let themeObserver = new MutationObserver(() => {
-        CustomApexChart.rerenderAll(), CustomEChart.rerenderAll();
+        (CustomApexChart.rerenderAll(), CustomEChart.rerenderAll());
     }),
     menuObserver =
         (themeObserver.observe(document.documentElement, {
@@ -854,3 +856,179 @@ menuObserver.observe(document.documentElement, {
     attributes: !0,
     attributeFilter: ["data-sidenav-size"],
 });
+
+// loader
+(function () {
+    const body = document.body;
+    const overlay = document.querySelector("[data-request-loader-overlay]");
+    let activeRequests = 0;
+
+    function syncState() {
+        if (!body) {
+            return;
+        }
+
+        body.classList.toggle("request-loader-active", activeRequests > 0);
+
+        if (overlay) {
+            overlay.setAttribute(
+                "aria-hidden",
+                activeRequests > 0 ? "false" : "true",
+            );
+        }
+    }
+
+    function start() {
+        activeRequests += 1;
+        syncState();
+    }
+
+    function stop() {
+        activeRequests = Math.max(0, activeRequests - 1);
+        syncState();
+    }
+
+    window.requestLoader = {
+        show: start,
+        hide: stop,
+        track(promise) {
+            start();
+
+            return Promise.resolve(promise).finally(stop);
+        },
+        async withLoading(callback) {
+            start();
+
+            try {
+                return await callback();
+            } finally {
+                stop();
+            }
+        },
+    };
+
+    function markAppReady() {
+        if (body) {
+            body.classList.add("app-ready");
+        }
+        syncState();
+    }
+
+    // Keep the initial pre-loader visible until the browser finishes loading
+    // (matches "tab is loading" expectation). Add a timeout so it can't hang forever.
+    window.addEventListener("load", markAppReady, { once: true });
+    window.setTimeout(markAppReady, 10000);
+
+    document.addEventListener(
+        "submit",
+        (event) => {
+            const form = event.target;
+
+            if (
+                form instanceof HTMLFormElement &&
+                form.matches("[data-request-loader]")
+            ) {
+                start();
+            }
+        },
+        true,
+    );
+
+    document.addEventListener(
+        "click",
+        (event) => {
+            const trigger = event.target.closest("[data-request-loader]");
+
+            if (!trigger) {
+                return;
+            }
+
+            const href = trigger.getAttribute("href");
+
+            if (trigger.tagName === "A" && !(href && href.indexOf("#") === 0)) {
+                start();
+            }
+        },
+        true,
+    );
+})();
+
+// newly added js
+const liveAlertContainer = document.getElementById("live-alert-container");
+function liveAlert(message, color) {
+    if (!liveAlertContainer) return;
+    liveAlertContainer.innerHTML = "";
+    const alert = document.createElement("div");
+    alert.className = `alert alert-${color} alert-dismissible fade show alert-fixed`;
+    alert.setAttribute("role", "alert");
+    alert.innerHTML = `
+                        ${message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    `;
+    if (liveAlertContainer) liveAlertContainer.appendChild(alert);
+}
+
+document.addEventListener("click", function (e) {
+    const accEditBtn = e.target.closest(".edit-account-btn");
+    const delBtn = e.target.closest(".delete-btn");
+    const confirmDelBtn = e.target.closest("#confirmDeleteBtn");
+
+    if (accEditBtn) {
+        document.getElementById("edit-bank-name").value =
+            accEditBtn.dataset.bank;
+        document.getElementById("edit-account-name").value =
+            accEditBtn.dataset.name;
+        document.getElementById("edit-account-number").value =
+            accEditBtn.dataset.number;
+        document.getElementById("credentail_id").value = accEditBtn.dataset.id;
+    }
+
+    if (delBtn) {
+        window.itemId = delBtn.dataset.id;
+        window.url = delBtn.dataset.url;
+    }
+
+    if (confirmDelBtn) {
+        fetch(window.url, {
+            method: "DELETE",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": document
+                    .querySelector('meta[name="csrf-token"]')
+                    .getAttribute("content"),
+            },
+            body: JSON.stringify({
+                id: window.itemId,
+            }),
+        })
+            .then((res) => res.json())
+            .then((data) => {
+                if (data && data.success) {
+                    window.location.reload();
+                }
+            })
+            .catch((err) => {
+                console.error(err);
+                Swal.fire("Error", "Error while deleting item");
+            });
+    }
+});
+
+const planSelectEl = $("#choose__plan");
+
+if (planSelectEl) {
+    planSelectEl.on("change", function () {
+        let values = $(this).val() || [];
+
+        if (values.includes("All") && values.length > 1) {
+            const newValues = values.filter((v) => v === "All");
+            $(this).val(newValues).trigger("change");
+            liveAlert(
+                "When 'All' is selected, other options are removed.",
+                "danger",
+            );
+        } else {
+            liveAlertContainer.innerHTML = "";
+        }
+    });
+}
