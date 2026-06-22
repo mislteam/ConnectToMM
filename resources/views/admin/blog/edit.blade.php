@@ -31,8 +31,15 @@
                                 <x-form-input label="Blog Title" name="title" placeholder="Enter Blog Title"
                                     :isrequired="true" :value="$blog->title" />
 
-                                <x-form-text-area :isrequired="true" label="Description" name="desc"
-                                    placeholder="Enter Item Description" :value="$blog->desc" />
+                                <div class="form-group row mb-3">
+                                    <label for="input" class="col-sm-2 col-form-label">
+                                        <strong>Description</strong>
+                                        <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="col-sm-10">
+                                        <textarea name="description" class="summernote">{!! old('description', $blog->desc) !!}</textarea>
+                                    </div>
+                                </div>
 
                                 <div class="form-group row mb-3">
                                     <label for="category_id" class="col-sm-2 col-form-label">

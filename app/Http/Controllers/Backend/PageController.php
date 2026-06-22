@@ -173,6 +173,11 @@ class PageController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'required|string'
         ]);
+        $data['description'] = preg_replace(
+            '/(<(?!img\b)[^>]+)\sstyle="[^"]*"/i',
+            '$1',
+            $data['description']
+        );
         Faq::create($data);
         return redirect()->route('page.faq.index')->with('success', 'FAQ Created Successfully!');
     }
@@ -188,6 +193,11 @@ class PageController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'required|string'
         ]);
+        $data['description'] = preg_replace(
+            '/(<(?!img\b)[^>]+)\sstyle="[^"]*"/i',
+            '$1',
+            $data['description']
+        );
         $faq->update($data);
         return redirect()->route('page.faq.index')->with('success', 'FAQ Updated Successfully!');
     }
@@ -195,7 +205,32 @@ class PageController extends Controller
     public function faqDelete(Faq $faq)
     {
         $faq->delete();
-        return response()->json(['message' => 'FAQ Deleted Successfully!']);
+        session()->flash("success", "Faq Deleted Successfully!");
+        return response()->json(['success' => true]);
+    }
+
+    public function policyIndex()
+    {
+        $policy = Section::where('section_key', 'refunds_policy')->first();
+        return view('admin.page.refunds-policy.index', compact('policy'));
+    }
+
+    public function policyUpdate(Request $request, Section $policy)
+    {
+        $request->validate([
+            'title' => 'string|required|max:255',
+            'description' => 'string|required'
+        ]);
+        $request['description'] = preg_replace(
+            '/(<(?!img\b)[^>]+)\sstyle="[^"]*"/i',
+            '$1',
+            $request['description']
+        );
+        $policy->update([
+            'title' => $request->title,
+            'description' => $request->description,
+        ]);
+        return back()->with('success', 'Refunds Policy Updated Successfully!');
     }
 
     // shared Data

@@ -26,7 +26,15 @@
                         <div class="card-body">
                             <x-form-input label="Title" name="title" placeholder="Enter Title" required />
 
-                            <x-form-text-area label="Description" name="description" placeholder="Enter Description" />
+                            <div class="form-group row mb-3">
+                                <label for="input" class="col-sm-2 col-form-label">
+                                    <strong>Description</strong>
+                                    <span class="text-danger">*</span>
+                                </label>
+                                <div class="col-sm-10">
+                                    <textarea name="description" class="summernote">{{ old('description') }}</textarea>
+                                </div>
+                            </div>
                         </div>
                         <div class="card-footer">
                             <div class="d-flex gap-2 justify-content-end">

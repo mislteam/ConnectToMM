@@ -142,14 +142,16 @@
                                                         {{ $item->status ? 'Enable' : 'Disable' }}
                                                     </td>
                                                     <td>
-                                                        <div class="form-check form-switch fs-xxl mb-2">
-                                                            <input type="checkbox" class="form-check-input toggle-status"
-                                                                data-id="{{ $item->sku_id }}"
-                                                                {{ $item->status ? 'checked' : '' }}>
-                                                            <label class="form-check-label fs-base">
-                                                                {{ $item->status ? 'Enable' : 'Disable' }}
-                                                            </label>
-                                                        </div>
+                                                        @can('roam.physicalSKU.edit')
+                                                            <div class="form-check form-switch fs-xxl mb-2">
+                                                                <input type="checkbox" class="form-check-input toggle-status"
+                                                                    data-id="{{ $item->sku_id }}"
+                                                                    {{ $item->status ? 'checked' : '' }}>
+                                                                <label class="form-check-label fs-base">
+                                                                    {{ $item->status ? 'Enable' : 'Disable' }}
+                                                                </label>
+                                                            </div>
+                                                        @endcan
                                                     </td>
                                                 </tr>
                                             @endforeach

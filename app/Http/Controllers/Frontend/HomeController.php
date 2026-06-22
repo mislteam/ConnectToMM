@@ -57,6 +57,11 @@ class HomeController extends Controller
         return view('frontend.blog', compact('banner', 'blogs'));
     }
 
+    public function blogDetail(Blog $blog)
+    {
+        return view('frontend.blog-detail', compact('blog'));
+    }
+
     public function contact()
     {
         $banner = Banner::where('banner_type', 'contact_us')->first();
@@ -334,5 +339,12 @@ class HomeController extends Controller
         }
 
         return !empty($parts) ? implode('  ', $parts) : $productName;
+    }
+
+    public function refundsPolicy()
+    {
+        $content = Section::where('section_key', 'refunds_policy')->first();
+        $description = preg_replace('/font-family\s*:[^;"]+;?/i', '', $content->description);
+        return view('frontend.refunds-policy', compact('content', 'description'));
     }
 }

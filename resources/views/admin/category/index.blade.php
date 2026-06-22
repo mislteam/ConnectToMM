@@ -1,5 +1,5 @@
 <x-backend.section sectionTitle="Category" activeTitle="All Categories" :logo="$logo" :title="$title"
-    columnName="Category Name" :isCreateBtn="true" route="blog.category.create">
+    permission="blog.category.create" columnName="Category Name" :isCreateBtn="true" route="blog.category.create">
     @forelse ($categories as $category)
         <tr>
             <td class="ps-3"></td>
@@ -12,8 +12,7 @@
             </td>
             <td>
                 <div class="d-flex justify-content-center gap-1">
-                    <a href="{{ route('blog.category.edit', $category->id) }}"
-                        class="btn btn-light btn-icon btn-sm rounded-circle"><i class="ti ti-edit fs-lg"></i></a>
+                    <x-action-button :url="route('blog.category.edit', $category->id)" permission="blog.category.edit" icon="ti-edit" />
                 </div>
             </td>
         </tr>

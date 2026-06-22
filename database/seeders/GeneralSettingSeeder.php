@@ -37,6 +37,24 @@ class GeneralSettingSeeder extends Seeder
                 'value' => 'roam_logo.png',
                 'type' => 'file',
             ],
+            'roam_order_types' => [
+                'value' => json_encode([
+                    'esim_new',
+                    'esim_recharge',
+                    'physical_new',
+                    'physical_recharge'
+                ]),
+                'type' => 'string',
+            ],
+            'joytel_order_types' => [
+                'value' => json_encode([
+                    'esim_new',
+                    'esim_recharge',
+                    'physical_new',
+                    'physical_recharge'
+                ]),
+                'type' => 'string',
+            ],
         ];
         foreach ($settings as $name => $data) {
             GeneralSetting::updateOrCreate(

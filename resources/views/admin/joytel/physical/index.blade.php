@@ -38,11 +38,13 @@
     <div class="container-fluid">
         <div class="page-title-head d-flex align-items-center">
             <div class="flex-grow-1 py-3">
-                <h4 class="fs-sm fw-bold m-0 joytel-physical-page-title">{{ $settings['joytel_title']->value ?? 'Joytel' }}</h4>
+                <h4 class="fs-sm fw-bold m-0 joytel-physical-page-title">{{ $settings['joytel_title']->value ?? 'Joytel' }}
+                </h4>
                 <ol class="breadcrumb m-0 py-0">
                     <li class="breadcrumb-item"><a href="javascript: void(0);"
                             class="joytel-physical-breadcrumb-link">Home</a></li>
-                    <li class="breadcrumb-item active joytel-physical-breadcrumb-current">{{ $settings['joytel_title']->value ?? 'Joytel' }} -
+                    <li class="breadcrumb-item active joytel-physical-breadcrumb-current">
+                        {{ $settings['joytel_title']->value ?? 'Joytel' }} -
                         Physical Sim</li>
                 </ol>
             </div>
@@ -163,36 +165,38 @@
                                             </td>
                                             <td>
                                                 <div class="d-flex justify-content-center gap-1">
-                                                    <div class="btn-group">
-                                                        <button type="button"
-                                                            class="btn btn-light btn-icon btn-sm rounded-circle"
-                                                            data-bs-toggle="dropdown" aria-expanded="false"> <i
-                                                                class="ti ti-dots-vertical fs-lg"></i></button>
+                                                    @can('joytel.physical.edit')
+                                                        <div class="btn-group">
+                                                            <button type="button"
+                                                                class="btn btn-light btn-icon btn-sm rounded-circle"
+                                                                data-bs-toggle="dropdown" aria-expanded="false"> <i
+                                                                    class="ti ti-dots-vertical fs-lg"></i></button>
 
-                                                        <div class="dropdown-menu">
-                                                            @php
-                                                                $exchangeRates = \App\Models\PriceList::pluck(
-                                                                    'exchange_rate',
-                                                                    'product_code',
-                                                                );
-                                                            @endphp
-                                                            <button type="button" class="dropdown-item"
-                                                                data-bs-toggle="modal" data-bs-target="#manage-price"
-                                                                data-plan='@json($plans)'
-                                                                data-existing-rates='@json($exchangeRates)'
-                                                                data-joytel-id="{{ $recharge->id }}"
-                                                                data-joytel-type="physical"
-                                                                data-product-name="{{ $recharge->product_name }}">
-                                                                <i class="ti ti-currency-dollar fs-lg"></i> Manage Price
-                                                            </button>
-                                                            <button type="button" class="dropdown-item"
-                                                                data-bs-toggle="modal" data-bs-target="#manage-status"
-                                                                data-plan='@json($plans)'
-                                                                data-id="{{ $recharge->id }}" data-joytel-type="physical"
-                                                                data-product-name="{{ $recharge->product_name }}">
-                                                                <i class="ti ti-box fs-lg"></i> Manage Status
-                                                            </button>
+                                                            <div class="dropdown-menu">
+                                                                @php
+                                                                    $exchangeRates = \App\Models\PriceList::pluck(
+                                                                        'exchange_rate',
+                                                                        'product_code',
+                                                                    );
+                                                                @endphp
+                                                                <button type="button" class="dropdown-item"
+                                                                    data-bs-toggle="modal" data-bs-target="#manage-price"
+                                                                    data-plan='@json($plans)'
+                                                                    data-existing-rates='@json($exchangeRates)'
+                                                                    data-joytel-id="{{ $recharge->id }}"
+                                                                    data-joytel-type="physical"
+                                                                    data-product-name="{{ $recharge->product_name }}">
+                                                                    <i class="ti ti-currency-dollar fs-lg"></i> Manage Price
+                                                                </button>
+                                                                <button type="button" class="dropdown-item"
+                                                                    data-bs-toggle="modal" data-bs-target="#manage-status"
+                                                                    data-plan='@json($plans)'
+                                                                    data-id="{{ $recharge->id }}" data-joytel-type="physical"
+                                                                    data-product-name="{{ $recharge->product_name }}">
+                                                                    <i class="ti ti-box fs-lg"></i> Manage Status
+                                                                </button>
 
+                                                            </div>
                                                         </div>
                                                     </div>
                                                     <a href="{{ route('physical.edit', $recharge->id) }}"
@@ -203,16 +207,16 @@
                                                         class="btn btn-light btn-icon btn-sm rounded-circle delete-sim-btn">
                                                         <i class="ti ti-trash fs-lg"></i>
                                                     </a> --}}
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                @else
-                                    <tr>
-                                        <td colspan="6" class="text-center">Nothing found.</td>
-                                    </tr>
-                                @endif
-                            </tbody>
+                        </div>
+                        </td>
+                        </tr>
+                        @endforeach
+                    @else
+                        <tr>
+                            <td colspan="6" class="text-center">Nothing found.</td>
+                        </tr>
+                        @endif
+                        </tbody>
                         </table>
 
                     </div>
@@ -309,8 +313,8 @@
                     </div>
 
                     <!-- manage status -->
-                    <div class="modal fade" id="manage-status" tabindex="-1" role="dialog"
-                        aria-labelledby="manageStatus" aria-hidden="true">
+                    <div class="modal fade" id="manage-status" tabindex="-1" role="dialog" aria-labelledby="manageStatus"
+                        aria-hidden="true">
                         <div class="modal-dialog modal-lg modal-dialog-scrollable">
                             <div class="modal-content">
                                 <div class="modal-header">
@@ -362,8 +366,7 @@
                                 </div>
                                 <div class="modal-footer justify-content-center">
                                     <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
-                                    <button type="button" class="btn btn-secondary"
-                                        data-bs-dismiss="modal">Cancel</button>
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                                 </div>
                             </div>
                         </div>
@@ -372,12 +375,12 @@
                 </div>
             </div>
         </div>
-    </div>
-    <script>
-        window.simLists = @json($sim_lists);
-        window.additionalPrices = @json($additional_prices);
-        window.cnyRate = {{ \App\Models\Currency::where('name', 'cny')->value('value') ?? 0 }};
-    </script>
-    {{-- @vite('resources/js/manage-joytel.js') --}}
-    <script src="{{ asset('assets/js/manage-joytel.js') }}"></script>
-@endsection
+        </div>
+        <script>
+            window.simLists = @json($sim_lists);
+            window.additionalPrices = @json($additional_prices);
+            window.cnyRate = {{ \App\Models\Currency::where('name', 'cny')->value('value') ?? 0 }};
+        </script>
+        {{-- @vite('resources/js/manage-joytel.js') --}}
+        <script src="{{ asset('assets/js/manage-joytel.js') }}"></script>
+    @endsection

@@ -135,12 +135,8 @@
                                         </td>
                                         <td>
                                             <div class="d-flex justify-content-center gap-1">
-                                                <a href="{{ route('customer.show', $customer->id) }}"
-                                                    class="btn btn-light btn-icon btn-sm rounded-circle"><i
-                                                        class="ti ti-eye fs-lg"></i></a>
-                                                {{-- <a href="{{ route('customer.edit', $customer->id) }}"
-                                                    class="btn btn-light btn-icon btn-sm rounded-circle"><i
-                                                        class="ti ti-edit fs-lg"></i></a> --}}
+                                                <x-action-button :url="route('customer.show', $customer->id)" permission="customer.view"
+                                                    icon="ti-eye" />
                                             </div>
                                         </td>
                                     </tr>

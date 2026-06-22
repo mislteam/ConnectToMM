@@ -4,6 +4,13 @@
     $supports = \App\Models\Link::where('type', 'support')->get();
     $logo = \App\Models\GeneralSetting::where('type', 'file')->first();
 @endphp
+<style>
+    @media (min-width: 992px) {
+        .footer-partner-logo {
+            width: 100% !important;
+        }
+    }
+</style>
 <section class="footer-section">
     <div class="partner-section">
         <div class="container">
@@ -11,14 +18,14 @@
                 <ul class="mb-0 list-unstyled">
                     <li>
                         <figure class="mb-0 partner1">
-                            <img class="img-fluid footer-partner-logo"
+                            <img class="img-fluid w-75 footer-partner-logo"
                                 src="{{ $settings['joytel_logo']->value ? asset('general/logo/' . $settings['joytel_logo']->value) : asset('assets/images/footer-default-img.png') }}"
                                 alt="joytel-img">
                         </figure>
                     </li>
                     <li>
                         <figure class="mb-0 partner1 partner2">
-                            <img class="img-fluid footer-partner-logo"
+                            <img class="img-fluid w-75 footer-partner-logo"
                                 src="{{ $settings['roam_logo']->value ? asset('general/logo/' . $settings['roam_logo']->value) : asset('assets/images/footer-default-img.png') }}"
                                 alt="roam-img">
                         </figure>
@@ -65,10 +72,14 @@
                         <hr class="line">
                         <ul class="list-unstyled mb-0">
                             @foreach ($supports as $support)
-                                <li><a href="{{ $support->link }}"
+                                <li>
+                                    <a href="{{ $support->link }}"
                                         class=" text-size-16 text text-decoration-none">{{ $support->text }}</a>
                                 </li>
                             @endforeach
+                            <li><a href="{{ route('refundsPolicy') }}"
+                                    class=" text-size-16 text text-decoration-none">Refunds Polciy</a>
+                            </li>
                         </ul>
                     </div>
                 </div>

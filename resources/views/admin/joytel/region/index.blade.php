@@ -61,10 +61,10 @@
 
                             <!-- Date Range Filter -->
                             <div class="app-search">
-                                <select id="product_status" class="form-select form-control my-1 my-md-0">
+                                <select data-table-filter="product-status" class="form-select form-control my-1 my-md-0">
                                     <option value="All">Status</option>
-                                    <option value="1">Enable</option>
-                                    <option value="0">Disable</option>
+                                    <option value="Enable">Enable</option>
+                                    <option value="Disable">Disable</option>
                                 </select>
                                 <i data-lucide="box" class="app-search-icon text-muted"></i>
                             </div>
@@ -79,7 +79,8 @@
                                 </select>
                             </div>
                             <div class="d-flex gap-1">
-                                <a href="{{ route('region.create') }}" class="btn btn-primary ms-1">Create</a>
+                                <x-create-action :url="route('region.create')" menu-text="Create" permission="joytel.region.create" />
+
                             </div>
                         </div>
 
@@ -113,16 +114,15 @@
                                                 <h5 class="fs-sm mb-0 fw-medium">{{ $loop->iteration }}</h5>
                                             </td>
                                             <td>{{ $region->location ?? '' }}</td>
-                                            <td
+                                            <td data-column="product-status"
                                                 class="{{ $region->status == 1 ? 'text-success' : 'text-danger' }} fw-semibold">
                                                 <i class="ti ti-point-filled fs-sm"></i>
                                                 {{ $region->status == 1 ? 'Enable' : 'Disable' }}
                                             </td>
                                             <td>
                                                 <div class="d-flex justify-content-center gap-1">
-                                                    <a href="{{ route('region.edit', $region->id) }}"
-                                                        class="btn btn-light btn-icon btn-sm rounded-circle"><i
-                                                            class="ti ti-edit fs-lg"></i></a>
+                                                    <x-action-button :url="route('region.edit', $region->id)" permission="joytel.region.edit"
+                                                        icon="ti-edit" />
                                                 </div>
                                             </td>
                                         </tr>

@@ -1,4 +1,13 @@
-@props(['logo', 'title', 'activeTitle', 'sectionTitle', 'columnName', 'isCreateBtn' => false, 'route' => ''])
+@props([
+    'logo',
+    'title',
+    'activeTitle',
+    'sectionTitle',
+    'columnName',
+    'isCreateBtn' => false,
+    'route' => '',
+    'permission' => '',
+])
 @extends('admin.layouts.index')
 @section('title', 'Home Page')
 @section('content')
@@ -41,9 +50,7 @@
             </div>
             @if ($isCreateBtn)
                 <div class="">
-                    <a href="{{ route($route) }}" class="btn btn-primary ms-1">
-                        <i class="ti ti-plus fs-sm me-1"></i> Create
-                    </a>
+                    <x-create-action menu-text="Create" :permission="$permission" :url="route($route)" icon="ti-plus" />
                 </div>
             @endif
         </div>

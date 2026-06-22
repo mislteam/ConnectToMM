@@ -6,15 +6,17 @@
             <div class="flex-grow-1 py-3">
                 <h4 class="fs-sm fw-bold m-0 text-black">Coupons</h4>
                 <ol class="breadcrumb m-0 py-0">
-                    <li class="breadcrumb-item"><a href="javascript: void(0);">Home</a></li>
-                    <li class="breadcrumb-item active text-black"><a href="{{ route('coupon.index') }}">All Coupons</a></li>
+                    <li class="breadcrumb-item"><a href="{{ route('dashboard.index') }}">Home</a></li>
+                    <li class="breadcrumb-item active text-black"><a
+                            href="{{ route('joytel.coupon.index') }}">{{ $settings['joytel_title']->value . ' Coupons' }}</a>
+                    </li>
                     <li class="breadcrumb-item active text-black">View Coupon</li>
                 </ol>
             </div>
 
             <div class="d-flex align-items-center gap-2">
                 <div class="d-flex gap-1">
-                    <a href="{{ route('coupon.index') }}" class="btn btn-primary ms-1">Back</a>
+                    <a href="{{ route('joytel.coupon.index') }}" class="btn btn-primary ms-1">Back</a>
                 </div>
             </div>
         </div>
