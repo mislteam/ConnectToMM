@@ -40,12 +40,6 @@
 
     <section class="service-section esim-package-section">
         <div class="container">
-            <div class="row">
-                <div class="col-12">
-                    <div class="content text-center esim-package-heading" data-aos="fade-right"></div>
-                </div>
-            </div>
-
             <figure class="element1 mb-0">
                 <img src="{{ asset('assets/images/what-we-do-icon-1.png') }}" class="img-fluid" alt="">
             </figure>
@@ -63,6 +57,10 @@
                     </div>
 
                     @foreach ($orderTabs as $orderType => $orderData)
+                        @php
+                            $validPackages = collect($packages ?? [])->filter(fn($package) => !empty($package))->values();
+                            $groupValidCount = $validPackages->count();
+                        @endphp
                         <div class="esim-order-pane {{ $selectedSimType === $orderType ? 'active' : '' }}"
                             data-order-pane="{{ $orderType }}">
                             <form method="get" action="{{ route('esim.search') }}" data-request-loader
@@ -103,12 +101,14 @@
                                     <h3>Package Plan</h3>
                                 </div>
 
-                                <div class="esim-package-grid" id="package-list-{{ $orderType }}"
-                                    data-package-grid="{{ $orderType }}">
-                                    @php $groupValidCount = 0; @endphp
-                                    @forelse ($packages as $package)
-                                        @if ($package)
-                                            @php $groupValidCount++; @endphp
+                                @if ($groupValidCount === 0)
+                                    <div class="esim-empty-state">
+                                        <p>Packages are temporarily not available.</p>
+                                    </div>
+                                @else
+                                    <div class="esim-package-grid" id="package-list-{{ $orderType }}"
+                                        data-package-grid="{{ $orderType }}">
+                                        @foreach ($validPackages as $package)
                                             <div class="package-card" data-package-card="{{ $orderType }}">
                                                 <div class="service-box esim-service-box">
                                                     <figure class="img img2 mb-3">
@@ -160,24 +160,11 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                        @endif
-                                    @empty
-                                        <div class="col-12">
-                                            <div class="esim-empty-state">
-                                                <strong>No packages available yet.</strong>
-                                                <p>The selected SIM type does not have any package cards ready to show.
-                                                </p>
-                                            </div>
-                                        </div>
-                                    @endforelse
-                                </div>
-
-                                @if ($groupValidCount === 0)
-                                    <div class="esim-empty-state mt-4">
-                                        <strong>No packages available yet.</strong>
-                                        <p>The selected SIM type does not have any package cards ready to show.</p>
+                                        @endforeach
                                     </div>
-                                @elseif ($groupValidCount > 6)
+                                @endif
+
+                                @if ($groupValidCount > 6)
                                     <div class="text-center mt-4">
                                         <button type="button" id="showMoreBtn-{{ $orderType }}"
                                             class="btn btn-primary px-4 py-2" data-show-more="{{ $orderType }}">Show
@@ -199,12 +186,6 @@
         .esim-package-section {
             position: relative;
             overflow: hidden;
-        }
-
-        .esim-package-heading h2 {
-            font-size: 42px;
-            line-height: 1.15;
-            margin-bottom: 0;
         }
 
         .esim-package-panel {
@@ -277,6 +258,10 @@
             margin-bottom: 0.6rem;
             color: #251f5a;
             font-size: 1.3rem;
+        }
+
+        .esim-package-stage__title h3 {
+            font-weight: 800;
         }
 
         .esim-search-card .select2-container,
@@ -405,22 +390,48 @@
         }
 
         .esim-empty-state {
-            padding: 1rem 1.15rem;
-            border-radius: 18px;
-            background: rgba(247, 249, 253, 0.9);
-            border: 1px dashed rgba(18, 58, 134, 0.18);
-            color: #3c4a63;
+            padding: 2rem 1rem 1.5rem;
+            text-align: center;
+            color: #5e6473;
+            background: transparent;
+            border: 0;
         }
 
-        .esim-empty-state strong {
-            display: block;
-            margin-bottom: 0.35rem;
+        .esim-empty-state p {
+            margin-bottom: 0;
+            font-size: 18px;
+        }
+
+        @media (max-width: 1199.98px) {
+            .esim-package-section .container {
+                max-width: 100%;
+            }
+
+            .esim-order-tabs {
+                width: 100%;
+                margin-left: 0;
+            }
+
+            .esim-package-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                column-gap: 0.9rem;
+                row-gap: 0.9rem;
+            }
         }
 
         @media (min-width: 768px) and (max-width: 991.98px) {
+            .esim-package-section {
+                padding-top: 0.5rem;
+            }
+
+            .esim-package-panel {
+                padding: 0 0.25rem;
+            }
+
             .esim-order-tabs {
                 width: 100%;
                 gap: 0.65rem;
+                margin: 0.75rem 0 1rem;
             }
 
             .esim-order-tab {
@@ -435,30 +446,46 @@
                 row-gap: 0.9rem;
             }
 
+            .esim-search-card {
+                padding: 0.95rem 0.95rem 0.9rem;
+            }
+
+            .esim-search-card .button_text {
+                min-width: 220px;
+            }
+
             .esim-package-stage {
                 margin-top: 1.25rem;
             }
         }
 
-        @media (max-width: 1199px) {
-            .esim-package-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
+        @media (max-width: 767.98px) {
+            .esim-package-section {
+                padding-top: 1.5rem;
             }
-        }
 
-        @media (max-width: 767px) {
-            .esim-package-heading h2 {
-                font-size: 30px;
+            .esim-package-panel {
+                padding: 0;
+            }
+
+            .esim-package-section .element1,
+            .esim-package-section .element2 {
+                opacity: 0.35;
+                transform: scale(0.8);
+            }
+
+            .esim-package-section .services-data {
+                margin-top: 1.5rem !important;
             }
 
             .esim-order-tabs {
                 width: 100%;
-                margin: 0.75rem 0 1rem 0;
+                margin: 1.1rem 0 1rem 0;
                 gap: 0.6rem;
             }
 
             .esim-order-tab {
-                flex: 1 1 0;
+                flex: 1 1 100%;
                 min-height: 52px;
                 padding: 0.55rem 0.75rem;
                 border-radius: 4px;
@@ -479,11 +506,36 @@
 
             .esim-search-card {
                 padding: 0.85rem 0.85rem 0.8rem;
+                border-radius: 12px;
             }
 
             .esim-package-stage {
                 padding-top: 0.35rem;
                 margin-top: 1.15rem;
+            }
+
+            .esim-search-form-group h4,
+            .esim-package-stage__title h3 {
+                font-size: 1.1rem;
+            }
+
+            .esim-search-card .select2-container--bootstrap4 .select2-selection,
+            .esim-search-card .select2-container--bootstrap4 .select2-selection--multiple,
+            .esim-search-card .button_text {
+                min-height: 52px;
+                height: 52px !important;
+            }
+
+            .esim-search-card .select2-container--bootstrap4 .select2-selection--multiple {
+                padding: 0.45rem 0.7rem;
+            }
+
+            .esim-empty-state {
+                padding: 1.5rem 0.75rem 1rem;
+            }
+
+            .esim-empty-state p {
+                font-size: 16px;
             }
 
             .esim-search-card .button_text {
