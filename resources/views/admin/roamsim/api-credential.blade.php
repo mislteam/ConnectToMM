@@ -89,12 +89,14 @@
                                     <small class="text-danger">{{ $message }}</small>
                                 @enderror
                             </div>
-                            <div class="mt-2 mb-4 d-flex gap-2 justify-content-end">
-                                <button type="submit" class="btn btn-primary">Save</button>
-                            </div>
-                        </div> <!-- end card-body -->
+                            @can('roam.api-credentials.edit')
+                                <div class="mt-2 mb-4 d-flex gap-2 justify-content-end">
+                                    <button type="submit" class="btn btn-primary">Save</button>
+                                </div>
+                            @endcan
+                        </div>
                     </form>
-                </div> <!-- end card -->
+                </div>
             </div>
         </div>
     </div>

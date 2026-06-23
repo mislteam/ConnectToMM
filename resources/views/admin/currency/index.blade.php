@@ -45,9 +45,8 @@
                                         </td>
                                         <td>
                                             <div class="d-flex justify-content-center gap-1">
-                                                <a href="{{ route('currency.edit', $data->id) }}"
-                                                    class="btn btn-light btn-icon btn-sm rounded-circle"><i
-                                                        class="ti ti-edit fs-lg"></i></a>
+                                                <x-action-button :url="route('currency.edit', $data->id)" permission="currency.edit"
+                                                    icon="ti-edit" />
                                             </div>
                                         </td>
                                     </tr>

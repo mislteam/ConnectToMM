@@ -268,9 +268,11 @@
             </div>
         </div>
 
-        <div class="mt-2 mb-4 d-flex gap-2 justify-content-end">
-            <a href="{{ route('roamSkuPackages') }}" id="syncBtn" class="btn btn-primary text-end"> Sync... </a>
-        </div>
+        @can('roam.esim-update.create')
+            <div class="mt-2 mb-4 d-flex gap-2 justify-content-end">
+                <a href="{{ route('roamSkuPackages') }}" id="syncBtn" class="btn btn-primary text-end"> Sync... </a>
+            </div>
+        @endcan
     </div>
 
     <script>

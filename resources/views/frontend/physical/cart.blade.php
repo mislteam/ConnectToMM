@@ -65,13 +65,14 @@
         }
 
         @media (min-width: 768px) and (max-width: 991.98px) {
-            .physical-cart-page #cart-container > .col-md-8,
-            .physical-cart-page #cart-container > .col-md-4 {
+
+            .physical-cart-page #cart-container>.col-md-8,
+            .physical-cart-page #cart-container>.col-md-4 {
                 flex: 0 0 100%;
                 max-width: 100%;
             }
 
-            .physical-cart-page #cart-container > .col-md-4 {
+            .physical-cart-page #cart-container>.col-md-4 {
                 margin-top: 1rem;
             }
 
@@ -177,12 +178,14 @@
                                                     <h6 class="font-weight-bold" style="text-transform: none;">
                                                         {{ $order['country_name'] }}</h6>
                                                     <label>Type Of Plan :
-                                                        {{ $order['plan_type_label'] ?? (($order['plan_type'] ?? '') !== '' ? ($order['plan_type'] . ' Plan') : '-') }}</label><br>
+                                                        {{ $order['plan_type_label'] ?? (($order['plan_type'] ?? '') !== '' ? $order['plan_type'] . ' Plan' : '-') }}</label><br>
                                                     <label>Service Day :
                                                         {{ $order['service_day'] > 1 ? $order['service_day'] . ' days' : $order['service_day'] . ' day' }}</label><br>
                                                     <label>Data : {{ $order['service_data'] }}</label><br>
-                                                    <label>SIM Type :
-                                                        {{ $order['sim_type_label'] ?? Str::headline($order['sim_type']) }}</label><br>
+                                                    <label>Service Type :
+                                                        {{ Str::headline($order['service_type'] ?? 'physical') }}</label><br>
+                                                    <label>Order Type :
+                                                        {{ Str::headline($order['order_type'] ?? 'recharge') }}</label><br>
                                                     {{-- @if ($order['iccid_exist'])
                                                         <label>ICCID No: {{ $order['iccid_no'] ?? '-' }}</label><br>
                                                     @endif --}}
@@ -197,8 +200,8 @@
                                                 </td>
                                                 <td>
                                                     @if (!empty($order['can_adjust_quantity']))
-                                                        <div class="input-group quantity-wrapper" data-key="{{ $key }}"
-                                                            data-editable="1">
+                                                        <div class="input-group quantity-wrapper"
+                                                            data-key="{{ $key }}" data-editable="1">
                                                             <button class="btn btn-outline-secondary qty-minus"
                                                                 type="button">-</button>
                                                             <input type="number" value="{{ $order['qty'] }}"
@@ -208,7 +211,8 @@
                                                                 type="button">+</button>
                                                         </div>
                                                     @else
-                                                        <span class="quantity-static">{{ (int) ($order['qty'] ?? 1) }}</span>
+                                                        <span
+                                                            class="quantity-static">{{ (int) ($order['qty'] ?? 1) }}</span>
                                                     @endif
                                                 </td>
                                                 <td>
@@ -419,9 +423,9 @@
                     }
                 });
 
-                let response = window.requestLoader
-                    ? await window.requestLoader.track(request)
-                    : await request;
+                let response = window.requestLoader ?
+                    await window.requestLoader.track(request) :
+                    await request;
 
                 let data = await response.json();
 

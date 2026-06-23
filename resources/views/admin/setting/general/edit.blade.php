@@ -1,6 +1,7 @@
 @extends('admin.layouts.index')
 @section('title', 'General Setting')
 @section('content')
+    @include('components.alert')
     <div class="container-fluid">
         <div class="page-title-head d-flex align-items-center">
             <div class="flex-grow-1 py-3">
@@ -9,9 +10,9 @@
                     if ($type === 'title' || $type === 'logo') {
                         $name = $data[$type]->name;
                     } elseif ($type === 'joytel') {
-                        $name = 'JOYTEL';
+                        $name = $settings['joytel_title']->value ?? 'Joytel';
                     } elseif ($type === 'roam') {
-                        $name = 'ROAM';
+                        $name = $settings['roam_title']->value ?? 'Roam';
                     }
                 @endphp
                 <h4 class="fs-sm fw-bold m-0 text-black">Edit {{ $name }}</h4>
@@ -90,7 +91,8 @@
                                         </div>
                                     </div>
                                 @elseif (in_array($type, ['joytel', 'roam']))
-                                    <x-general-sim-edit :value="$data[$type . '_title']->value" :type="$type" :image="$data[$type . '_logo']" />
+                                    <x-general-sim-edit :value="$data[$type . '_title']->value" :type="$type" :image="$data[$type . '_logo']"
+                                        :order-types="$orderTypes" />
                                 @endif
                             </div>
                             <div class="mt-2 mb-4 d-flex gap-2 justify-content-end">

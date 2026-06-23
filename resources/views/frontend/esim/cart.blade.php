@@ -32,13 +32,14 @@
         }
 
         @media (min-width: 768px) and (max-width: 991.98px) {
-            .order-summary #cart-container > .col-md-8,
-            .order-summary #cart-container > .col-md-4 {
+
+            .order-summary #cart-container>.col-md-8,
+            .order-summary #cart-container>.col-md-4 {
                 flex: 0 0 100%;
                 max-width: 100%;
             }
 
-            .order-summary #cart-container > .col-md-4 {
+            .order-summary #cart-container>.col-md-4 {
                 margin-top: 1rem;
             }
 
@@ -140,10 +141,7 @@
                                     <tbody>
                                         @foreach ($cartItems ?? session()->get('roam_order_cart', []) as $key => $order)
                                             @php
-                                                $isQuantityEditable = array_key_exists(
-                                                    'can_adjust_quantity',
-                                                    $order,
-                                                )
+                                                $isQuantityEditable = array_key_exists('can_adjust_quantity', $order)
                                                     ? !empty($order['can_adjust_quantity'])
                                                     : strtolower((string) ($order['service_type'] ?? '')) === 'esim' &&
                                                         strtolower((string) ($order['order_type'] ?? '')) === 'new';
@@ -158,12 +156,10 @@
                                                     <h6 class="font-weight-bold" style="text-transform: none;">
                                                         {{ $order['country_name'] }}</h6>
                                                     <label>Type Of Plan :
-                                                        {{ $order['plan_type_label'] ?? (($order['plan_type'] ?? '') !== '' ? ($order['plan_type'] . ' Plan') : '-') }}</label><br>
+                                                        {{ $order['plan_type_label'] ?? (($order['plan_type'] ?? '') !== '' ? $order['plan_type'] . ' Plan' : '-') }}</label><br>
                                                     <label>Service Day :
                                                         {{ $order['service_day'] > 1 ? $order['service_day'] . ' days' : $order['service_day'] . ' day' }}</label><br>
                                                     <label>Data : {{ $order['service_data'] }}</label><br>
-                                                    <label>SIM Type :
-                                                        {{ $order['sim_type_label'] ?? Str::headline($order['sim_type']) }}</label><br>
                                                     <label>Service Type :
                                                         {{ Str::headline($order['service_type'] ?? 'esim') }}</label><br>
                                                     <label>Order Type :
@@ -263,8 +259,8 @@
                                 </tbody>
                             </table>
                             <div class="mt-4 text-center">
-                                <a href="{{ route('roam.esim.checkout') }}" class="button_text"
-                                    id="proceed-to-checkout" data-request-loader>Proceed To Checkout</a>
+                                <a href="{{ route('roam.esim.checkout') }}" class="button_text" id="proceed-to-checkout"
+                                    data-request-loader>Proceed To Checkout</a>
                             </div>
                         </div>
                     </div>
@@ -404,9 +400,9 @@
                     }
                 });
 
-                let response = window.requestLoader
-                    ? await window.requestLoader.track(request)
-                    : await request;
+                let response = window.requestLoader ?
+                    await window.requestLoader.track(request) :
+                    await request;
 
                 let data = await response.json();
 

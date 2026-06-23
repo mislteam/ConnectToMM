@@ -7,14 +7,16 @@
                 <h4 class="fs-sm fw-bold m-0 text-black">Coupons</h4>
                 <ol class="breadcrumb m-0 py-0">
                     <li class="breadcrumb-item"><a href="javascript: void(0);">Home</a></li>
-                    <li class="breadcrumb-item active text-black"><a href="{{ route('coupon.index') }}">All Coupons</a></li>
+                    <li class="breadcrumb-item active text-black"><a
+                            href="{{ route('joytel.coupon.index') }}">{{ $settings['joytel_title']->value . ' Coupons' }}</a>
+                    </li>
                     <li class="breadcrumb-item active text-black">View Coupon</li>
                 </ol>
             </div>
 
             <div class="d-flex align-items-center gap-2">
                 <div class="d-flex gap-1">
-                    <a href="{{ route('coupon.index') }}" class="btn btn-primary ms-1">Back</a>
+                    <a href="{{ route('joytel.coupon.index') }}" class="btn btn-primary ms-1">Back</a>
                 </div>
             </div>
         </div>
@@ -40,12 +42,23 @@
 
                             <div class="col-lg-3">
                                 <div class="mb-2">
-                                    <label class="col-form-label">Amount :</label>
+                                    <label class="col-form-label">Product Name :</label>
                                 </div>
                             </div>
                             <div class="col-lg-9">
                                 <div class="mb-3">
-                                    <p>{{ number_format($coupon->coupon_amount) . ' MMK' }}</p>
+                                    <p>{{ $coupon->product_name }}</p>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3">
+                                <div class="mb-2">
+                                    <label class="col-form-label">Discount Percentage :</label>
+                                </div>
+                            </div>
+                            <div class="col-lg-9">
+                                <div class="mb-3">
+                                    <p>{{ $coupon->discount_percentage }}</p>
                                 </div>
                             </div>
 

@@ -34,8 +34,10 @@
             <div class="flex-grow-1 py-3">
                 <h4 class="fs-sm fw-bold m-0 roam-esim-page-title">{{ $settings['roam_title']->value ?? 'Roam' }}</h4>
                 <ol class="breadcrumb m-0 py-0">
-                    <li class="breadcrumb-item"><a href="javascript: void(0);" class="roam-esim-breadcrumb-link">Home</a></li>
-                    <li class="breadcrumb-item active roam-esim-breadcrumb-current">{{ $settings['roam_title']->value ?? 'Roam' }} - Esim</li>
+                    <li class="breadcrumb-item"><a href="javascript: void(0);" class="roam-esim-breadcrumb-link">Home</a>
+                    </li>
+                    <li class="breadcrumb-item active roam-esim-breadcrumb-current">
+                        {{ $settings['roam_title']->value ?? 'Roam' }} - Esim</li>
                 </ol>
             </div>
         </div>
@@ -114,26 +116,31 @@
                                         </td>
                                         <td>
                                             <div class="d-flex justify-content-center gap-1">
-                                                <div class="btn-group">
-                                                    <button type="button"
-                                                        class="btn btn-light btn-icon btn-sm rounded-circle"
-                                                        data-bs-toggle="dropdown" aria-expanded="false"> <i
-                                                            class="ti ti-dots-vertical fs-lg"></i></button>
-                                                    <div class="dropdown-menu">
-                                                        <!-- Dynamic modal target using SKU ID -->
-                                                        <button type="button" class="dropdown-item" data-bs-toggle="modal"
-                                                            data-bs-target="#manage-price-{{ $index }}">
-                                                            <i class="ti ti-currency-dollar fs-lg"></i> Manage Price
+                                                @can('roam.esim.edit')
+                                                    <div class="btn-group">
+                                                        <button type="button"
+                                                            class="btn btn-light btn-icon btn-sm rounded-circle"
+                                                            data-bs-toggle="dropdown" aria-expanded="false">
+                                                            <i class="ti ti-dots-vertical fs-lg"></i>
                                                         </button>
-                                                        <button type="button" class="dropdown-item" data-bs-toggle="modal"
-                                                            data-bs-target="#manage-status-{{ $index }}">
-                                                            <i class="ti ti-box fs-lg"></i> Manage Status
-                                                        </button>
+                                                        <div class="dropdown-menu">
+                                                            <button type="button" class="dropdown-item"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#manage-price-{{ $index }}">
+                                                                <i class="ti ti-currency-dollar fs-lg"></i> Manage Price
+                                                            </button>
+                                                            <button type="button" class="dropdown-item"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#manage-status-{{ $index }}">
+                                                                <i class="ti ti-box fs-lg"></i> Manage Status
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                                <a href="{{ route('roamEsimEdit', ['skuid' => $pkg['sku_id']]) }}"
-                                                    class="btn btn-light btn-icon btn-sm rounded-circle"><i
-                                                        class="ti ti-edit fs-lg"></i></a>
+                                                    <a href="{{ route('roamEsimEdit', ['skuid' => $pkg['sku_id']]) }}"
+                                                        class="btn btn-light btn-icon btn-sm rounded-circle">
+                                                        <i class="ti ti-edit fs-lg"></i>
+                                                    </a>
+                                                @endcan
                                                 {{-- <a href="#" data-table-delete-row
                                                     class="btn btn-light btn-icon btn-sm rounded-circle"><i
                                                         class="ti ti-trash fs-lg"></i></a> --}}
@@ -244,11 +251,10 @@
                                                                         @endif
                                                                     </td>
                                                                     <td><label
-                                                                            class="form-label">{{ $exchange_rate }}</label>
+                                                                            class="form-label">{{ number_format($exchange_rate, 0) }}</label>
                                                                     </td>
 
-                                                                    <td><label
-                                                                            class="form-label">{{ $portal_price }}</label>
+                                                                    <td><label class="form-label">{{ $portal_price }}</label>
                                                                     </td>
                                                                     <td>
                                                                         <input type="number"
@@ -367,16 +373,14 @@
                                                                         <input type="hidden"
                                                                             name="plans[{{ $index }}][plan_name]"
                                                                             value="{{ $plan['flows'] ?? '' }} {{ $plan['unit'] ?? '' }}">
-                                                                        <input type="hidden" name="status"
-                                                                            value="0">
+                                                                        <input type="hidden" name="status" value="0">
                                                                         <input type="hidden" name="index"
                                                                             value="{{ $index }}">
 
                                                                         <div
                                                                             class="form-check form-switch form-check-secondary fs-xxl mb-2">
-                                                                            <input type="checkbox"
-                                                                                class="form-check-input" name="status"
-                                                                                value="1"
+                                                                            <input type="checkbox" class="form-check-input"
+                                                                                name="status" value="1"
                                                                                 onchange="this.form.submit()"
                                                                                 {{ ($plan['status'] ?? 0) == 1 ? 'checked' : '' }}>
                                                                             <label
@@ -412,48 +416,48 @@
             </div><!-- end col -->
         </div><!-- end row -->
 
-    </div>
-    <!-- <script>
-        document.addEventListener("input", function(e) {
-            if (e.target.classList.contains("price-input")) {
-                let row = e.target.closest("tr");
+        </div>
+        <!-- <script>
+            document.addEventListener("input", function(e) {
+                if (e.target.classList.contains("price-input")) {
+                    let row = e.target.closest("tr");
 
-                let userPrice = parseFloat(e.target.value) || 0;
-                console.log(userPrice);
+                    let userPrice = parseFloat(e.target.value) || 0;
+                    console.log(userPrice);
 
 
-                let originalPrice = parseFloat(row.querySelector(".original-price")?.value || 0);
-                console.log(originalPrice);
+                    let originalPrice = parseFloat(row.querySelector(".original-price")?.value || 0);
+                    console.log(originalPrice);
 
-                let profit = userPrice - originalPrice;
-                console.log(profit);
+                    let profit = userPrice - originalPrice;
+                    console.log(profit);
 
-                let profitInput = row.querySelector(".profit-input");
-                if (profitInput) {
-                    // profitInput.value = profit.toFixed(2);
-                    profitInput.value = profit;
+                    let profitInput = row.querySelector(".profit-input");
+                    if (profitInput) {
+                        // profitInput.value = profit.toFixed(2);
+                        profitInput.value = profit;
+                    }
+
+
                 }
+            });
+        </script> -->
 
+        <!-- <script>
+            document.addEventListener("input", function(e) {
+                if (e.target.classList.contains("price-input")) {
+                    let row = e.target.closest("tr");
 
-            }
-        });
-    </script> -->
+                    let mmk = parseFloat(row.querySelector(".mmk-price").value) || 0;
+                    let extra = parseFloat(e.target.value) || 0;
+                    let total = mmk + extra;
 
-    <!-- <script>
-        document.addEventListener("input", function(e) {
-            if (e.target.classList.contains("price-input")) {
-                let row = e.target.closest("tr");
+                    row.querySelector(".total-input").value = total + 'MMK';
+                }
+            });
+        </script> -->
 
-                let mmk = parseFloat(row.querySelector(".mmk-price").value) || 0;
-                let extra = parseFloat(e.target.value) || 0;
-                let total = mmk + extra;
-
-                row.querySelector(".total-input").value = total + 'MMK';
-            }
-        });
-    </script> -->
-
-    {{-- <script>
+        {{-- <script>
         document.addEventListener("input", function(e) {
 
             if (!e.target.classList.contains("exchange-input")) return;
@@ -476,64 +480,64 @@
         });
     </script> --}}
 
-    <script>
-        function formatNumber(num) {
-            return new Intl.NumberFormat().format(num);
-        }
+        <script>
+            function formatNumber(num) {
+                return new Intl.NumberFormat().format(num);
+            }
 
-        function updateRowCalculation(row) {
+            function updateRowCalculation(row) {
 
-            let rawValue = row.querySelector(".exchange-input")?.value;
-            let sellingRate = rawValue !== "" ? parseFloat(rawValue) : null;
+                let rawValue = row.querySelector(".exchange-input")?.value;
+                let sellingRate = rawValue !== "" ? parseFloat(rawValue) : null;
 
-            let portalPrice = parseFloat(row.querySelector(".portal-price")?.value) || 0;
-            let exchangeRate = parseFloat(row.querySelector(".base-exchange-rate")?.value) || 0;
+                let portalPrice = parseFloat(row.querySelector(".portal-price")?.value) || 0;
+                let exchangeRate = parseFloat(row.querySelector(".base-exchange-rate")?.value) || 0;
 
-            let total = 0;
-            let profit = 0;
+                let total = 0;
+                let profit = 0;
 
-            // TOTAL
-            let totalLabel = row.querySelector(".total-label");
-            if (totalLabel) {
-                if (sellingRate !== null && sellingRate > 0) {
-                    total = sellingRate * portalPrice;
-                    totalLabel.textContent = formatNumber(Math.round(total));
-                } else {
-                    totalLabel.textContent = "-";
+                // TOTAL
+                let totalLabel = row.querySelector(".total-label");
+                if (totalLabel) {
+                    if (sellingRate !== null && sellingRate > 0) {
+                        total = sellingRate * portalPrice;
+                        totalLabel.textContent = formatNumber(Math.round(total));
+                    } else {
+                        totalLabel.textContent = "-";
+                    }
+                }
+
+                // PROFIT
+                let profitLabel = row.querySelector(".profit-label");
+                if (profitLabel) {
+                    if (sellingRate !== null && sellingRate > 0 && exchangeRate > 0) {
+                        profit = total - exchangeRate;
+                        profitLabel.textContent = formatNumber(Math.round(profit));
+                    } else {
+                        profitLabel.textContent = "-";
+                    }
+                }
+
+                // hidden input
+                let profitInput = row.querySelector(".profit-input");
+                if (profitInput) {
+                    profitInput.value = profit > 0 ? profit : '';
                 }
             }
 
-            // PROFIT
-            let profitLabel = row.querySelector(".profit-label");
-            if (profitLabel) {
-                if (sellingRate !== null && sellingRate > 0 && exchangeRate > 0) {
-                    profit = total - exchangeRate;
-                    profitLabel.textContent = formatNumber(Math.round(profit));
-                } else {
-                    profitLabel.textContent = "-";
+            document.addEventListener("input", function(e) {
+                if (e.target.classList.contains("exchange-input")) {
+                    let row = e.target.closest("tr");
+                    if (row) {
+                        updateRowCalculation(row);
+                    }
                 }
-            }
-
-            // hidden input
-            let profitInput = row.querySelector(".profit-input");
-            if (profitInput) {
-                profitInput.value = profit > 0 ? profit : '';
-            }
-        }
-
-        document.addEventListener("input", function(e) {
-            if (e.target.classList.contains("exchange-input")) {
-                let row = e.target.closest("tr");
-                if (row) {
-                    updateRowCalculation(row);
-                }
-            }
-        });
-
-        document.addEventListener("DOMContentLoaded", function() {
-            document.querySelectorAll("#invoice-items tr").forEach(function(row) {
-                updateRowCalculation(row);
             });
-        });
-    </script>
-@endsection
+
+            document.addEventListener("DOMContentLoaded", function() {
+                document.querySelectorAll("#invoice-items tr").forEach(function(row) {
+                    updateRowCalculation(row);
+                });
+            });
+        </script>
+    @endsection

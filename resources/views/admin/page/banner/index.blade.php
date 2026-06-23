@@ -47,9 +47,7 @@
                                         </td>
                                         <td>
                                             <div class="d-flex justify-content-center gap-1">
-                                                <a href="{{ route('page.banner.edit', $data->id) }}"
-                                                    class="btn btn-light btn-icon btn-sm rounded-circle"><i
-                                                        class="ti ti-edit fs-lg"></i></a>
+                                                <x-action-button :url="route('page.banner.edit', $data->id)" permission="page.edit" icon="ti-edit" />
                                             </div>
                                         </td>
                                     </tr>

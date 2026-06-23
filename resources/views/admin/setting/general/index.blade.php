@@ -47,9 +47,8 @@
                                         </td>
                                         <td>
                                             <div class="d-flex justify-content-center gap-1">
-                                                <a href="{{ route('generalEdit', ['type' => $data->name]) }}"
-                                                    class="btn btn-light btn-icon btn-sm rounded-circle"><i
-                                                        class="ti ti-edit fs-lg"></i></a>
+                                                <x-action-button :url="route('generalEdit', ['type' => $data->name])" permission="general.edit"
+                                                    icon="ti-edit" />
                                             </div>
                                         </td>
                                     </tr>
@@ -72,9 +71,7 @@
                                     </td>
                                     <td>
                                         <div class="d-flex justify-content-center gap-1">
-                                            <a href="{{ route('generalEdit', ['type' => 'joytel']) }}"
-                                                class="btn btn-light btn-icon btn-sm rounded-circle"><i
-                                                    class="ti ti-edit fs-lg"></i></a>
+                                            <x-action-button :url="route('generalEdit', ['type' => 'joytel'])" permission="general.edit" icon="ti-edit" />
                                         </div>
                                     </td>
                                 </tr>
@@ -92,9 +89,7 @@
                                     </td>
                                     <td>
                                         <div class="d-flex justify-content-center gap-1">
-                                            <a href="{{ route('generalEdit', ['type' => 'roam']) }}"
-                                                class="btn btn-light btn-icon btn-sm rounded-circle"><i
-                                                    class="ti ti-edit fs-lg"></i></a>
+                                            <x-action-button :url="route('generalEdit', ['type' => 'roam'])" permission="general.edit" icon="ti-edit" />
                                         </div>
                                     </td>
                                 </tr>

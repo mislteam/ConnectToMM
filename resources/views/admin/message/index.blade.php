@@ -66,9 +66,8 @@
                                             {{ Str::limit($msg->message, 50) }}</td>
                                         <td>
                                             <div class="d-flex justify-content-center gap-1">
-                                                <a href="{{ route('message.show', $msg->id) }}"
-                                                    class="btn btn-light btn-icon btn-sm rounded-circle"><i
-                                                        class="ti ti-eye"></i></a>
+                                                <x-action-button :url="route('message.show', $msg->id)" permission="message.view"
+                                                    icon="ti-eye" />
                                             </div>
                                         </td>
                                     </tr>

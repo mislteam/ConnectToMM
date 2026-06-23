@@ -86,4 +86,10 @@ return [
             ['type' => 'connection_card', 'count' => 2],
         ]
     ],
+    'refunds_policy' => [
+        'hasImg' => false,
+        'page' => 'refunds_policy',
+        'type' => 'normal',
+        'hasDesc' => true,
+    ],
 ];

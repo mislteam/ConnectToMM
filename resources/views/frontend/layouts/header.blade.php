@@ -41,7 +41,7 @@
      <header class="header bg-light">
          <div class="container">
              <nav class="navbar position-relative navbar-expand-lg navbar-light">
-                 <a class="navbar-brand" href="{{ route('Index') }}">
+                 <a class="navbar-brand col-8 col-md-6 col-lg-3" href="{{ route('Index') }}">
                      <figure class="mb-0"><img src="{{ asset('general/logo/' . $logo->value) }}"
                              class="img-fluid w-75" alt=""></figure>
                  </a>
@@ -188,3 +188,16 @@
          </div>
      </header>
  </div>
+ <script>
+     document.addEventListener('click', function(e) {
+         const navbar = document.getElementById('navbarSupportedContent');
+         const navbarWrapper = document.querySelector('.navbar');
+
+         if (
+             navbar.classList.contains('show') &&
+             !navbarWrapper.contains(e.target)
+         ) {
+             $('.navbar-collapse').collapse('hide');
+         }
+     });
+ </script>

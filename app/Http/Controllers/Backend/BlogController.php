@@ -25,16 +25,21 @@ class BlogController extends Controller
     {
         $data = $request->validate([
             'title' => 'required|string|max:255',
-            'desc' => 'required|string',
+            'description' => 'required|string',
             'category_id' => 'required|exists:blog_categories,id',
             'image' => 'nullable|image|mimes:jpeg,png',
         ]);
         if ($request->hasFile('image')) {
             $fileName = store_image($request->file('image'), 'blog');
         }
+        $data['description'] = preg_replace(
+            '/(<(?!img\b)[^>]+)\sstyle="[^"]*"/i',
+            '$1',
+            $data['description']
+        );
         Blog::create([
             'title' => $data['title'],
-            'desc' => $data['desc'],
+            'desc' => $data['description'],
             'category_id' => $data['category_id'],
             'image' => $fileName ?? null,
         ]);
@@ -51,7 +56,7 @@ class BlogController extends Controller
     {
         $data = $request->validate([
             'title' => 'required|string|max:255',
-            'desc' => 'required|string',
+            'description' => 'required|string',
             'category_id' => 'required|exists:blog_categories,id',
             'image' => 'nullable|image|mimes:jpeg,png',
         ]);
@@ -64,9 +69,14 @@ class BlogController extends Controller
             }
             $blog->image = store_image($request->file('image'), 'blog');
         }
+        $data['description'] = preg_replace(
+            '/(<(?!img\b)[^>]+)\sstyle="[^"]*"/i',
+            '$1',
+            $data['description']
+        );
         $blog->update([
             'title' => $data['title'],
-            'desc' => $data['desc'],
+            'desc' => $data['description'],
             'category_id' => $data['category_id'],
             'image' => $blog->image,
         ]);
@@ -79,7 +89,7 @@ class BlogController extends Controller
 
         $blog->delete();
         session()->flash("success", "Blog Deleted Successfully!");
-        return response()->json(['message' => 'Blog deleted successfully!']);
+        return response()->json(['success' => true]);
     }
 
     private function sharedData()

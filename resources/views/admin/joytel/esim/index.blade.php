@@ -40,9 +40,10 @@
             <div class="flex-grow-1 py-3">
                 <h4 class="fs-sm fw-bold m-0 joytel-esim-page-title">{{ $settings['joytel_title']->value ?? 'Joytel' }}</h4>
                 <ol class="breadcrumb m-0 py-0">
-                    <li class="breadcrumb-item"><a href="javascript: void(0);"
-                            class="joytel-esim-breadcrumb-link">Home</a></li>
-                    <li class="breadcrumb-item active joytel-esim-breadcrumb-current">{{ $settings['joytel_title']->value ?? 'Joytel' }} - Esim
+                    <li class="breadcrumb-item"><a href="javascript: void(0);" class="joytel-esim-breadcrumb-link">Home</a>
+                    </li>
+                    <li class="breadcrumb-item active joytel-esim-breadcrumb-current">
+                        {{ $settings['joytel_title']->value ?? 'Joytel' }} - Esim
                     </li>
                 </ol>
             </div>
@@ -161,206 +162,160 @@
                                             </td>
                                             <td>
                                                 <div class="d-flex justify-content-center gap-1">
-                                                    <div class="btn-group">
-                                                        <button type="button"
-                                                            class="btn btn-light btn-icon btn-sm rounded-circle"
-                                                            data-bs-toggle="dropdown" aria-expanded="false"> <i
-                                                                class="ti ti-dots-vertical fs-lg"></i></button>
-                                                        <div class="dropdown-menu">
-                                                            <button type="button" class="dropdown-item"
-                                                                data-bs-toggle="modal" data-bs-target="#manage-price"
-                                                                data-plan='@json($plans)'
-                                                                data-existing-rates='@json($exchangeRates)'
-                                                                data-joytel-id="{{ $esim->id }}"
-                                                                data-joytel-type="esim"
-                                                                data-product-name="{{ $esim->product_name }}">
-                                                                <i class="ti ti-currency-dollar fs-lg"></i> Manage Price
+                                                    @can('joytel.esim.edit')
+                                                        <div class="btn-group">
+                                                            <button type="button"
+                                                                class="btn btn-light btn-icon btn-sm rounded-circle"
+                                                                data-bs-toggle="dropdown" aria-expanded="false">
+                                                                <i class="ti ti-dots-vertical fs-lg"></i>
                                                             </button>
-
-                                                            <button type="button" class="dropdown-item"
-                                                                data-bs-toggle="modal" data-bs-target="#manage-status"
-                                                                data-plan='@json($plans)'
-                                                                data-id="{{ $esim->id }}" data-joytel-type="esim"
-                                                                data-product-name="{{ $esim->product_name }}">
-                                                                <i class="ti ti-box fs-lg"></i> Manage Status
-                                                            </button>
+                                                            <div class="dropdown-menu">
+                                                                <button type="button" class="dropdown-item"
+                                                                    data-bs-toggle="modal" data-bs-target="#manage-price"
+                                                                    data-plan='@json($plans)'
+                                                                    data-existing-rates='@json($exchangeRates)'
+                                                                    data-joytel-id="{{ $esim->id }}"
+                                                                    data-joytel-type="esim"
+                                                                    data-product-name="{{ $esim->product_name }}">
+                                                                    <i class="ti ti-currency-dollar fs-lg"></i> Manage Price
+                                                                </button>
+                                                                <button type="button" class="dropdown-item"
+                                                                    data-bs-toggle="modal" data-bs-target="#manage-status"
+                                                                    data-plan='@json($plans)'
+                                                                    data-id="{{ $esim->id }}" data-joytel-type="esim"
+                                                                    data-product-name="{{ $esim->product_name }}">
+                                                                    <i class="ti ti-box fs-lg"></i> Manage Status
+                                                                </button>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                    <a href="{{ route('esim.edit', $esim->id) }}"
-                                                        class="btn btn-light btn-icon btn-sm rounded-circle"><i
-                                                            class="ti ti-edit fs-lg"></i></a>
-                                                    {{-- <a href="#" data-id="{{ $esim->id }}"
-                                                        data-bs-toggle="modal" data-bs-target="#sim-delete"
-                                                        class="btn btn-light btn-icon btn-sm rounded-circle delete-sim-btn">
-                                                        <i class="ti ti-trash fs-lg"></i>
-                                                    </a> --}}
+                                                    @endcan
+                                                    <x-action-button :url="route('esim.edit', $esim->id)" permission="joytel.esim.edit"
+                                                        icon="ti-edit" />
                                                 </div>
                                             </td>
                                         </tr>
                                     @endforeach
-                                @else
-                                    <tr>
-                                        <td colspan="6" class="text-center">Nothing found.</td>
-                                    </tr>
-                                @endif
-                            </tbody>
-                        </table>
+                @else
+                    <tr>
+                        <td colspan="6" class="text-center">Nothing found.</td>
+                    </tr>
+                    @endif
+                    </tbody>
+                    </table>
+                </div>
+                <div class="card-footer border-0">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div data-table-pagination-info="{{ $settings['joytel_title']->value ?? 'Joytel' }}"
+                            id="pagination-info"></div>
+                        <div data-table-pagination id="pagination"></div>
                     </div>
-                    <div class="card-footer border-0">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div data-table-pagination-info="{{ $settings['joytel_title']->value ?? 'Joytel' }}"
-                                id="pagination-info"></div>
-                            <div data-table-pagination id="pagination"></div>
+                </div>
+
+                <!-- manage price -->
+            <div class="modal fade" id="manage-price" tabindex="-1">
+                <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title">Manage Price</h4>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
-                    </div>
+                        <div class="modal-body">
+                            <h4 class="modal-title">
+                                <span id="product-name-title"></span>
+                            </h4>
 
-                    <!-- manage price -->
-                    {{-- <div class="modal fade" id="manage-price" tabindex="-1" role="dialog"
-                        aria-labelledby="managePrice" aria-hidden="true">
-                        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h4 class="modal-title" id="managePrice">Manage Price</h4>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                        aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <div class="table-responsive mt-2">
-                                        <table class="table table-bordered table-nowrap text-center align-middle">
-                                            <thead class="bg-light align-middle bg-opacity-25 thead-sm">
-                                                <tr class="text-uppercase fs-xxs">
-                                                    <th>#</th>
-                                                    <th class="text-start">Product SKU</th>
-                                                    <th>Traffic Type</th>
-                                                    <th>Original Selling Price<br>(MMK)</th>
-                                                    <th>Update Selling Price<br>(MMK)</th>
-                                                    <th>Profit<br>(MMK)</th>
-                                                    <th>Increment</th>
-
-                                                </tr>
-                                            </thead>
-                                            <tbody id="price-invoice-items">
-
-                                            </tbody>
-                                        </table>
-
-                                    </div>
-                                </div>
-                                <div class="modal-footer">
-                                    <div class="my-3 d-flex gap-2 justify-content-end">
-                                        <button type="button" class="btn btn-primary text-end">Update</button>
-                                    </div>
-                                </div>
+                            <div class="mt-2">
+                                <table class="table table-bordered text-center align-middle"
+                                    style="white-space: nowrap; min-width: 800px;">
+                                    <thead class="bg-light align-middle bg-opacity-25 thead-sm">
+                                        <tr>
+                                            <th>#</th>
+                                            <th class="text-start">Product SKU</th>
+                                            <th>Plan</th>
+                                            <th>Exchange Rate</th>
+                                            <th>Portal Price</th>
+                                            <th style="width: 150px;">Selling Rate</th>
+                                            <th>Profit</th>
+                                            <th>Total (MMK)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="price-invoice-items">
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
-                    </div> --}}
-
-                    <!-- manage price -->
-                    <div class="modal fade" id="manage-price" tabindex="-1">
-                        <div class="modal-dialog modal-xl modal-dialog-scrollable">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h4 class="modal-title">Manage Price</h4>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <h4 class="modal-title">
-                                        <span id="product-name-title"></span>
-                                    </h4>
-
-                                    <div class="mt-2">
-                                        <table class="table table-bordered text-center align-middle"
-                                            style="white-space: nowrap; min-width: 800px;">
-                                            <thead class="bg-light align-middle bg-opacity-25 thead-sm">
-                                                <tr>
-                                                    <th>#</th>
-                                                    <th class="text-start">Product SKU</th>
-                                                    <th>Plan</th>
-                                                    <th>Exchange Rate</th>
-                                                    <th>Portal Price</th>
-                                                    <th style="width: 150px;">Selling Rate</th>
-                                                    <th>Profit</th>
-                                                    <th>Total (MMK)</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="price-invoice-items">
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
-                                <div class="modal-footer">
-                                    <div class="my-3 d-flex gap-2 justify-content-end">
-                                        <button type="button" class="btn btn-primary"
-                                            id="manage-price-update-btn">Update</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- manage status -->
-                    <div class="modal fade" id="manage-status" tabindex="-1" role="dialog"
-                        aria-labelledby="manageStatus" aria-hidden="true">
-                        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h4 class="modal-title">Manage Status</h4>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                        aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <h4 class="modal-title">
-                                        <span id="product-title"></span>
-                                    </h4>
-                                    <div class="table-responsive mt-2">
-                                        <table class="table table-bordered table-nowrap text-center align-middle">
-                                            <thead class="bg-light align-middle bg-opacity-25 thead-sm">
-                                                <tr class="text-uppercase fs-xxs">
-                                                    <th>#</th>
-                                                    <th class="text-start">Product SKU</th>
-                                                    <th>Plan</th>
-                                                    <th>Status</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody id="invoice-items">
-
-                                            </tbody>
-                                        </table>
-
-                                    </div>
-                                </div>
-                                <div class="modal-footer">
-                                    <div class="my-3 d-flex gap-2 justify-content-end">
-                                        <button type="button" class="btn btn-primary text-end">Update</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- sim delete -->
-                    <div class="modal fade" id="sim-delete" tabindex="-1" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">Confirm Delete</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                        aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body text-center">
-                                    <p>Are you sure you want to delete this eSIM?</p>
-                                </div>
-                                <div class="modal-footer justify-content-center">
-                                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
-                                    <button type="button" class="btn btn-secondary"
-                                        data-bs-dismiss="modal">Cancel</button>
-                                </div>
+                        <div class="modal-footer">
+                            <div class="my-3 d-flex gap-2 justify-content-end">
+                                <button type="button" class="btn btn-primary"
+                                    id="manage-price-update-btn">Update</button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- manage status -->
+            <div class="modal fade" id="manage-status" tabindex="-1" role="dialog" aria-labelledby="manageStatus"
+                aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title">Manage Status</h4>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <h4 class="modal-title">
+                                <span id="product-title"></span>
+                            </h4>
+                            <div class="table-responsive mt-2">
+                                <table class="table table-bordered table-nowrap text-center align-middle">
+                                    <thead class="bg-light align-middle bg-opacity-25 thead-sm">
+                                        <tr class="text-uppercase fs-xxs">
+                                            <th>#</th>
+                                            <th class="text-start">Product SKU</th>
+                                            <th>Plan</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="invoice-items">
+
+                                    </tbody>
+                                </table>
+
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <div class="my-3 d-flex gap-2 justify-content-end">
+                                <button type="button" class="btn btn-primary text-end">Update</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- sim delete -->
+            <div class="modal fade" id="sim-delete" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title">Confirm Delete</h5>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body text-center">
+                            <p>Are you sure you want to delete this eSIM?</p>
+                        </div>
+                        <div class="modal-footer justify-content-center">
+                            <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+    </div>
+    </div>
     </div>
     <script>
         window.simLists = @json($sim_lists);

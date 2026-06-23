@@ -11,8 +11,12 @@ class GeneralSimEdit extends Component
     /**
      * Create a new component instance.
      */
-    public function __construct()
-    {
+    public function __construct(
+        public $value,
+        public $type,
+        public $image,
+        public $orderTypes = null
+    ) {
         //
     }
 

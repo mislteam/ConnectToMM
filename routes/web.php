@@ -8,17 +8,20 @@ use App\Http\Controllers\Backend\AdminController;
 use App\Http\Controllers\Backend\BlogCategoryController;
 use App\Http\Controllers\Backend\BlogController;
 use App\Http\Controllers\Backend\ContactUsController;
-use App\Http\Controllers\Backend\CouponController;
 use App\Http\Controllers\Backend\CurrencyController;
 use App\Http\Controllers\Backend\CustomerController;
 use App\Http\Controllers\Backend\FooterPageController;
 use App\Http\Controllers\Backend\GeneralSettingController;
 use App\Http\Controllers\Backend\JoytelController;
+use App\Http\Controllers\Backend\JoytelCouponController;
 use App\Http\Controllers\Backend\JoyUsageLocationController;
 use App\Http\Controllers\Backend\OrderController;
 use App\Http\Controllers\Backend\PageController;
+use App\Http\Controllers\Backend\PaymentSettingController;
+use App\Http\Controllers\Backend\PermissionController;
 use App\Http\Controllers\Backend\RoamOrderController;
 use App\Http\Controllers\Backend\RoamController;
+use App\Http\Controllers\Backend\RoamCouponController;
 use App\Http\Controllers\Backend\RoamPhysicalController;
 use App\Http\Controllers\Backend\SubCategoryController;
 use App\Http\Controllers\Frontend\ESimController;
@@ -50,8 +53,10 @@ Route::get('/home', [HomeController::class, 'index'])->name('Index');
 Route::get('/about', [HomeController::class, 'about'])->name('About');
 Route::get('/faq', [HomeController::class, 'faq'])->name('Faq');
 Route::get('/blog-article', [HomeController::class, 'blog'])->name('Blog');
+Route::get('/blog/detail/{blog}', [HomeController::class, 'blogDetail'])->name('blogDetail');
 Route::get('/contact', [HomeController::class, 'contact'])->name('Contact');
 Route::post('/contact', [ContactUsController::class, 'store'])->name('contact.store');
+Route::get('/refunds-policy', [HomeController::class, 'refundsPolicy'])->name('refundsPolicy');
 
 // user
 Route::middleware('guest:customers')->group(function () {
@@ -140,9 +145,9 @@ Route::prefix("joytel")->group(function () {
 });
 
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth'])->group(function () { //, 'admin.permission'
     //dashboard
-    Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard.admin');
+    Route::get('/dashboard', [DashboardController::class, 'dashboard'])->name('dashboard.index');
 
     // customer
     Route::get('/all-customer', [CustomerController::class, 'index'])->name('customer.index');
@@ -180,12 +185,16 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/edit-usd-currency/{usdCurrency}', [CurrencyController::class, 'editUsdCurrency'])->name('usdcurrency.edit');
     Route::put('/edit-usd-currency/{usdCurrency}', [CurrencyController::class, 'updateUsdCurrency'])->name('usdcurrency.update');
     Route::prefix('setting')->group(function () {
-
         // General Setting 
-
         Route::get('admin/general', [GeneralSettingController::class, 'index'])->name('generalIndex');
         Route::get('/general/edit/{type}', [GeneralSettingController::class, 'edit'])->name('generalEdit');
         Route::patch('/general/update/{type}', [GeneralSettingController::class, 'update'])->name('generalUpdate');
+
+        Route::get('/permission', [PermissionController::class, 'index'])->name('permission.index');
+        Route::get('/permission/create', [PermissionController::class, 'create'])->name('permission.create');
+        Route::post('/permission/store', [PermissionController::class, 'store'])->name('permission.store');
+        Route::get('/permission/edit/{role}', [PermissionController::class, 'edit'])->name('permission.edit');
+        Route::put('/permission/update/{role}', [PermissionController::class, 'update'])->name('permission.update');
     });
 
     Route::prefix('roam')->group(function () {
@@ -235,16 +244,26 @@ Route::middleware(['auth'])->group(function () {
         //manage price
         Route::post('/pricelist/store', [RoamController::class, 'updateExchangeRate'])->name('pricelist.store');
         Route::post('/physical-pricelist/store', [RoamPhysicalController::class, 'updatePhysicalExchangeRate'])->name('physicalpricelist.store');
+
+        Route::get('/coupons', [RoamCouponController::class, 'index'])->name('roam.coupon.index');
+        Route::get('/coupon/create', [RoamCouponController::class, 'create'])->name('roam.coupon.create');
+        Route::get('/coupon/edit/{coupon}', [RoamCouponController::class, 'edit'])->name('roam.coupon.edit');
+        Route::post('/coupon/store', [RoamCouponController::class, 'store'])->name('roam.coupon.store');
+        Route::patch('/coupon/update/{coupon}', [RoamCouponController::class, 'update'])->name('roam.coupon.update');
+        Route::get('/coupon/show/{coupon}', [RoamCouponController::class, 'show'])->name('roam.coupon.show');
+        Route::delete('/coupon/delete', [RoamCouponController::class, 'delete']);
     });
 
-    // coupons
-    Route::prefix('/coupon')->group(function () {
-        Route::get('/', [CouponController::class, 'index'])->name('coupon.index');
-        Route::get('/create', [CouponController::class, 'create'])->name('coupon.create');
-        Route::get('/show/{coupon}', [CouponController::class, 'show'])->name('coupon.show');
-        Route::get('/edit/{coupon}', [CouponController::class, 'edit'])->name('coupon.edit');
-        Route::post('/store', [CouponController::class, 'store'])->name('coupon.store');
-        Route::patch('/update/{coupon}', [CouponController::class, 'update'])->name('coupon.update');
+    // payment setting
+    Route::prefix('payment')->group(function () {
+        Route::get("/", [PaymentSettingController::class, 'index'])->name('admin.payment.index');
+        Route::get("/edit", [PaymentSettingController::class, 'edit'])->name('admin.payment.edit');
+        Route::post('/update-status', [PaymentSettingController::class, 'updateStatus'])->name('admin.payment.update-status');
+        Route::post("/direct-bank/store", [PaymentSettingController::class, 'directStore'])->name('payment.direct.store');
+        Route::patch("/direct-bank/update", [PaymentSettingController::class, 'directUpdate'])->name('payment.direct.update');
+        Route::delete("/direct-bank/delete", [PaymentSettingController::class, 'directDelete'])->name('payment.direct.delete');
+
+        Route::patch("/uab-credential/update", [PaymentSettingController::class, 'uabUpdate'])->name('payment.uab.update');
     });
 
     // joytel
@@ -276,6 +295,14 @@ Route::middleware(['auth'])->group(function () {
         // Recharge import
         Route::post('/import-recharge', [JoytelController::class, 'importRecharge'])
             ->name('joytel.import.recharge');
+
+        Route::get('/coupons', [JoytelCouponController::class, 'index'])->name('joytel.coupon.index');
+        Route::get('/coupon/create', [JoytelCouponController::class, 'create'])->name('joytel.coupon.create');
+        Route::get('/coupon/edit/{coupon}', [JoytelCouponController::class, 'edit'])->name('joytel.coupon.edit');
+        Route::post('/coupon/store', [JoytelCouponController::class, 'store'])->name('joytel.coupon.store');
+        Route::patch('/coupon/update/{coupon}', [JoytelCouponController::class, 'update'])->name('joytel.coupon.update');
+        Route::get('/coupon/show/{coupon}', [JoytelCouponController::class, 'show'])->name('joytel.coupon.show');
+        Route::delete('/coupon/delete', [JoytelCouponController::class, 'delete']);
     });
 
     // currency index
@@ -316,7 +343,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/faq/create', [PageController::class, 'faqStore'])->name('page.faq.store');
         Route::get('/faq/edit/{faq}', [PageController::class, 'faqEdit'])->name('page.faq.edit');
         Route::patch('/faq/edit/{faq}', [PageController::class, 'faqUpdate'])->name('page.faq.update');
-        Route::delete('/faq/delete/{faq}', [PageController::class, 'faqDelete']);
+        Route::delete('/faq/delete/{faq}', [PageController::class, 'faqDelete'])->name('page.faq.delete');
 
         //banners
         Route::get('/banner', [PageController::class, 'bannerIndex'])->name('page.banner.index');
@@ -334,9 +361,13 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/support/edit/{support}', [FooterPageController::class, 'supportUpdate'])->name('footer.support.update');
 
         // important links
-        Route::get('important-link', [FooterPageController::class, 'importantIndex'])->name('footer.important.index');
-        Route::get('important-link/edit/{link}', [FooterPageController::class, 'importantEdit'])->name('footer.important.edit');
-        Route::patch('important-link/edit/{link}', [FooterPageController::class, 'importantUpdate'])->name('footer.important.update');
+        Route::get('/important-link', [FooterPageController::class, 'importantIndex'])->name('footer.important.index');
+        Route::get('/important-link/edit/{link}', [FooterPageController::class, 'importantEdit'])->name('footer.important.edit');
+        Route::patch('/important-link/edit/{link}', [FooterPageController::class, 'importantUpdate'])->name('footer.important.update');
+
+        // refunds policy
+        Route::get('/refunds-policy', [PageController::class, 'policyIndex'])->name('page.refunds.index');
+        Route::patch('/refunds-policy/update/{policy}', [PageController::class, 'policyUpdate'])->name('page.refunds.update');
     });
 
     Route::prefix('category')->group(function () {
