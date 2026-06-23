@@ -105,19 +105,7 @@
                         }).then(res => res.json())
                         .then(data => {
                             if (data && data.success) {
-                                const alert = document.createElement('div');
-
-                                alert.className =
-                                    'alert alert-success alert-dismissible fade show alert-fixed';
-
-                                alert.setAttribute('role', 'alert');
-                                alert.setAttribute('data-auto-dismiss', '5000');
-
-                                alert.innerHTML = `
-                                    ${data.message}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                `;
-                                liveAlertContainer.appendChild(alert);
+                                Swal.fire('Success', 'Status updated successfully');
                                 window.location.reload();
                             }
                         }).catch(err => {

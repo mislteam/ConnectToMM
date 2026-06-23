@@ -79,7 +79,6 @@ class PaymentSettingController extends Controller
     public function uabUpdate(Request $request)
     {
         $data = $request->validate([
-            'channel' => 'required|string',
             'merchant_user_id' => 'required|string',
             'api_url' => 'required|string',
             'access_key' => 'required|string',
