@@ -26238,3 +26238,12 @@ div:where(.swal2-icon).swal2-success
     -webkit-transform: translateX(0);
     transform: translateX(0);
 }
+
+.note-toolbar .note-fontname,
+.note-toolbar .note-view,
+.note-toolbar .note-btn-superscript,
+.note-toolbar .note-btn-subscript,
+.note-toolbar .note-icon-eraser,
+.note-toolbar button[aria-label*="Remove Font Style"] {
+    display: none !important;
+}

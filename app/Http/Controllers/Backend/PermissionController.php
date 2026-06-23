@@ -52,6 +52,7 @@ class PermissionController extends Controller
             'roam.api-credentials' => $generalRoamTitle->value . ' API Credentials',
             'roam.esim-update' => $generalRoamTitle->value . ' eSIM Update Data',
             'roam.physical-update' => $generalRoamTitle->value . ' Physical Update Data',
+            'roam.coupon' => $generalRoamTitle->value . ' Coupon',
             'admin' => 'All Admin',
             'message' => 'Messages',
             'blog' => 'Blog',
