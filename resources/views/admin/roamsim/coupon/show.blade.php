@@ -59,7 +59,8 @@
                             </div>
                             <div class="col-lg-9">
                                 <div class="mb-3">
-                                    <p>{{ $coupon->discount_percentage }}</p>
+                                    <p>{{ rtrim(rtrim(number_format($coupon->discount_percentage, 2, '.', ''), '0'), '.') }}%
+                                    </p>
                                 </div>
                             </div>
 

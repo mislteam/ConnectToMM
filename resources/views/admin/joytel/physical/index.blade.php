@@ -169,9 +169,9 @@
                                                         <div class="btn-group">
                                                             <button type="button"
                                                                 class="btn btn-light btn-icon btn-sm rounded-circle"
-                                                                data-bs-toggle="dropdown" aria-expanded="false"> <i
-                                                                    class="ti ti-dots-vertical fs-lg"></i></button>
-
+                                                                data-bs-toggle="dropdown" aria-expanded="false">
+                                                                <i class="ti ti-dots-vertical fs-lg"></i>
+                                                            </button>
                                                             <div class="dropdown-menu">
                                                                 @php
                                                                     $exchangeRates = \App\Models\PriceList::pluck(
@@ -191,32 +191,26 @@
                                                                 <button type="button" class="dropdown-item"
                                                                     data-bs-toggle="modal" data-bs-target="#manage-status"
                                                                     data-plan='@json($plans)'
-                                                                    data-id="{{ $recharge->id }}" data-joytel-type="physical"
+                                                                    data-id="{{ $recharge->id }}"
+                                                                    data-joytel-type="physical"
                                                                     data-product-name="{{ $recharge->product_name }}">
                                                                     <i class="ti ti-box fs-lg"></i> Manage Status
                                                                 </button>
-
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                    <a href="{{ route('physical.edit', $recharge->id) }}"
-                                                        class="btn btn-light btn-icon btn-sm rounded-circle"><i
-                                                            class="ti ti-edit fs-lg"></i></a>
-                                                    {{-- <a href="#" data-id="{{ $recharge->id }}"
-                                                        data-bs-toggle="modal" data-bs-target="#sim-delete"
-                                                        class="btn btn-light btn-icon btn-sm rounded-circle delete-sim-btn">
-                                                        <i class="ti ti-trash fs-lg"></i>
-                                                    </a> --}}
-                        </div>
-                        </td>
-                        </tr>
-                        @endforeach
-                    @else
-                        <tr>
-                            <td colspan="6" class="text-center">Nothing found.</td>
-                        </tr>
-                        @endif
-                        </tbody>
+                                                    @endcan
+                                                    <x-action-button :url="route('physical.edit', $recharge->id)" permission="joytel.physical.edit"
+                                                        icon="ti-edit" />
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                @else
+                                    <tr>
+                                        <td colspan="6" class="text-center">Nothing found.</td>
+                                    </tr>
+                                @endif
+                            </tbody>
                         </table>
 
                     </div>

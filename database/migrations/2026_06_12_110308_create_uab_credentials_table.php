@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('uab_credentials', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('payment_setting_id')->constrained('payment_settings')->onDelete('cascade');
+            $table->foreignId('payment_setting_id')->constrained('payment_setting')->onDelete('cascade');
             $table->string('channel');
             $table->string('merchant_user_id');
             $table->string('api_url');

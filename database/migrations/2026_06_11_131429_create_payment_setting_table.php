@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('payment_settings', function (Blueprint $table) {
+        Schema::create('payment_setting', function (Blueprint $table) {
             $table->id();
             $table->string('type');
             $table->tinyInteger('status')->comment('0 => inactive, 1 => active')->default(0);
@@ -24,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('payment_settings');
+        Schema::dropIfExists('payment_setting');
     }
 };

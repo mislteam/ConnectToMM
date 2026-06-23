@@ -9,6 +9,8 @@ class PaymentSetting extends Model
 {
     use HasFactory;
 
+    protected $table = 'payment_setting';
+
     protected $fillable = [
         'type',
         'status'
@@ -21,6 +23,6 @@ class PaymentSetting extends Model
 
     public function uabCredential()
     {
-        return $this->belongsTo(UabCredential::class, 'payment_setting_id');
+        return $this->hasOne(UabCredential::class, 'payment_setting_id');
     }
 }

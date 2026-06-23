@@ -18,13 +18,16 @@ class PaymentSeeder extends Seeder
         foreach ($paymentTypes as $payment) {
             PaymentSetting::firstOrCreate([
                 'type' => $payment['type'],
-                'status' => $payment['status']
+            ], [
+                'status' => $payment['status'],
             ]);
         }
 
+        $uabPaymentSetting = PaymentSetting::where('type', 'UAB Pay')->firstOrFail();
+
         UabCredential::updateOrCreate(
             [
-                'payment_setting_id' => 2,
+                'payment_setting_id' => $uabPaymentSetting->id,
             ],
             [
                 'channel' => 'Connect To Myanmar',

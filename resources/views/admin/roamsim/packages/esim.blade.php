@@ -120,32 +120,35 @@
                                                     <div class="btn-group">
                                                         <button type="button"
                                                             class="btn btn-light btn-icon btn-sm rounded-circle"
-                                                            data-bs-toggle="dropdown" aria-expanded="false"> <i
-                                                                class="ti ti-dots-vertical fs-lg"></i></button>
+                                                            data-bs-toggle="dropdown" aria-expanded="false">
+                                                            <i class="ti ti-dots-vertical fs-lg"></i>
+                                                        </button>
                                                         <div class="dropdown-menu">
-                                                            <!-- Dynamic modal target using SKU ID -->
-                                                            <button type="button" class="dropdown-item" data-bs-toggle="modal"
+                                                            <button type="button" class="dropdown-item"
+                                                                data-bs-toggle="modal"
                                                                 data-bs-target="#manage-price-{{ $index }}">
                                                                 <i class="ti ti-currency-dollar fs-lg"></i> Manage Price
                                                             </button>
-                                                            <button type="button" class="dropdown-item" data-bs-toggle="modal"
+                                                            <button type="button" class="dropdown-item"
+                                                                data-bs-toggle="modal"
                                                                 data-bs-target="#manage-status-{{ $index }}">
                                                                 <i class="ti ti-box fs-lg"></i> Manage Status
                                                             </button>
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <a href="{{ route('roamEsimEdit', ['skuid' => $pkg['sku_id']]) }}"
-                                                    class="btn btn-light btn-icon btn-sm rounded-circle"><i
-                                                        class="ti ti-edit fs-lg"></i></a>
+                                                    <a href="{{ route('roamEsimEdit', ['skuid' => $pkg['sku_id']]) }}"
+                                                        class="btn btn-light btn-icon btn-sm rounded-circle">
+                                                        <i class="ti ti-edit fs-lg"></i>
+                                                    </a>
+                                                @endcan
                                                 {{-- <a href="#" data-table-delete-row
                                                     class="btn btn-light btn-icon btn-sm rounded-circle"><i
                                                         class="ti ti-trash fs-lg"></i></a> --}}
-                        </div>
-                        </td>
-                        </tr>
-                        @endforeach
-                        </tbody>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
                         </table>
 
                     </div>
@@ -247,7 +250,8 @@
                                                                             Fixed : {{ $plan['days'] }} days
                                                                         @endif
                                                                     </td>
-                                                                    <td><label class="form-label">{{ $exchange_rate }}</label>
+                                                                    <td><label
+                                                                            class="form-label">{{ number_format($exchange_rate, 0) }}</label>
                                                                     </td>
 
                                                                     <td><label class="form-label">{{ $portal_price }}</label>

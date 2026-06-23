@@ -33,7 +33,6 @@ class PermissionSeeder extends Seeder
             'roam.api-credentials',
             'roam.esim-update',
             'roam.physical-update',
-            'coupon',
             'admin',
             'message',
             'blog',

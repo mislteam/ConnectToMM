@@ -43,7 +43,7 @@ class PaymentSettingController extends Controller
     public function directStore(Request $request)
     {
         $data = $request->validate([
-            'payment_setting_id' => 'required|integer|exists:payment_settings,id',
+            'payment_setting_id' => 'required|integer|exists:payment_setting,id',
             'bank_name' => 'string|required',
             'account_name' => 'string|required',
             'account_number' => 'string|required',
