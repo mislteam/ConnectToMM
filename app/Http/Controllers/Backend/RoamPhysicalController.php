@@ -11,6 +11,7 @@ use App\Models\RoamPhysical;
 use App\Models\GeneralSetting;
 use App\Models\PriceList;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -19,25 +20,17 @@ class RoamPhysicalController extends Controller
 {
     public function Physicalindex()
     {
-        $globalPackages = RoamPhysicalSku::with('roamPhysical')
-            ->where('status', 1)
-            ->where('dp_id', 9)
-            ->orderBy('country_name', 'asc')
-            ->get();
-        $asiaPackages = RoamPhysicalSku::with('roamPhysical')
-            ->where('status', 1)
-            ->where('dp_id', 21)
-            ->orderBy('country_name', 'asc')
-            ->get();
         $packages = RoamPhysicalSku::with('roamPhysical')
             ->where('status', 1)
             ->orderBy('country_name', 'asc')
             ->get();
+        $globalPackages = $packages->where('dp_id', 9)->values();
+        $asiaPackages = $packages->where('dp_id', 21)->values();
 
         $usd_exchange_rate = Currency::where('name', 'usd')->value('value');
-        $logo = GeneralSetting::where('type', 'file')->first();
-        $title = GeneralSetting::where('type', 'string')->first();
-        return view('admin.roamphysical.packages.physicalsim', compact('logo', 'title', 'packages', 'globalPackages', 'asiaPackages', 'usd_exchange_rate'));
+        $priceListsByScopedCode = $this->buildScopedPriceListMap($packages);
+
+        return view('admin.roamphysical.packages.physicalsim', compact('packages', 'globalPackages', 'asiaPackages', 'usd_exchange_rate', 'priceListsByScopedCode'));
     }
 
     public function RoamphysicalEdit($skuid)
@@ -53,12 +46,49 @@ class RoamPhysicalController extends Controller
 
     public function Skuindex()
     {
-        $logo = GeneralSetting::where('type', 'file')->first();
-        $title = GeneralSetting::where('type', 'string')->first();
         $roamGlobal = RoamPhysicalSku::where('dp_id', 9)->get();
         $roamAsia = RoamPhysicalSku::where('dp_id', 21)->get();
-        // $categories=Category::latest()->get();
-        return view('admin.roamphysical.skulist', compact('logo', 'title', 'roamGlobal', 'roamAsia'));
+        return view('admin.roamphysical.skulist', compact('roamGlobal', 'roamAsia'));
+    }
+
+    private function buildScopedPriceListMap(Collection $packages): array
+    {
+        $scopedItems = $packages
+            ->flatMap(function ($pkg) {
+                $plans = collect($pkg->roamPhysical)->firstWhere('dp_id', $pkg->dp_id);
+
+                return collect($plans->packages ?? [])->flatMap(function ($plan) use ($pkg) {
+                    $dpInfo = (int) $pkg->dp_id;
+
+                    return collect([
+                        $plan['apiCode'] ?? $plan['api_code'] ?? null,
+                        $plan['priceid'] ?? null,
+                    ])->filter()->map(fn($code) => [
+                        'dp_info' => $dpInfo,
+                        'product_code' => $code,
+                    ]);
+                });
+            })
+            ->unique()
+            ->values();
+
+        if ($scopedItems->isEmpty()) {
+            return [];
+        }
+
+        $priceLists = PriceList::query()
+            ->where('dp_status', 1)
+            ->whereIn('dp_info', $scopedItems->pluck('dp_info')->unique())
+            ->whereIn('product_code', $scopedItems->pluck('product_code')->unique())
+            ->get();
+
+        $mapped = [];
+
+        foreach ($priceLists as $priceList) {
+            $mapped["{$priceList->dp_status}|{$priceList->dp_info}|{$priceList->product_code}"] = $priceList;
+        }
+
+        return $mapped;
     }
 
     public function syncPhysicalSkusAndPackages()

@@ -202,19 +202,9 @@
                                                                 $apiCode =
                                                                     $plan['apiCode'] ?? ($plan['api_code'] ?? null);
                                                                 $legacyCode = $plan['priceid'] ?? null;
-                                                                $savedRate = App\Models\PriceList::where(
-                                                                    'product_code',
-                                                                    $apiCode,
-                                                                )
-                                                                    ->where('dp_status', 0)
-                                                                    ->first();
+                                                                $savedRate = $priceListsByCode[$apiCode] ?? null;
                                                                 if (!$savedRate && $legacyCode !== null) {
-                                                                    $savedRate = App\Models\PriceList::where(
-                                                                        'product_code',
-                                                                        $legacyCode,
-                                                                    )
-                                                                        ->where('dp_status', 0)
-                                                                        ->first();
+                                                                    $savedRate = $priceListsByCode[$legacyCode] ?? null;
                                                                 }
 
                                                                 $exchange_rate = round(
@@ -334,8 +324,7 @@
                                                 </thead>
 
                                                 @php
-                                                    $plans = App\Models\Roam::where('sku_id', $pkg->sku_id)->first();
-
+                                                    $plans = $pkg->roam;
                                                 @endphp
                                                 @if (!empty($plans->packages))
                                                     @foreach ($plans->packages as $index => $plan)

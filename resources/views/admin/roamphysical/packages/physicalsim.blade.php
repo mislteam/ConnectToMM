@@ -107,7 +107,7 @@
                                         </thead>
                                         <tbody>
 
-                                            @foreach ($packages->where('dp_id', 9) as $pkg)
+                                            @foreach ($globalPackages as $pkg)
                                                 @php
                                                     $plans = collect($pkg->roamPhysical)->firstWhere(
                                                         'dp_id',
@@ -245,7 +245,7 @@
                                         </thead>
                                         <tbody>
 
-                                            @foreach ($packages->where('dp_id', 21) as $pkg)
+                                            @foreach ($asiaPackages as $pkg)
                                                 @php
                                                     $plans = collect($pkg->roamPhysical)->firstWhere(
                                                         'dp_id',
@@ -381,21 +381,13 @@
                                                                     $apiCode =
                                                                         $plan['apiCode'] ?? ($plan['api_code'] ?? null);
                                                                     $legacyCode = $plan['priceid'] ?? null;
-                                                                    $savedRate = App\Models\PriceList::where(
-                                                                        'product_code',
-                                                                        $apiCode,
-                                                                    )
-                                                                        ->where('dp_status', $dpStatus)
-                                                                        ->where('dp_info', $dpInfo)
-                                                                        ->first();
+                                                                    $savedRate =
+                                                                        $priceListsByScopedCode["{$dpStatus}|{$dpInfo}|{$apiCode}"] ??
+                                                                        null;
                                                                     if (!$savedRate && $legacyCode !== null) {
-                                                                        $savedRate = App\Models\PriceList::where(
-                                                                            'product_code',
-                                                                            $legacyCode,
-                                                                        )
-                                                                            ->where('dp_status', $dpStatus)
-                                                                            ->where('dp_info', $dpInfo)
-                                                                            ->first();
+                                                                        $savedRate =
+                                                                            $priceListsByScopedCode["{$dpStatus}|{$dpInfo}|{$legacyCode}"] ??
+                                                                            null;
                                                                     }
                                                                     $exchange_rate = round(
                                                                         $portal_price * $usd_exchange_rate,
@@ -517,11 +509,7 @@
                                                 </thead>
 
                                                 @php
-                                                    $plans = App\Models\RoamPhysical::where(
-                                                        'sku_id',
-                                                        $pkg->sku_id,
-                                                    )->first();
-
+                                                    $plans = collect($pkg->roamPhysical)->firstWhere('dp_id', $pkg->dp_id);
                                                 @endphp
                                                 @if (!empty($plans->packages))
                                                     @foreach ($plans->packages as $index => $plan)

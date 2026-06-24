@@ -909,15 +909,28 @@ menuObserver.observe(document.documentElement, {
 
     function markAppReady() {
         if (body) {
+            body.classList.remove("app-loading", "request-loader-active");
             body.classList.add("app-ready");
         }
         syncState();
     }
 
-    // Keep the initial pre-loader visible until the browser finishes loading
-    // (matches "tab is loading" expectation). Add a timeout so it can't hang forever.
+    // Hide the initial pre-loader as soon as the DOM is ready instead of waiting
+    // for every image and external asset to finish loading.
+    document.addEventListener("DOMContentLoaded", markAppReady, { once: true });
     window.addEventListener("load", markAppReady, { once: true });
     window.setTimeout(markAppReady, 10000);
+
+    // When navigating back/forward, the browser can restore the page from bfcache
+    // without firing the normal load lifecycle. Reset loader state in that case.
+    window.addEventListener(
+        "pageshow",
+        () => {
+            activeRequests = 0;
+            markAppReady();
+        },
+        true,
+    );
 
     document.addEventListener(
         "submit",

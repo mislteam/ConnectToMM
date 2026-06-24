@@ -57,7 +57,7 @@
     <link href="{{ asset('assets/plugins/summernote/summernote-bs5.min.css') }}" rel="stylesheet">
 
     <style>
-        body:not(.app-ready),
+        body.app-loading,
         body.request-loader-active {
             overflow: hidden;
         }
@@ -78,7 +78,7 @@
             transition: opacity 0.2s ease, visibility 0.2s ease;
         }
 
-        body:not(.app-ready) .request-loader-overlay,
+        body.app-loading .request-loader-overlay,
         body.request-loader-active .request-loader-overlay {
             opacity: 1;
             visibility: visible;
@@ -128,7 +128,7 @@
 
 </head>
 
-<body>
+<body class="app-loading request-loader-active">
     <div class="request-loader-overlay" data-request-loader-overlay aria-hidden="true">
         <div class="request-loader-panel" role="status" aria-live="polite">
             <div class="request-loader-spinner" aria-hidden="true"></div>
@@ -159,10 +159,6 @@
     <!-- END wrapper -->
     <script src="{{ asset('assets/js/jquery-3.6.0.min.js') }}"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2/dist/fuse.min.js"></script>
-
-    <script src="https://unpkg.com/filepond@^4/dist/filepond.js"></script>
-
 
     <!-- Vendor js -->
     <script src="{{ asset('assets/js/vendors.min.js') }}"></script>
@@ -171,7 +167,7 @@
     <script src="{{ asset('assets/js/config.js') }}"></script>
 
     <!-- App js -->
-    <script src="{{ asset('assets/js/app.js') }}"></script>
+    <script src="{{ asset('assets/js/app.js') }}?v={{ filemtime(public_path('assets/js/app.js')) }}"></script>
     <script>
         (function() {
             var STORAGE_KEY = "c2mm-theme";
