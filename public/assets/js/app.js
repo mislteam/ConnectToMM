@@ -863,6 +863,69 @@ menuObserver.observe(document.documentElement, {
     const overlay = document.querySelector("[data-request-loader-overlay]");
     let activeRequests = 0;
 
+    function isModifiedEvent(event) {
+        return !!(
+            event.defaultPrevented ||
+            event.button !== 0 ||
+            event.metaKey ||
+            event.ctrlKey ||
+            event.shiftKey ||
+            event.altKey
+        );
+    }
+
+    function shouldHandleLinkNavigation(link) {
+        if (!(link instanceof HTMLAnchorElement)) {
+            return false;
+        }
+
+        const href = link.getAttribute("href");
+
+        if (
+            !href ||
+            href === "#" ||
+            href.indexOf("#") === 0 ||
+            href.indexOf("javascript:") === 0 ||
+            href.indexOf("mailto:") === 0 ||
+            href.indexOf("tel:") === 0 ||
+            link.hasAttribute("download") ||
+            link.getAttribute("target") === "_blank" ||
+            link.hasAttribute("data-bs-toggle")
+        ) {
+            return false;
+        }
+
+        try {
+            const url = new URL(link.href, window.location.href);
+
+            return (
+                url.origin === window.location.origin &&
+                url.href !== window.location.href
+            );
+        } catch (error) {
+            return false;
+        }
+    }
+
+    function shouldHandleFormSubmit(form, event) {
+        if (!(form instanceof HTMLFormElement) || event.defaultPrevented) {
+            return false;
+        }
+
+        if (form.hasAttribute("data-request-loader-ignore")) {
+            return false;
+        }
+
+        if (
+            form.method &&
+            form.method.toLowerCase() === "dialog"
+        ) {
+            return false;
+        }
+
+        return true;
+    }
+
     function syncState() {
         if (!body) {
             return;
@@ -938,8 +1001,9 @@ menuObserver.observe(document.documentElement, {
             const form = event.target;
 
             if (
-                form instanceof HTMLFormElement &&
-                form.matches("[data-request-loader]")
+                (form instanceof HTMLFormElement &&
+                    form.matches("[data-request-loader]")) ||
+                shouldHandleFormSubmit(form, event)
             ) {
                 start();
             }
@@ -951,14 +1015,26 @@ menuObserver.observe(document.documentElement, {
         "click",
         (event) => {
             const trigger = event.target.closest("[data-request-loader]");
+            const link = event.target.closest("a");
 
-            if (!trigger) {
+            if (isModifiedEvent(event)) {
                 return;
             }
 
-            const href = trigger.getAttribute("href");
+            if (trigger) {
+                const href = trigger.getAttribute("href");
 
-            if (trigger.tagName === "A" && !(href && href.indexOf("#") === 0)) {
+                if (
+                    trigger.tagName === "A" &&
+                    !(href && href.indexOf("#") === 0)
+                ) {
+                    start();
+                }
+
+                return;
+            }
+
+            if (shouldHandleLinkNavigation(link)) {
                 start();
             }
         },
