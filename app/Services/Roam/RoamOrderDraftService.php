@@ -17,7 +17,12 @@ class RoamOrderDraftService
      *
      * @return array{outer_order_id:string, orders:\Illuminate\Support\Collection<int,RoamOrder>, total_amount:float}
      */
-    public function createDraftOrdersFromCart(Customer $customer, array $cart, array $iccidNumbersByIndex = []): array
+    public function createDraftOrdersFromCart(
+        Customer $customer,
+        array $cart,
+        array $iccidNumbersByIndex = [],
+        ?string $paymentMethod = null
+    ): array
     {
         $cartItems = $this->normalizeCartItems($cart);
         if (empty($cartItems)) {
@@ -77,6 +82,7 @@ class RoamOrderDraftService
                     'quantity' => $quantity,
                     'unit_price' => $unitPrice,
                     'total_price' => $totalPrice,
+                    'payment_method' => $paymentMethod,
                     'daypass_days' => $daypassDays,
                     'our_status' => RoamOrder::OUR_STATUS_PENDING_PAYMENT,
                     'roam_status' => null,

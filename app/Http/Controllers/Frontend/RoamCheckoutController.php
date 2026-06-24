@@ -125,7 +125,8 @@ class RoamCheckoutController extends Controller
         $result = $draftService->createDraftOrdersFromCart(
             $customer,
             $cart,
-            $iccidNumbersByIndex
+            $iccidNumbersByIndex,
+            $validated['payment_method']
         );
 
         session()->forget([
