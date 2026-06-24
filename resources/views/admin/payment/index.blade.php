@@ -88,30 +88,80 @@
         document.addEventListener('DOMContentLoaded', function() {
             const checkEls = document.querySelectorAll('.status-btn');
             const liveAlertContainer = document.getElementById('live-alert-container');
-            liveAlertContainer.innerHTML = "";
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            const basePath = window.location.pathname.replace(/\/$/, '');
+            const updateStatusUrl = `${window.location.origin}${basePath}/update-status`;
+            const showAlert = async options => {
+                if (window.Swal && typeof window.Swal.fire === 'function') {
+                    return window.Swal.fire({
+                        confirmButtonText: 'OK',
+                        confirmButtonColor: '#0049ad',
+                        allowOutsideClick: false,
+                        ...options
+                    });
+                }
+
+                window.alert(options.text || options.title || 'Notification');
+                return Promise.resolve();
+            };
+
+            if (liveAlertContainer) {
+                liveAlertContainer.innerHTML = '';
+            }
+
             checkEls.forEach(el => {
-                el.addEventListener('change', function() {
-                    fetch(`/payment/update-status/`, {
+                el.addEventListener('change', async function() {
+                    const previousState = !el.checked;
+                    el.disabled = true;
+
+                    try {
+                        const response = await fetch(updateStatusUrl, {
                             method: 'POST',
+                            credentials: 'same-origin',
                             headers: {
+                                'Accept': 'application/json',
                                 'Content-Type': 'application/json',
-                                'X-CSRF-TOKEN': document.querySelector(
-                                    'meta[name="csrf-token"]').getAttribute('content')
+                                'X-CSRF-TOKEN': csrfToken,
+                                'X-Requested-With': 'XMLHttpRequest'
                             },
                             body: JSON.stringify({
                                 status: el.checked ? 1 : 0,
                                 id: el.dataset.id
                             })
-                        }).then(res => res.json())
-                        .then(data => {
-                            if (data && data.success) {
-                                Swal.fire('Success', 'Status updated successfully');
-                                window.location.reload();
-                            }
-                        }).catch(err => {
-                            console.error(err);
-                            Swal.fire('Error', 'Error while updating status');
-                        })
+                        });
+
+                        if (!response.ok) {
+                            const errorText = await response.text();
+                            throw new Error(
+                                `Request failed with status ${response.status}: ${errorText}`
+                                );
+                        }
+
+                        const data = await response.json();
+
+                        if (!data?.success) {
+                            throw new Error(data?.message || 'Status update failed.');
+                        }
+
+                        await showAlert({
+                            icon: 'success',
+                            title: 'Success',
+                            text: data.message || 'Status updated successfully.'
+                        });
+
+                        window.location.reload();
+                    } catch (err) {
+                        console.error(err);
+                        el.checked = previousState;
+
+                        await showAlert({
+                            icon: 'error',
+                            title: 'Update failed',
+                            text: 'Status update failed. Please check the server route, session, and APP_URL/public path on UAT.'
+                        });
+                    } finally {
+                        el.disabled = false;
+                    }
                 });
             });
         });

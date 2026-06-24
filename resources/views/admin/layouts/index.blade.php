@@ -237,7 +237,7 @@
     <script src="{{ asset('assets/plugins/quill/quill.js') }}"></script>
     <script src="{{ asset('assets/plugins/dropzone/dropzone-min.js') }}"></script>
     <script src="{{ asset('assets/js/select2/select2.full.min.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="{{ asset('assets/js/sweetalert/sweetalert2@11.js') }}"></script>
     <!-- Summernote Plugin Js -->
     <script src="{{ asset('assets/plugins/summernote/summernote-bs5.min.js') }}"></script>
     <!-- Summernote Demo Js -->
