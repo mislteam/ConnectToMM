@@ -38,7 +38,7 @@ return new class extends Migration
             $table->unsignedInteger('quantity')->comment('Order quantity');
             $table->unsignedInteger('unit_price')->nullable()->comment('Unit price');
             $table->unsignedInteger('total_price')->comment('Total Order price in MMK');
-
+            $table->string('payment_method', 50)->nullable()->comment('Payment method used for the order');
             // roam_coupons table Foreign Key
             $table->foreignId('coupon_id')
                 ->nullable()
