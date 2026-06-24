@@ -32,7 +32,7 @@ class RoamOrderDraftService
         $outerOrderId = $this->generateOuterOrderId();
         $totalAmount = 0.0;
 
-        $orders = DB::transaction(function () use ($customer, $cartItems, $iccidNumbersByIndex, $outerOrderId, &$totalAmount) {
+        $orders = DB::transaction(function () use ($customer, $cartItems, $iccidNumbersByIndex, $outerOrderId, $paymentMethod, &$totalAmount) {
             $created = collect();
 
             foreach ($cartItems as $index => $item) {
