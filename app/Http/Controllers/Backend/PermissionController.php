@@ -44,6 +44,7 @@ class PermissionController extends Controller
             'joytel.esim' => $generalJoyTitle->value . ' eSIM',
             'joytel.physical' => $generalJoyTitle->value . ' Physical',
             'joytel.region' => $generalJoyTitle->value . ' Location',
+            'joytel.api-credentials' => $generalJoyTitle->value . ' API Credentials',
             'joytel.coupon' => $generalJoyTitle->value . ' Coupon',
             'roam.esim' => $generalRoamTitle->value . ' eSIM',
             'roam.physical' => $generalRoamTitle->value . ' Physical',

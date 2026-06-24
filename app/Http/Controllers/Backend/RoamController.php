@@ -12,6 +12,7 @@ use App\Models\PriceList;
 use App\Models\GeneralSetting;
 use App\Models\RoamPhysicalSku;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
@@ -24,13 +25,10 @@ class RoamController extends Controller
             ->where('status', 1)
             ->orderBy('country_name', 'asc')
             ->get();
-        // dd($packages);
         $usd_exchange_rate = Currency::where('name', 'usd')->value('value');
-        // dd($usd_exchange_rate);
+        $priceListsByCode = $this->buildPriceListMap($packages, 0);
 
-        $logo = GeneralSetting::where('type', 'file')->first();
-        $title = GeneralSetting::where('type', 'string')->first();
-        return view('admin.roamsim.packages.esim', compact('logo', 'title', 'packages', 'usd_exchange_rate'));
+        return view('admin.roamsim.packages.esim', compact('packages', 'usd_exchange_rate', 'priceListsByCode'));
     }
 
 
@@ -56,11 +54,41 @@ class RoamController extends Controller
 
     public function Skuindex()
     {
-        $logo = GeneralSetting::where('type', 'file')->first();
-        $title = GeneralSetting::where('type', 'string')->first();
         $roamList = RoamSku::all();
-        // $categories=Category::latest()->get();
-        return view('admin.roamsim.skulist', compact('logo', 'title', 'roamList'));
+        return view('admin.roamsim.skulist', compact('roamList'));
+    }
+
+    private function buildPriceListMap(Collection $packages, int $dpStatus, ?int $dpInfo = null): array
+    {
+        $productCodes = $packages
+            ->pluck('roam')
+            ->filter()
+            ->flatMap(function ($roam) {
+                return collect($roam->packages ?? [])->flatMap(function ($plan) {
+                    return array_filter([
+                        $plan['apiCode'] ?? $plan['api_code'] ?? null,
+                        $plan['priceid'] ?? null,
+                    ]);
+                });
+            })
+            ->unique()
+            ->values();
+
+        if ($productCodes->isEmpty()) {
+            return [];
+        }
+
+        $query = PriceList::query()
+            ->whereIn('product_code', $productCodes)
+            ->where('dp_status', $dpStatus);
+
+        if ($dpInfo === null) {
+            $query->whereNull('dp_info');
+        } else {
+            $query->where('dp_info', $dpInfo);
+        }
+
+        return $query->get()->keyBy('product_code')->all();
     }
 
     //test roam api for Esim

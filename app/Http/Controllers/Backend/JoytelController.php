@@ -14,6 +14,7 @@ use App\Models\JoytelApi;
 use App\Models\JoyUsageLocation;
 use App\Models\PriceList;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
@@ -304,12 +305,30 @@ class JoytelController extends Controller
     // render index pages function
      private function renderIndex($route, $keyword, string $modelClass = JoytelEsim::class)
     {
-        $logo = GeneralSetting::where('type', 'file')->first();
-        $title = GeneralSetting::where('type', 'string')->first();
-        $query = $modelClass::whereRaw('LOWER(type) LIKE ?', ['%' . $keyword . '%']);
-        $sim_lists = $query->latest()->get()->unique('product_name');
-        $additional_prices = PriceList::latest()->get();
-        return view($route, compact('logo', 'title', 'sim_lists', 'additional_prices'));
+        $latestIds = $modelClass::query()
+            ->selectRaw('MAX(id) as id')
+            ->whereRaw('LOWER(type) LIKE ?', ['%' . $keyword . '%'])
+            ->groupBy('product_name');
+
+        $sim_lists = $modelClass::query()
+            ->whereIn('id', $latestIds)
+            ->latest()
+            ->get();
+
+        $plansByProductName = $modelClass::query()
+            ->whereIn('product_name', $sim_lists->pluck('product_name'))
+            ->orderBy('id')
+            ->get()
+            ->groupBy('product_name');
+
+        $additional_prices = PriceList::query()
+            ->select('product_code', 'exchange_rate', 'profit')
+            ->latest()
+            ->get();
+
+        $exchangeRates = PriceList::query()->pluck('exchange_rate', 'product_code');
+
+        return view($route, compact('sim_lists', 'plansByProductName', 'additional_prices', 'exchangeRates'));
     }
 
 

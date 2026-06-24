@@ -139,12 +139,7 @@
                                 @if ($sim_lists->isNotEmpty())
                                     @foreach ($sim_lists as $index => $recharge)
                                         @php
-
-                                            $plans = App\Models\JoytelPhysical::where(
-                                                'product_name',
-                                                $recharge->product_name,
-                                            )->get();
-
+                                            $plans = $plansByProductName->get($recharge->product_name, collect());
                                         @endphp
 
 
@@ -173,12 +168,6 @@
                                                                 <i class="ti ti-dots-vertical fs-lg"></i>
                                                             </button>
                                                             <div class="dropdown-menu">
-                                                                @php
-                                                                    $exchangeRates = \App\Models\PriceList::pluck(
-                                                                        'exchange_rate',
-                                                                        'product_code',
-                                                                    );
-                                                                @endphp
                                                                 <button type="button" class="dropdown-item"
                                                                     data-bs-toggle="modal" data-bs-target="#manage-price"
                                                                     data-plan='@json($plans)'

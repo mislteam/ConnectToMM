@@ -137,14 +137,7 @@
                                 @if ($sim_lists->isNotEmpty())
                                     @foreach ($sim_lists as $index => $esim)
                                         @php
-                                            $plans = App\Models\JoytelEsim::where(
-                                                'product_name',
-                                                $esim->product_name,
-                                            )->get();
-                                            $exchangeRates = \App\Models\PriceList::pluck(
-                                                'exchange_rate',
-                                                'product_code',
-                                            );
+                                            $plans = $plansByProductName->get($esim->product_name, collect());
                                         @endphp
                                         <tr>
                                             <td>

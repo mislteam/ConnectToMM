@@ -20,6 +20,9 @@ return [
         'region.edit' => 'joytel.region.edit',
         'region.update' => 'joytel.region.edit',
 
+        'joytelApiIndex' => 'joytel.api-credentials.menu',
+        'joytel-api.store' => 'joytel.api-credentials.edit',
+
         'roamEsimIndex' => 'roam.esim.menu',
         'roamEsimEdit' => 'roam.esim.edit',
         'roam.update' => 'roam.esim.edit',
