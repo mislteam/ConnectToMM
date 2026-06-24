@@ -97,6 +97,7 @@ class RoamOrder extends Model
         'quantity',
         'unit_price',
         'total_price',
+        'payment_method',
         'coupon_id',
         'discount_amount',
         'daypass_days',
