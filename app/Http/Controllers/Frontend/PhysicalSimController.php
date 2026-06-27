@@ -59,7 +59,7 @@ class PhysicalSimController extends Controller
         $priceListByPlan = $priceList->groupBy('plan');
         $roamBySku = RoamPhysical::whereIn('sku_id', $activeSkus->pluck('sku_id')->all())
             ->get()
-            ->keyBy(fn ($row) => $row->sku_id . ':' . (int) ($row->dp_id ?? 0));
+            ->keyBy(fn($row) => $row->sku_id . ':' . (int) ($row->dp_id ?? 0));
         $packageCards = $this->buildPhysicalPackageCards($activeSkus, $priceListByPlan, $roamBySku);
 
         $globalPackageCards = $packageCards->where('dp_id', 9)->values();
@@ -68,20 +68,23 @@ class PhysicalSimController extends Controller
         $logo = GeneralSetting::where('type', 'file')->first();
         $title = GeneralSetting::where('type', 'string')->first();
 
+        $orderTabs = getOrderTypes('roam_order_types', 'physical');
+        $selectedOrderType = collect($orderTabs)->keys()->first();
+
         return view(
             'frontend.physical.roam-physical',
-                compact(
-                    'logo',
-                    'title',
-                    'countrys',
-                    'globalCountries',
-                    'asiaCountries',
-                    'globalPackageCards',
-                    'asiaPackageCards',
-                    'selectedDpId'
-                    ,
-                    'selectedOrderType'
-                )
+            compact(
+                'logo',
+                'title',
+                'countrys',
+                'globalCountries',
+                'asiaCountries',
+                'globalPackageCards',
+                'asiaPackageCards',
+                'selectedDpId',
+                'orderTabs',
+                'selectedOrderType'
+            )
         );
     }
 

@@ -47,7 +47,7 @@
                             </div>
                             <div class="col-lg-9">
                                 <div class="mb-3">
-                                    <p>{{ $coupon->product_name }}</p>
+                                    <p>{{ implode(', ', json_decode($coupon->product_names)) }}</p>
                                 </div>
                             </div>
 

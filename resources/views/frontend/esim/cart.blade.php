@@ -2,6 +2,11 @@
 @section('title', 'Connect To Myanmar')
 @section('content')
     <style>
+        .order-summary .col-md-4 .order-box {
+            position: sticky;
+            top: 135px;
+        }
+
         .text-size-14 {
             font-size: 14px;
             line-height: 24px;

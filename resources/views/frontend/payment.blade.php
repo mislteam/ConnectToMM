@@ -8,19 +8,6 @@
     @php
         $currentStatusLabel = $orders->first()?->customer_status_label ?? 'Pending Payment';
         $statusView = $payment_status_view ?? [];
-
-        $bankAccounts = [
-            [
-                'bank' => 'KBZ Pay',
-                'account_name' => 'U Myint',
-                'account_number' => '09452856556',
-            ],
-            [
-                'bank' => 'AYA Pay',
-                'account_name' => 'U Myint',
-                'account_number' => '09452856556',
-            ],
-        ];
     @endphp
 
     <style>
@@ -423,15 +410,18 @@
                         @if ($statusView['show_bank_accounts'] ?? false)
                             <div class="payment-section-block">
                                 <span class="payment-section-title">Bank Accounts</span>
-                                @foreach ($bankAccounts as $account)
+
+                                @forelse ($credentials ?? [] as $account)
                                     <div class="bank-line-box">
-                                        <label><strong>Bank:</strong> {{ $account['bank'] }}</label>
-                                        <label><strong>Account Name:</strong> {{ $account['account_name'] }}</label>
-                                        <label><strong>Account Number:</strong> {{ $account['account_number'] }}</label>
+                                        <label><strong>Bank:</strong> {{ $account->bank_name }}</label>
+                                        <label><strong>Account Name:</strong> {{ $account->account_name }}</label>
+                                        <label><strong>Account Number:</strong> {{ $account->account_number }}</label>
                                         <label><strong>Payment Note:</strong> Please add your order ID
                                             {{ $outer_order_id }}</label>
                                     </div>
-                                @endforeach
+                                @empty
+                                    <p>No account found.</p>
+                                @endforelse
                             </div>
                         @endif
 

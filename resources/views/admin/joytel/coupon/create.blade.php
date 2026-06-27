@@ -55,14 +55,15 @@
 
                                     <div class="app-search col-sm-10">
                                         <select class="select2_design form-select form-control my-1 my-md-0"
-                                            multiple="multiple" name="plans[]" id="choose__plan">
+                                            multiple="multiple" name="product_names[]" id="choose__plan"
+                                            data-placeholder="Choose Product Name">
                                             <option value="All">All</option>
                                             @foreach ($product_names as $name)
                                                 <option value="{{ $name }}">
                                                     {{ $name }}</option>
                                             @endforeach
                                         </select>
-                                        @error('plans[]')
+                                        @error('product_names[]')
                                             <small class="text-danger">{{ $message }}</small>
                                         @enderror
                                     </div>

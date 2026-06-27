@@ -19,10 +19,8 @@ class ESimController extends Controller
             $selectedSimType = 'new_esim';
         }
 
-        $orderTabs = [
-            'new_esim' => ['label' => 'New eSIM'],
-            'recharge_esim' => ['label' => 'Recharge'],
-        ];
+        $orderTabs = getOrderTypes('roam_order_types', 'esim');
+        $selectedSimType = collect($orderTabs)->keys()->first();
 
         $countrys = Roam::pluck('support_country')
             ->flatten()
@@ -443,6 +441,10 @@ class ESimController extends Controller
             'price' => $price,
         ]);
 
+        $paymentSetting = \App\Models\PaymentSetting::orderBy('id')->get();
+        $isDirectActive = $paymentSetting->first()?->status;
+        $isUabActive = $paymentSetting->last()?->status;
+
         return view('frontend.esim.checkout', [
             'sku' => $sku,
             'cart' => $primaryItem,
@@ -466,6 +468,8 @@ class ESimController extends Controller
                 (string) ($primaryItem['service_type'] ?? ''),
                 (string) ($primaryItem['order_type'] ?? '')
             ),
+            'is_direct' => $isDirectActive,
+            'is_uab' => $isUabActive
         ]);
     }
 

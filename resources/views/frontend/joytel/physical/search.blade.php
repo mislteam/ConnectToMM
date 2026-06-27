@@ -123,7 +123,8 @@
                                                                         $plan['product_code'] ?? null,
                                                                     )->first();
 
-                                                                    $exchangeRate = (float) ($priceList->exchange_rate ?? 0);
+                                                                    $exchangeRate =
+                                                                        (float) ($priceList->exchange_rate ?? 0);
                                                                     $priceCny = (float) ($plan['price_cny'] ?? 0);
 
                                                                     if ($exchangeRate <= 0 || $priceCny <= 0) {

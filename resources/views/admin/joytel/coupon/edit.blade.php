@@ -1,6 +1,19 @@
 @extends('admin.layouts.index')
 @section('title', 'Coupon Edit')
 @section('content')
+    <style>
+        .alert-fixed {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            min-width: 250px;
+        }
+
+        .select2-container--bootstrap4 .select2-selection--multiple .select2-selection__choice {
+            color: #fff !important;
+        }
+    </style>
     <div class="container-fluid">
         <div id="live-alert-container"></div>
         <div class="page-title-head d-flex align-items-center">
@@ -36,8 +49,26 @@
                             <x-form-input label="Coupon Code" name="code" placeholder="Enter Coupon Code"
                                 :isrequired="true" :value="$coupon->code" />
 
-                            <x-form-input label="Product Name" name="product_name" placeholder="Enter Product Name"
-                                :isrequired="true" :value="$coupon->product_name" />
+                            <div class="form-group row mb-3">
+                                <label for="category" class="form-label col-sm-2">Product Name<span
+                                        class="text-danger">*</span></label>
+
+                                <div class="app-search col-sm-10">
+                                    <select class="select2_design form-select form-control my-1 my-md-0" multiple="multiple"
+                                        name="product_names[]" id="choose__plan" data-placeholder="Choose Product Name">
+                                        <option value="All" {{ in_array('All', $db_products) ? 'selected' : '' }}>All
+                                        </option>
+                                        @foreach ($product_names as $name)
+                                            <option value="{{ $name }}"
+                                                {{ in_array($name, $db_products) ? 'selected' : '' }}>
+                                                {{ $name }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('product_names[]')
+                                        <small class="text-danger">{{ $message }}</small>
+                                    @enderror
+                                </div>
+                            </div>
 
                             <x-form-input type="number" label="Discount Percentage" name="discount_percentage"
                                 placeholder="Enter Discount Percentage" :value="(int) $coupon->discount_percentage" :isrequired="true" />

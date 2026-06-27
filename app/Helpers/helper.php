@@ -66,60 +66,53 @@ if (!function_exists('parseProductName')) {
             'service_day' => null,
         ];
 
-    //     if (preg_match('/(\d+)\s*[-]?\s*days?/i', $name, $dayMatch)) {
+        //     if (preg_match('/(\d+)\s*[-]?\s*days?/i', $name, $dayMatch)) {
 
-    //         $result['service_day'] = (int)$dayMatch[1] . 'day';
-    //     }
+        //         $result['service_day'] = (int)$dayMatch[1] . 'day';
+        //     }
 
-    //      // /day style (500MB/day → daily plan)
-    //    if (preg_match('/\/\s*day\b/i', $name)) {
-    //         $result['service_day'] = 'day';
-    //     }
+        //      // /day style (500MB/day → daily plan)
+        //    if (preg_match('/\/\s*day\b/i', $name)) {
+        //         $result['service_day'] = 'day';
+        //     }
 
-    //     // (Charge from 3 days)
-    //    if (preg_match('/\(([^)]*Charge\s*from\s*[^)]*)\)/i', $name, $cMatch)) {
-    //         $result['service_day'] = '(' . trim($cMatch[1]) . ')';
-    //     }
+        //     // (Charge from 3 days)
+        //    if (preg_match('/\(([^)]*Charge\s*from\s*[^)]*)\)/i', $name, $cMatch)) {
+        //         $result['service_day'] = '(' . trim($cMatch[1]) . ')';
+        //     }
 
-    if (preg_match('/(\d+)\s*[-]?\s*days?/i', $name, $dayMatch)) {
+        if (preg_match('/(\d+)\s*[-]?\s*days?/i', $name, $dayMatch)) {
 
-        $result['service_day'] = (int)$dayMatch[1] . 'day';
+            $result['service_day'] = (int)$dayMatch[1] . 'day';
+        } elseif (preg_match('/\/\s*day\b/i', $name)) {
 
-    } elseif (preg_match('/\/\s*day\b/i', $name)) {
+            $result['service_day'] = 'day';
+        }
 
-        $result['service_day'] = 'day';
+        if (preg_match('/\(([^)]*Charge\s*from\s*[^)]*)\)/i', $name, $cMatch)) {
 
-    }
-    
-    if (preg_match('/\(([^)]*Charge\s*from\s*[^)]*)\)/i', $name, $cMatch)) {
+            $result['service_day'] = '(' . trim($cMatch[1]) . ')';
+        }
 
-        $result['service_day'] = '(' . trim($cMatch[1]) . ')';
-    }
 
-        
 
         // 500MB / 22GB / 500MB/day
-        if (preg_match('/(\d+(?:\.\d+)?)\s*(MB|GB)(?:\s*\/\s*day)?/i',$name,$dataMatch)) {
+        if (preg_match('/(\d+(?:\.\d+)?)\s*(MB|GB)(?:\s*\/\s*day)?/i', $name, $dataMatch)) {
 
             $result['data'] =
                 $dataMatch[1] . strtoupper($dataMatch[2]);
-
-        }elseif (preg_match('/unlimited\s+data/i', $name)) {
+        } elseif (preg_match('/unlimited\s+data/i', $name)) {
 
             $result['data'] = 'Unlimited Data';
-            
-        }elseif (preg_match('/\bunlimited(?:\s*\/\s*day)?\b/i', $name)) {
+        } elseif (preg_match('/\bunlimited(?:\s*\/\s*day)?\b/i', $name)) {
 
             $result['data'] = 'Unlimited';
-
-        }elseif (preg_match('/\b(\d+\s*MAX|MAX)\b/i', $name, $maxMatch)) {
+        } elseif (preg_match('/\b(\d+\s*MAX|MAX)\b/i', $name, $maxMatch)) {
 
             $result['data'] = 'Unlimited (' . strtoupper(str_replace(' ', '', $maxMatch[1])) . ')';
-
-        }elseif (preg_match('/full\s+(?:unlimited|speed)/i', $name)) {
+        } elseif (preg_match('/full\s+(?:unlimited|speed)/i', $name)) {
 
             $result['data'] = 'Unlimited';
-
         }
 
         // data
@@ -152,19 +145,17 @@ if (!function_exists('parseProductName')) {
         if (preg_match('/\btotal\b/i', $name)) {
 
             $result['traffic_type'] = 'total';
-
         } elseif (preg_match('/\bunlimited\b|\bmax\b|MAX|\bspeed\b/i', $name)) {
 
             $result['traffic_type'] = 'unlimited';
-
         } elseif (preg_match('/\/\s*day|daily|DAY/i', $name)) {
 
             $result['traffic_type'] = 'daily';
         }
-                
+
 
         $cleanName = preg_replace([
-             '/^\s*\[[^\]]+\]\s*/i',
+            '/^\s*\[[^\]]+\]\s*/i',
             '/\s*-\s*\d+\s*days?\b.*$/i',
             '/\s*-\s*(?:Total\s+\d+(?:\.\d+)?\s*(?:MB|GB)|\d+\s*(?:MB|GB|MAX)?\s*\/\s*day|Unlimited\s*\/\s*day|\d+\s*days?)\b.*$/i',
             '/\s*\([^)]*(?:\d+(?:\.\d+)?\s*(?:MB|GB)|unlimited\s+data|total|\/\s*day)[^)]*\)\s*$/i',
@@ -175,5 +166,26 @@ if (!function_exists('parseProductName')) {
         $result['product_name'] = trim($cleanName, " \t\n\r\0\x0B-");
 
         return $result;
+    }
+}
+
+if (!function_exists('getOrderTypes')) {
+    function getOrderTypes(string $settingName, string $type)
+    {
+        $rawOrderTypes = \App\Models\GeneralSetting::where('name', $settingName)->first()?->value;
+        $orderTypes = json_decode($rawOrderTypes, true);
+
+        $tabs = [];
+        if (in_array("{$type}_new", $orderTypes)) {
+            $tabs["new_{$type}"] = [
+                'label' => $type === 'physical' ? 'New SIM' : 'New eSIM'
+            ];
+        }
+
+        if (in_array("{$type}_recharge", $orderTypes)) {
+            $tabs["recharge_{$type}"] = ['label' => 'Recharge'];
+        }
+
+        return $tabs;
     }
 }

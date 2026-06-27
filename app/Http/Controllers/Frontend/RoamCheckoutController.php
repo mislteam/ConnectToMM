@@ -16,8 +16,7 @@ class RoamCheckoutController extends Controller
         Request $request,
         RoamOrderDraftService $draftService,
         RoamIccidSupportService $iccidSupportService
-    )
-    {
+    ) {
         $validated = $request->validate([
             'iccid_numbers' => ['nullable', 'array'],
             'payment_method' => ['required', 'in:direct_bank_transfer'],
@@ -33,7 +32,7 @@ class RoamCheckoutController extends Controller
         // - FiROAM Global SIM => 19 digits (dp_info != 21)
         // - FiROAM Asia SIM   => 18 digits (dp_info == 21)
         $iccidNumbersByIndex = (array) ($validated['iccid_numbers'] ?? []);
-        $cartItems = array_values(array_filter($cart, static fn ($item) => is_array($item)));
+        $cartItems = array_values(array_filter($cart, static fn($item) => is_array($item)));
         if (array_key_exists('sku_id', $cart) || array_key_exists('sku', $cart)) {
             $cartItems = [$cart];
         }
@@ -55,7 +54,7 @@ class RoamCheckoutController extends Controller
             }
 
             $iccids = (array) ($iccidNumbersByIndex[$index] ?? []);
-            if (empty(array_filter(array_map(static fn ($iccid) => preg_replace('/\D+/', '', (string) $iccid), $iccids)))) {
+            if (empty(array_filter(array_map(static fn($iccid) => preg_replace('/\D+/', '', (string) $iccid), $iccids)))) {
                 return $this->redirectWithIccidError(
                     $index,
                     'ICCID is required for recharge orders.',
@@ -151,6 +150,15 @@ class RoamCheckoutController extends Controller
             ->latest()
             ->get();
 
+        $paymentMethod = $orders->first()?->payment_method;
+        $credentials = null;
+        $paymentSetting = \App\Models\PaymentSetting::orderBy('id')->get();
+        if ($paymentMethod === 'direct_bank_transfer') {
+            $credentials = $paymentSetting->first()?->directBankCredentials;
+        } else if ($paymentMethod == 'UAB Pay') {
+            // $credentials = $paymentSetting->last()?->uabCredential;
+        }
+
         if ($orders->isEmpty()) {
             return redirect()->route('customer.roam.order.detail')->with('error', 'Order not found.');
         }
@@ -161,8 +169,9 @@ class RoamCheckoutController extends Controller
         return view('frontend.payment', [
             'outer_order_id' => $outerOrderId,
             'orders' => $orders,
-            'total' => $orders->sum(fn ($order) => (float) $order->billable_total_price),
+            'total' => $orders->sum(fn($order) => (float) $order->billable_total_price),
             'payment_status_view' => $statusView,
+            'credentials' => $credentials,
         ]);
     }
 
@@ -185,7 +194,7 @@ class RoamCheckoutController extends Controller
             return redirect()->route('customer.roam.order.detail')->with('error', 'Order not found.');
         }
 
-        if ($orders->every(fn (RoamOrder $order) => (int) $order->our_status !== RoamOrder::OUR_STATUS_PENDING_PAYMENT)) {
+        if ($orders->every(fn(RoamOrder $order) => (int) $order->our_status !== RoamOrder::OUR_STATUS_PENDING_PAYMENT)) {
             return redirect()->route('roam.payment.show', ['outerOrderId' => $outerOrderId])
                 ->with('error', 'Payment slip can only be updated while the order is pending payment.');
         }
@@ -231,26 +240,26 @@ class RoamCheckoutController extends Controller
     private function buildPaymentStatusView($orders, bool $hasUploadedSlip): array
     {
         $allRefunded = $orders->every(
-            fn (RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_REFUNDED
+            fn(RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_REFUNDED
         );
         $hasRoamRefund = $orders->contains(
-            fn (RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_COMPLETED
+            fn(RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_COMPLETED
                 && (int) $order->roam_status === RoamOrder::ROAM_STATUS_CANCELLED
         );
         $hasPendingPayment = $orders->contains(
-            fn (RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_PENDING_PAYMENT
+            fn(RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_PENDING_PAYMENT
         );
         $hasFailed = $orders->contains(
-            fn (RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_API_FAILED
+            fn(RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_API_FAILED
         );
         $hasCancelled = $orders->contains(
-            fn (RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_CANCELLED
+            fn(RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_CANCELLED
         );
         $allCompleted = $orders->every(
-            fn (RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_COMPLETED
+            fn(RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_COMPLETED
         );
         $isOngoing = $orders->contains(
-            fn (RoamOrder $order) => in_array((int) $order->our_status, [
+            fn(RoamOrder $order) => in_array((int) $order->our_status, [
                 RoamOrder::OUR_STATUS_PAID,
                 RoamOrder::OUR_STATUS_ON_HOLD,
                 RoamOrder::OUR_STATUS_API_PROCESSING,
