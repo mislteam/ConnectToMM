@@ -45,7 +45,7 @@
             </figure>
 
             <div class="services-data mt-4">
-                <div class="esim-package-panel">
+                <div class="esim-package-panel" data-selected-sim-type="{{ $selectedSimType }}">
                     <div class="esim-order-tabs" role="tablist" aria-label="eSIM order tabs">
                         @foreach ($orderTabs as $orderType => $orderData)
                             <button type="button"
@@ -58,7 +58,9 @@
 
                     @foreach ($orderTabs as $orderType => $orderData)
                         @php
-                            $validPackages = collect($packages ?? [])->filter(fn($package) => !empty($package))->values();
+                            $validPackages = collect($packages ?? [])
+                                ->filter(fn($package) => !empty($package))
+                                ->values();
                             $groupValidCount = $validPackages->count();
                         @endphp
                         <div class="esim-order-pane {{ $selectedSimType === $orderType ? 'active' : '' }}"
@@ -642,8 +644,7 @@
                 <div class="col-lg-4 col-md-6 col-sm-12 col-12">
                     <div class="service1">
                         <figure class="img img1">
-                            <img src="{{ asset('assets/images/need-sales-icon.png') }}" alt=""
-                                class="img-fluid">
+                            <img src="{{ asset('assets/images/need-sales-icon.png') }}" alt="" class="img-fluid">
                         </figure>
                         <h3>Sales</h3>
                         <p class="text-size-18">Lorem ipsum dolor sit ametcon sec tetur adipiscing elit sed</p>

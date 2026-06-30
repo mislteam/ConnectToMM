@@ -3,7 +3,9 @@
 @section('content')
     <style>
         .order-summary .order-box {
-            height: 100%;
+            /* height: 100%; */
+            position: sticky;
+            top: 135px;
         }
 
         .order-summary .button_text {
@@ -190,13 +192,17 @@
                             <h3 class="mb-4">Payment</h3>
                             <div class="form-group mb-0">
                                 <input type="radio" value="direct_bank_transfer" id="paymentDirectBankTransfer"
-                                    name="payment_method" required
+                                    name="payment_method" required {{ $is_direct ? '' : 'disabled' }}
                                     {{ old('payment_method') === 'direct_bank_transfer' ? 'checked' : '' }}>
-                                <label for="paymentDirectBankTransfer">Direct Bank Transfer</label>
+                                <label for="paymentDirectBankTransfer" class="{{ $is_direct ? '' : 'text-muted' }}">Direct
+                                    Bank
+                                    Transfer</label>
                             </div>
                             <div class="form-group mb-0">
-                                <input type="radio" value="UAB Pay" id="paymentUabPay" name="payment_method" disabled>
-                                <label for="paymentUabPay" class="text-muted">UAB Pay </label>
+                                <input type="radio" value="UAB Pay" id="paymentUabPay" name="payment_method"
+                                    {{ $is_uab ? '' : 'disabled' }}>
+                                <label for="paymentUabPay" class="{{ $is_uab ? '' : 'text-muted' }}">UAB Pay
+                                </label>
                             </div>
                             <div class="form-group mb-0">
                                 <small class="text-muted d-block">

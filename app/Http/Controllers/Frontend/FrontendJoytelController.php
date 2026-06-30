@@ -37,6 +37,9 @@ class FrontendJoytelController extends Controller
                 ->where('exchange_rate', '>', 0);
         });
 
+        $orderTabs = getOrderTypes('joytel_order_types', 'esim');
+        $selectedSimType = collect($orderTabs)->keys()->first();
+
         $packages = $query->where('status', 1)
             ->get()
             ->unique('product_name');
@@ -44,7 +47,9 @@ class FrontendJoytelController extends Controller
         return view('frontend.joytel.esim.search', compact(
             'usage_locations',
             'packages',
-            'section'
+            'section',
+            'orderTabs',
+            'selectedSimType'
         ));
     }
 
@@ -54,7 +59,7 @@ class FrontendJoytelController extends Controller
         $section = Section::where('section_key', 'need_more_help')->first();
 
         $query = JoytelPhysical::whereRaw('LOWER(type) LIKE ?', ['%recharge%']);
-        
+
 
         $query->whereIn('product_name', function ($subquery) {
             $subquery->select('plan')
@@ -63,17 +68,21 @@ class FrontendJoytelController extends Controller
                 ->where('exchange_rate', '>', 0);
         });
 
-        
+
 
         $packages = $query->where('status', 1)
             ->get()
             ->unique('product_name');
 
+        $orderTabs = getOrderTypes('joytel_order_types', 'physical');
+        $selectedSimType = collect($orderTabs)->keys()->first();
 
         return view('frontend.joytel.physical.search', compact(
             'usage_locations',
             'packages',
-            'section'
+            'section',
+            'orderTabs',
+            'selectedSimType'
         ));
     }
 
@@ -106,7 +115,7 @@ class FrontendJoytelController extends Controller
         foreach ($validated['locations'] as $location) {
             $query->where(function ($q) use ($location) {
                 $q->whereJsonContains('coverage', $location)
-                ->orWhereRaw("JSON_SEARCH(coverage, 'one', ?) IS NOT NULL", [$location . '%']);
+                    ->orWhereRaw("JSON_SEARCH(coverage, 'one', ?) IS NOT NULL", [$location . '%']);
             });
         }
 
@@ -124,7 +133,7 @@ class FrontendJoytelController extends Controller
         return view('frontend.joytel.esim.packages', compact('packages'));
     }
 
-   private function physicalPackages(Request $request)
+    private function physicalPackages(Request $request)
     {
         $validated = $request->validate([
             'locations' => 'required|array',
@@ -136,7 +145,7 @@ class FrontendJoytelController extends Controller
         foreach ($validated['locations'] as $location) {
             $query->where(function ($q) use ($location) {
                 $q->whereJsonContains('coverage', $location)
-                ->orWhereRaw("JSON_SEARCH(coverage, 'one', ?) IS NOT NULL", [$location . '%']);
+                    ->orWhereRaw("JSON_SEARCH(coverage, 'one', ?) IS NOT NULL", [$location . '%']);
             });
         }
 
@@ -153,7 +162,7 @@ class FrontendJoytelController extends Controller
 
         return view('frontend.joytel.physical.packages', compact('packages'));
     }
-        
+
 
     // jotel add to cart
     public function cart($joytel, Request $request)
@@ -206,13 +215,13 @@ class FrontendJoytelController extends Controller
         ]);
     }
 
- 
-    public function esimPackageView($id,Request $request)
+
+    public function esimPackageView($id, Request $request)
     {
         $simType = $this->normalizeSimType($request->input('sim_type', session('sim_type', 'new_esim')));
 
         session(['sim_type' => $simType]);
-       
+
         $joytel = JoytelEsim::findOrFail($id);
 
         $packages = JoytelEsim::where('product_name', $joytel->product_name)
@@ -294,7 +303,7 @@ class FrontendJoytelController extends Controller
 
         $network_types = $packages->pluck('network')->unique();
 
-        
+
         $price_lists = PriceList::latest()->get();
 
         $joytel_type_label = 'Physical SIM';
@@ -315,7 +324,7 @@ class FrontendJoytelController extends Controller
     }
 
 
-     private function normalizeSimType(?string $simType): string
+    private function normalizeSimType(?string $simType): string
     {
         $simType = strtolower(trim((string) $simType));
 
@@ -325,5 +334,4 @@ class FrontendJoytelController extends Controller
 
         return $simType;
     }
-    
 }

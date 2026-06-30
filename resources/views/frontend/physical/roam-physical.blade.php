@@ -28,11 +28,12 @@
     </div>
     <!-- Services section -->
     @php
-        $orderTabs = [
-            // 'new_physical' => ['label' => 'New SIM'],
+        $orderTabs = $orderTabs ?? [
+            'new_physical' => ['label' => 'New SIM'],
             'recharge_physical' => ['label' => 'Recharge'],
         ];
-        $displayOrderType = $selectedOrderType === 'new_physical' ? 'recharge_physical' : $selectedOrderType;
+        // $displayOrderType = $selectedOrderType === 'new_physical' ? 'recharge_physical' : $selectedOrderType;
+        $displayOrderType = $selectedOrderType ?? 'recharge_physical';
         $regionTabs = [
             9 => [
                 'key' => 'global',

@@ -3,7 +3,8 @@
 namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
-use App\Models\Joytel;
+use App\Models\JoytelEsim;
+use App\Models\JoytelPhysical;
 use App\Models\JoytelCoupon;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -18,7 +19,9 @@ class JoytelCouponController extends Controller
 
     public function create()
     {
-        $product_names = Joytel::pluck('product_name')->unique()->values();
+        $esim_product_names = JoytelEsim::pluck('product_name');
+        $physical_product_names = JoytelPhysical::pluck('product_name');
+        $product_names = $esim_product_names->merge($physical_product_names)->unique()->values();
         return view('admin.joytel.coupon.create', compact('product_names'));
     }
 
@@ -26,7 +29,8 @@ class JoytelCouponController extends Controller
     {
         $request->validate([
             'code' => 'required|max:255',
-            'product_name' => 'required',
+            'product_names' => 'required|array',
+            'product_names.*' => 'string',
             'discount_percentage' => 'required|integer|min:1|max:100',
             'attempt_time' => 'nullable|integer',
             'expired_date' => 'nullable|date',
@@ -37,9 +41,11 @@ class JoytelCouponController extends Controller
             $expiredDate = Carbon::parse($request->expired_date);
         }
 
+        $product_names = json_encode($request->product_names, true);
+
         JoytelCoupon::create([
             'code' => $request->code,
-            'product_name' => $request->product_name,
+            'product_names' => $product_names,
             'discount_percentage' => $request->discount_percentage,
             'attempt_time' => $request->attempt_time ?? 0,
             'expired_date' => $expiredDate,
@@ -49,14 +55,19 @@ class JoytelCouponController extends Controller
 
     public function edit(JoytelCoupon $coupon)
     {
-        return view('admin.joytel.coupon.edit', compact('coupon'));
+        $esim_product_names = JoytelEsim::pluck('product_name');
+        $physical_product_names = JoytelPhysical::pluck('product_name');
+        $product_names = $esim_product_names->merge($physical_product_names)->unique()->values();
+        $db_products = json_decode($coupon->product_names, true);
+        return view('admin.joytel.coupon.edit', compact('coupon', 'product_names', 'db_products'));
     }
 
     public function update(Request $request, JoytelCoupon $coupon)
     {
         $request->validate([
             'code' => 'required|max:255',
-            'product_name' => 'required',
+            'product_names' => 'required|array',
+            'product_names.*' => 'string',
             'discount_percentage' => 'required|integer|min:1|max:100',
             'attempt_time' => 'nullable|integer',
             'expired_date' => 'nullable|date',
@@ -67,9 +78,14 @@ class JoytelCouponController extends Controller
         if ($request->expired_date) {
             $expiredDate = Carbon::parse($request->expired_date);
         }
+        $product_names = $request->product_names;
+        if (in_array('All', $product_names)) {
+            $product_names = ['All'];
+        }
+
         $coupon->update([
             'code' => $request->code,
-            'product_name' => $request->product_name,
+            'product_names' => json_encode($product_names, true),
             'discount_percentage' => $request->discount_percentage,
             'attempt_time' => $request->attempt_time ?? 0,
             'expired_date' => $expiredDate,

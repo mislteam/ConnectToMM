@@ -48,7 +48,7 @@
             </figure>
 
             <div class="services-data mt-4">
-                <div class="esim-package-panel">
+                <div class="esim-package-panel" data-selected-sim-type="{{ $selectedSimType }}">
                     <div class="esim-order-tabs" role="tablist" aria-label="eSIM order tabs">
                         @foreach ($orderTabs as $orderType => $orderData)
                             <button type="button"
@@ -145,8 +145,9 @@
                                     </div>
                                 @elseif ($groupValidCount > 6)
                                     <div class="text-center mt-4">
-                                        <button type="button" id="showMoreBtn-{{ $orderType }}" class="btn btn-primary px-4 py-2"
-                                            data-show-more="{{ $orderType }}">Show All</button>
+                                        <button type="button" id="showMoreBtn-{{ $orderType }}"
+                                            class="btn btn-primary px-4 py-2" data-show-more="{{ $orderType }}">Show
+                                            All</button>
                                     </div>
                                 @endif
                             </div>
@@ -556,7 +557,8 @@
                 <div class="col-lg-4 col-md-6 col-sm-12 col-12">
                     <div class="service1">
                         <figure class="img img1">
-                            <img src="{{ asset('assets/images/need-sales-icon.png') }}" alt="" class="img-fluid">
+                            <img src="{{ asset('assets/images/need-sales-icon.png') }}" alt=""
+                                class="img-fluid">
                         </figure>
                         <h3>Sales</h3>
                         <p class="text-size-18">Lorem ipsum dolor sit ametcon sec tetur adipiscing elit sed</p>
