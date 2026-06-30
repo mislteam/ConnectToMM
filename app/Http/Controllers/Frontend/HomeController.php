@@ -235,7 +235,7 @@ class HomeController extends Controller
                 ->unique()
                 ->implode("\n"),
             'amount' => $orders->sum(fn(RoamOrder $order) => (float) $order->billable_total_price),
-            'payment_method' => 'Online Payment',
+            'payment_method' => $orders->map(fn(RoamOrder $order) => $order->payment_method)->filter()->unique()->implode(', '),
             'status_label' => $statusLabel,
             'status_class' => $statusClass,
             'can_pay' => $orders->contains(fn(RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_PENDING_PAYMENT),

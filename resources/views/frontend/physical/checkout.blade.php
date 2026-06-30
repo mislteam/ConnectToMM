@@ -1,6 +1,13 @@
 @extends('frontend.layouts.index')
 @section('title', 'Connect To Myanmar')
 @section('content')
+    <style>
+        .order-summary .order-box {
+            /* height: 100%; */
+            position: sticky;
+            top: 135px;
+        }
+    </style>
     <!-- Sub-Banner -->
     <x-banner key="checkout" />
     <!--Services section-->
@@ -132,12 +139,15 @@
                             <div class="form-group mb-0">
                                 <input type="radio" value="direct_bank_transfer" id="paymentDirectBankTransfer"
                                     name="payment_method" required
-                                    {{ old('payment_method') === 'direct_bank_transfer' ? 'checked' : '' }}>
-                                <label for="paymentDirectBankTransfer">Direct Bank Transfer</label>
+                                    {{ old('payment_method') === 'direct_bank_transfer' ? 'checked' : '' }}
+                                    {{ $is_direct ? '' : 'disabled' }}>
+                                <label for="paymentDirectBankTransfer" class="{{ $is_direct ? '' : 'text-muted' }}">Direct
+                                    Bank Transfer</label>
                             </div>
                             <div class="form-group mb-0">
-                                <input type="radio" value="UAB Pay" id="paymentUabPay" name="payment_method" disabled>
-                                <label for="paymentUabPay" class="text-muted">UAB Pay </label>
+                                <input type="radio" value="UAB Pay" id="paymentUabPay" name="payment_method"
+                                    {{ $is_uab ? '' : 'disabled' }}>
+                                <label for="paymentUabPay" class="{{ $is_uab ? '' : 'text-muted' }}">UAB Pay </label>
                             </div>
                             <div class="form-group mb-0">
                                 <small class="text-muted d-block">

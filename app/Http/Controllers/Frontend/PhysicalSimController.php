@@ -594,6 +594,10 @@ class PhysicalSimController extends Controller
             'price' => $price,
         ]);
 
+        $paymentSetting = \App\Models\PaymentSetting::orderBy('id')->get();
+        $isDirectActive = $paymentSetting->first()?->status;
+        $isUabActive = $paymentSetting->last()?->status;
+
         return view('frontend.physical.checkout', [
             'sku' => $sku,
             'cart' => $primaryItem,
@@ -613,6 +617,8 @@ class PhysicalSimController extends Controller
             ),
             'iccid_count' => $iccidCount,
             'iccid_numbers' => $iccidNumbers,
+            'is_direct' => (bool) $isDirectActive,
+            'is_uab' => (bool) $isUabActive,
         ]);
     }
 
