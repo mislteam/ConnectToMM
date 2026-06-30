@@ -295,7 +295,7 @@ class FrontendJoytelController extends Controller
             ->toArray();
 
         $random_packages = JoytelPhysical::where('status', 1)
-            ->where('id', '!=', $joytel->product_name)
+            ->where('product_name', '!=', $joytel->product_name)
             ->whereIn('product_name', $validPlans)
             ->inRandomOrder()
             ->get()

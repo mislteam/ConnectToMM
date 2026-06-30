@@ -116,16 +116,21 @@
                                                     <div class="content">
                                                         <h4>{{ $package->product_name }}</h4>
                                                         @php
-                                                            $lowest_price = collect($package->plan ?? [])
+                                                            $lowest_price = App\Models\JoytelPhysical::where(
+                                                                'product_name',
+                                                                $package->product_name,
+                                                            )
+                                                                ->where('status', 1)
+                                                                ->get()
                                                                 ->map(function ($plan) {
                                                                     $priceList = \App\Models\PriceList::where(
                                                                         'product_code',
-                                                                        $plan['product_code'] ?? null,
+                                                                        $plan->code ?? null,
                                                                     )->first();
 
                                                                     $exchangeRate =
                                                                         (float) ($priceList->exchange_rate ?? 0);
-                                                                    $priceCny = (float) ($plan['price_cny'] ?? 0);
+                                                                    $priceCny = (float) ($plan->price ?? 0);
 
                                                                     if ($exchangeRate <= 0 || $priceCny <= 0) {
                                                                         return null;
