@@ -388,7 +388,7 @@
             border-color: #445066;
         }
 
-        html[data-bs-theme="dark"] .table.order-item-table.table-hover tbody tr:hover > * {
+        html[data-bs-theme="dark"] .table.order-item-table.table-hover tbody tr:hover>* {
             background: #2d3444;
             color: inherit;
         }
@@ -554,6 +554,12 @@
                                         {{ number_format((float) $summary['amount']) }} MMK
                                     </div>
                                 </div>
+                                <div class="order-meta-row">
+                                    <span class="order-meta-label">Payment Method</span>
+                                    <div class="order-meta-value fw-semibold">
+                                        {{ ucwords(str_replace('_', ' ', optional($summary['primary_order'])->payment_method ?? '-')) }}
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -612,7 +618,8 @@
                                     <tr>
                                         <td>
                                             <div class="order-item-name">{{ $order->roam_order_num }}</div>
-                                            <div class="order-item-subtext">Qty: {{ max(1, (int) $order->quantity) }}</div>
+                                            <div class="order-item-subtext">Qty: {{ max(1, (int) $order->quantity) }}
+                                            </div>
                                         </td>
                                         <td>
                                             <div class="order-item-name">
@@ -641,7 +648,8 @@
                                             @else
                                                 <div class="order-item-list">
                                                     @foreach ($pdfUrls as $url)
-                                                        <a href="{{ $url }}" target="_blank" rel="noopener">Open
+                                                        <a href="{{ $url }}" target="_blank"
+                                                            rel="noopener">Open
                                                             PDF</a>
                                                     @endforeach
                                                 </div>

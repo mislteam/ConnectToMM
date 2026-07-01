@@ -311,6 +311,13 @@
                                 <div class="summary-line-label">Orders</div>
                                 <div class="summary-line-value">{{ isset($orders) ? $orders->count() : 0 }}</div>
                             </div>
+
+                            <div class="summary-line">
+                                <div class="summary-line-label">Payment Method</div>
+                                <div class="summary-line-value">
+                                    {{ $payment_method ? ucwords(str_replace('_', ' ', $payment_method)) : '-' }}
+                                </div>
+                            </div>
                         </div>
                         @if (!empty($orders))
                             @foreach ($orders as $order)

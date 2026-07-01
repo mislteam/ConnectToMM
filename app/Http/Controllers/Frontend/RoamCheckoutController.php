@@ -152,9 +152,11 @@ class RoamCheckoutController extends Controller
 
         $paymentMethod = $orders->first()?->payment_method;
         $credentials = null;
+        $payment_method = null;
         $paymentSetting = \App\Models\PaymentSetting::orderBy('id')->get();
         if ($paymentMethod === 'direct_bank_transfer') {
             $credentials = $paymentSetting->first()?->directBankCredentials;
+            $payment_method = $paymentSetting->first()?->type;
         } else if ($paymentMethod == 'UAB Pay') {
             // $credentials = $paymentSetting->last()?->uabCredential;
         }
@@ -172,6 +174,7 @@ class RoamCheckoutController extends Controller
             'total' => $orders->sum(fn($order) => (float) $order->billable_total_price),
             'payment_status_view' => $statusView,
             'credentials' => $credentials,
+            'payment_method' => $payment_method
         ]);
     }
 
