@@ -136,19 +136,25 @@
                                 </tbody>
                             </table>
                             <h3 class="mb-4">Payment</h3>
-                            <div class="form-group mb-0">
-                                <input type="radio" value="direct_bank_transfer" id="paymentDirectBankTransfer"
-                                    name="payment_method" required
-                                    {{ old('payment_method') === 'direct_bank_transfer' ? 'checked' : '' }}
-                                    {{ $is_direct ? '' : 'disabled' }}>
-                                <label for="paymentDirectBankTransfer" class="{{ $is_direct ? '' : 'text-muted' }}">Direct
-                                    Bank Transfer</label>
-                            </div>
-                            <div class="form-group mb-0">
-                                <input type="radio" value="UAB Pay" id="paymentUabPay" name="payment_method"
-                                    {{ $is_uab ? '' : 'disabled' }}>
-                                <label for="paymentUabPay" class="{{ $is_uab ? '' : 'text-muted' }}">UAB Pay </label>
-                            </div>
+                            @if ($is_direct)
+                                <div class="form-group mb-0">
+                                    <input type="radio" value="direct_bank_transfer" id="paymentDirectBankTransfer"
+                                        name="payment_method" required
+                                        {{ old('payment_method') === 'direct_bank_transfer' ? 'checked' : '' }}
+                                        {{ $is_direct ? '' : 'disabled' }}>
+                                    <label for="paymentDirectBankTransfer"
+                                        class="{{ $is_direct ? '' : 'text-muted' }}">Direct
+                                        Bank Transfer</label>
+                                </div>
+                            @endif
+                            @if ($is_uab)
+                                <div class="form-group mb-0">
+                                    <input type="radio" value="UAB Pay" id="paymentUabPay" name="payment_method"
+                                        {{ $is_uab ? '' : 'disabled' }}>
+                                    <label for="paymentUabPay" class="{{ $is_uab ? '' : 'text-muted' }}">UAB Pay </label>
+                                </div>
+                            @endif
+
                             <div class="form-group mb-0">
                                 <small class="text-muted d-block">
                                     Orders currently continue with direct bank transfer.

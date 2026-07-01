@@ -405,6 +405,11 @@
                                 <span class="payment-info-label">Total Amount :</span>
                                 <span class="payment-info-value">{{ number_format((float) $total) }} MMK</span>
                             </div>
+
+                            <div class="payment-info-row">
+                                <span class="payment-info-label">Payment Method :</span>
+                                <span class="payment-info-value">{{ $payment_method ?? '-' }}</span>
+                            </div>
                         </div>
 
                         @if ($statusView['show_bank_accounts'] ?? false)

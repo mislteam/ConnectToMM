@@ -45,7 +45,7 @@
             </figure>
 
             <div class="services-data mt-4">
-                <div class="physical-package-panel">
+                <div class="physical-package-panel" data-selected-sim-type="{{ $selectedSimType }}">
                     <div class="physical-order-tabs" role="tablist" aria-label="physical order tabs">
                         @foreach ($orderTabs as $orderType => $orderData)
                             <button type="button"
@@ -549,6 +549,84 @@
                 showMoreBtn.addEventListener('click', function() {
                     items.forEach((item) => item.classList.remove('hidden'));
                     this.style.display = 'none';
+                });
+            });
+
+            const orderTabs = document.querySelectorAll('.physical-order-tab');
+            const panes = document.querySelectorAll('.physical-order-pane');
+            const activeSimType = document.querySelector('.physical-package-panel')?.dataset.selectedSimType ||
+                'new_esim';
+
+            function updateUrlParam(name, value) {
+                const url = new URL(window.location.href);
+                url.searchParams.set(name, value);
+                window.history.replaceState({}, '', url.toString());
+            }
+
+            function setActivePane(simType) {
+                orderTabs.forEach(tab => {
+                    tab.classList.toggle('active', tab.dataset.orderTab === simType);
+                });
+
+                panes.forEach(pane => {
+                    pane.classList.toggle('active', pane.dataset.orderPane === simType);
+                });
+
+                const activePane = document.querySelector(`.esim-order-pane[data-order-pane="${simType}"]`);
+                if (activePane) {
+                    const activeSelect = $(activePane).find('.select2_design');
+                    if (activeSelect.length && !activeSelect.hasClass('select2-hidden-accessible')) {
+                        activeSelect.select2({
+                            width: '100%'
+                        });
+                    }
+                }
+
+                updateUrlParam('type', simType);
+            }
+
+            setActivePane(activeSimType);
+
+            orderTabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    setActivePane(tab.dataset.orderTab || 'new_esim');
+                });
+            });
+
+            document.querySelectorAll('[data-package-grid]').forEach((grid) => {
+                const items = grid.querySelectorAll('.package-card');
+                const gridKey = grid.getAttribute('data-package-grid');
+                const showMoreBtn = document.querySelector(`[data-show-more="${gridKey}"]`);
+                const visibleCount = 6;
+
+                if (!showMoreBtn || items.length === 0) {
+                    if (showMoreBtn) {
+                        showMoreBtn.style.display = 'none';
+                    }
+                    return;
+                }
+
+                items.forEach((item, index) => {
+                    if (index >= visibleCount) {
+                        item.style.display = 'none';
+                    }
+                });
+
+                if (items.length <= visibleCount) {
+                    showMoreBtn.style.display = 'none';
+                    return;
+                }
+
+                showMoreBtn.addEventListener('click', function(event) {
+                    event.preventDefault();
+
+                    items.forEach((item, index) => {
+                        if (index >= visibleCount) {
+                            item.style.display = '';
+                        }
+                    });
+
+                    showMoreBtn.style.display = 'none';
                 });
             });
         });
