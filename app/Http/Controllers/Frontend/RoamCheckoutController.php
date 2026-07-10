@@ -2,10 +2,17 @@
 
 namespace App\Http\Controllers\Frontend;
 
+use App\Payment\Providers\Uab\Contracts\HostedPaymentInterface;
 use App\Http\Controllers\Controller;
+use App\Payment\Providers\Uab\DTO\HostedPaymentRequestData;
+use App\Payment\Providers\Uab\Enums\Currency;
+use App\Payment\Providers\Uab\Enums\PaymentMethod;
+use App\Models\UabPaymentTransaction;
 use App\Models\RoamOrder;
 use App\Services\Roam\RoamIccidSupportService;
 use App\Services\Roam\RoamOrderDraftService;
+use App\Payment\Providers\Uab\Services\UabCredentialService;
+use Illuminate\Support\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -15,11 +22,14 @@ class RoamCheckoutController extends Controller
     public function placeOrder(
         Request $request,
         RoamOrderDraftService $draftService,
-        RoamIccidSupportService $iccidSupportService
+        RoamIccidSupportService $iccidSupportService,
     ) {
         $validated = $request->validate([
             'iccid_numbers' => ['nullable', 'array'],
-            'payment_method' => ['required', 'in:direct_bank_transfer'],
+            'payment_method' => ['required', 'in:direct_bank_transfer,uabpay'],
+            'customer_name' => ['required_if:payment_method,uabpay', 'nullable', 'string', 'max:120'],
+            'customer_email' => ['required_if:payment_method,uabpay', 'nullable', 'email', 'max:64'],
+            'customer_phone' => ['required_if:payment_method,uabpay', 'nullable', 'regex:/^[0-9]{7,13}$/'],
             'terms' => ['accepted'],
         ]);
 
@@ -75,7 +85,7 @@ class RoamCheckoutController extends Controller
                 if ($serviceType === 'physical') {
                     $expectedLength = $dpInfo === 21 ? 18 : 19;
                     if (strlen($digits) !== $expectedLength) {
-                        $label = $dpInfo === 21 ? 'FiROAM Asia SIM' : 'FiROAM Global SIM';
+                        $label = $dpInfo === 9 ? 'FiROAM Global SIM' : 'FiROAM Asia SIM';
                         return $this->redirectWithIccidError(
                             $index,
                             "ICCID for {$label} must be exactly {$expectedLength} digits.",
@@ -134,8 +144,44 @@ class RoamCheckoutController extends Controller
         ]);
         session()->put('roam_last_outer_order_id', $result['outer_order_id']);
 
-        // Next step: payment page (mock for now; replace with gateway redirect when integrating Dinger Pay).
+        if ($validated['payment_method'] === 'uabpay') {
+            $orders = $this->getCustomerOrders($customer->id, (string) $result['outer_order_id']);
+            $this->persistUabCheckoutCustomerMetadata($orders, [
+                'full_name' => (string) $validated['customer_name'],
+                'email' => (string) $validated['customer_email'],
+                'phone' => (string) $validated['customer_phone'],
+            ]);
+
+            return redirect()->route('roam.uab.pay', ['outerOrderId' => $result['outer_order_id']]);
+        }
+
         return redirect()->route('roam.payment.show', ['outerOrderId' => $result['outer_order_id']]);
+    }
+
+    public function startUabPayment(
+        string $outerOrderId,
+        HostedPaymentInterface $hostedPaymentService,
+        UabCredentialService $uabCredentialService
+    ) {
+        Auth::shouldUse('customers');
+        $customer = auth()->user();
+
+        $orders = $this->getCustomerOrders($customer->id, $outerOrderId);
+        if ($orders->isEmpty()) {
+            return redirect()->route('customer.roam.order.detail')->with('error', 'Order not found.');
+        }
+
+        if (!$orders->every(fn(RoamOrder $order) => strtolower((string) $order->payment_method) === 'uabpay')) {
+            return redirect()->route('roam.payment.show', ['outerOrderId' => $outerOrderId])
+                ->with('error', 'This UAB payment session is only available for UAB Pay orders.');
+        }
+
+        if ($orders->every(fn(RoamOrder $order) => (int) $order->our_status !== RoamOrder::OUR_STATUS_PENDING_PAYMENT)) {
+            return redirect()->route('roam.payment.show', ['outerOrderId' => $outerOrderId])
+                ->with('error', 'This order is no longer waiting for payment.');
+        }
+
+        return $this->redirectToHostedUabPayment($orders, $hostedPaymentService, $uabCredentialService, $customer);
     }
 
     public function showPayment(string $outerOrderId)
@@ -143,22 +189,19 @@ class RoamCheckoutController extends Controller
         Auth::shouldUse('customers');
         $customer = auth()->user();
 
-        $orders = \App\Models\RoamOrder::query()
-            ->with('items')
-            ->where('customer_id', $customer->id)
-            ->where('outer_order_id', $outerOrderId)
-            ->latest()
-            ->get();
+        $orders = $this->getCustomerOrders($customer->id, $outerOrderId);
 
         $paymentMethod = $orders->first()?->payment_method;
         $credentials = null;
         $payment_method = null;
+        $paymentActionUrl = null;
         $paymentSetting = \App\Models\PaymentSetting::orderBy('id')->get();
         if ($paymentMethod === 'direct_bank_transfer') {
             $credentials = $paymentSetting->first()?->directBankCredentials;
             $payment_method = $paymentSetting->first()?->type;
-        } else if ($paymentMethod == 'UAB Pay') {
-            // $credentials = $paymentSetting->last()?->uabCredential;
+        } elseif ($paymentMethod === 'uabpay' || $paymentMethod === 'UAB Pay') {
+            $payment_method = 'UAB Pay';
+            $paymentActionUrl = data_get($orders->first()?->raw_response, 'payment.uab.payment_url');
         }
 
         if ($orders->isEmpty()) {
@@ -166,7 +209,16 @@ class RoamCheckoutController extends Controller
         }
 
         $slipPath = data_get($orders->first()?->raw_response, 'payment.slip.path');
-        $statusView = $this->buildPaymentStatusView($orders, !empty($slipPath));
+        $statusView = ($paymentMethod === 'uabpay' || $paymentMethod === 'UAB Pay')
+            ? $this->buildUabPaymentStatusView(
+                $orders,
+                UabPaymentTransaction::query()
+                    ->where('merchant_reference', $outerOrderId)
+                    ->latest('id')
+                    ->first(),
+                $paymentActionUrl
+            )
+            : $this->buildPaymentStatusView($orders, !empty($slipPath));
 
         return view('frontend.payment', [
             'outer_order_id' => $outerOrderId,
@@ -174,7 +226,8 @@ class RoamCheckoutController extends Controller
             'total' => $orders->sum(fn($order) => (float) $order->billable_total_price),
             'payment_status_view' => $statusView,
             'credentials' => $credentials,
-            'payment_method' => $payment_method
+            'payment_method' => $payment_method,
+            'payment_action_url' => $paymentActionUrl,
         ]);
     }
 
@@ -355,5 +408,218 @@ class RoamCheckoutController extends Controller
             'upload_label' => 'Upload Payment Slip',
             'upload_button_text' => 'Upload Slip',
         ];
+    }
+
+    private function buildUabPaymentStatusView(Collection $orders, ?UabPaymentTransaction $paymentTransaction, ?string $paymentActionUrl): array
+    {
+        $status = strtoupper((string) ($paymentTransaction?->status?->value ?? $paymentTransaction?->status ?? 'PENDING'));
+
+        return match ($status) {
+            'SUCCESS' => [
+                'badge' => 'Paid',
+                'title' => 'Your UAB payment was completed successfully.',
+                'message' => 'Your payment has been received. You can check your order details for the latest provisioning status.',
+                'tone' => 'success',
+                'show_upload_form' => false,
+                'show_payment_guide' => false,
+                'show_bank_accounts' => false,
+                'show_payment_button' => false,
+            ],
+            'CANCELLED' => [
+                'badge' => 'Cancelled',
+                'title' => 'Your UAB payment was cancelled.',
+                'message' => 'You can start a new UAB payment session using the button below if you would like to continue this order.',
+                'tone' => 'danger',
+                'show_upload_form' => false,
+                'show_payment_guide' => false,
+                'show_bank_accounts' => false,
+                'show_payment_button' => true,
+                'payment_button_url' => route('roam.uab.pay', ['outerOrderId' => $orders->first()?->outer_order_id]),
+                'payment_button_text' => 'Retry UAB Pay',
+            ],
+            'FAILED', 'EXPIRED' => [
+                'badge' => $status === 'EXPIRED' ? 'Expired' : 'Failed',
+                'title' => $status === 'EXPIRED'
+                    ? 'Your UAB payment session expired.'
+                    : 'Your UAB payment could not be completed.',
+                'message' => 'Please start a new UAB payment session for a fresh payment attempt if you still want to continue.',
+                'tone' => 'warning',
+                'show_upload_form' => false,
+                'show_payment_guide' => false,
+                'show_bank_accounts' => false,
+                'show_payment_button' => true,
+                'payment_button_url' => route('roam.uab.pay', ['outerOrderId' => $orders->first()?->outer_order_id]),
+                'payment_button_text' => 'Start New UAB Payment',
+            ],
+            default => [
+                'badge' => 'Pending Payment',
+                'title' => 'Continue your payment with UAB Pay.',
+                'message' => 'Open a fresh UAB hosted payment session to complete your order.',
+                'tone' => 'warning',
+                'show_upload_form' => false,
+                'show_payment_guide' => false,
+                'show_bank_accounts' => false,
+                'show_payment_button' => true,
+                'payment_button_url' => route('roam.uab.pay', ['outerOrderId' => $orders->first()?->outer_order_id]),
+                'payment_button_text' => 'Continue to UAB Pay',
+            ],
+        };
+    }
+
+    private function redirectToHostedUabPayment(
+        Collection $orders,
+        HostedPaymentInterface $hostedPaymentService,
+        UabCredentialService $uabCredentialService,
+        $customer
+    ) {
+        $outerOrderId = (string) $orders->first()?->outer_order_id;
+        $customerData = $this->resolveUabCustomerData($orders, $customer);
+        $merchantBillingDefaults = $this->resolveMerchantBillingDefaults($uabCredentialService);
+        [$forename, $surname] = $this->splitCustomerName($customerData['full_name']);
+
+        $hostedCheckout = $hostedPaymentService->createHostedCheckout(
+            new HostedPaymentRequestData(
+                requestId: $this->generateUabRequestId(),
+                merchantReference: $outerOrderId,
+                invoiceNo: $this->generateInvoiceNo($outerOrderId),
+                orderNo: $outerOrderId,
+                amount: number_format($orders->sum(fn($order) => (float) $order->billable_total_price), 2, '.', ''),
+                currency: Currency::MMK,
+                paymentMethod: PaymentMethod::UABPAY,
+                gatewayPaymentMethods: $this->resolveGatewayPaymentMethods($uabCredentialService),
+                billToAddressLine1: $merchantBillingDefaults['address_line1'],
+                billToAddressLine2: $merchantBillingDefaults['address_line2'],
+                billToAddressCity: $merchantBillingDefaults['city'],
+                billToAddressPostalCode: $merchantBillingDefaults['postal_code'],
+                billToAddressState: $merchantBillingDefaults['state'],
+                billToAddressCountry: $merchantBillingDefaults['country'],
+                billToForename: $forename,
+                billToSurname: $surname,
+                billToPhone: $customerData['phone'],
+                billToEmail: $customerData['email'],
+                expiredInSeconds: 300,
+                remark: 'Roam order payment for ' . $outerOrderId,
+                userDefined1: $outerOrderId,
+            )
+        );
+
+        $this->persistUabPaymentMetadata(
+            $orders,
+            array_merge($customerData, $merchantBillingDefaults),
+            $hostedCheckout
+        );
+
+        return redirect()->away($hostedCheckout->paymentUrl);
+    }
+
+    private function getCustomerOrders(int $customerId, string $outerOrderId): Collection
+    {
+        return RoamOrder::query()
+            ->with('items')
+            ->where('customer_id', $customerId)
+            ->where('outer_order_id', $outerOrderId)
+            ->latest()
+            ->get();
+    }
+
+    private function splitCustomerName(string $fullName): array
+    {
+        $parts = preg_split('/\s+/', trim($fullName)) ?: [];
+        $parts = array_values(array_filter($parts, static fn($part) => $part !== ''));
+
+        if (count($parts) <= 1) {
+            return [$parts[0] ?? 'Customer', 'Customer'];
+        }
+
+        $forename = array_shift($parts);
+
+        return [$forename, implode(' ', $parts)];
+    }
+
+    private function generateUabRequestId(): string
+    {
+        return 'REQ' . now()->format('YmdHis') . str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+    }
+
+    private function generateInvoiceNo(string $outerOrderId): string
+    {
+        $sanitized = preg_replace('/[^A-Za-z0-9]/', '', $outerOrderId) ?? '';
+        $sanitized = $sanitized !== '' ? $sanitized : now()->format('YmdHis');
+
+        return substr('INV' . $sanitized, 0, 32);
+    }
+
+    private function persistUabPaymentMetadata(Collection $orders, array $billingData, $hostedCheckout): void
+    {
+        foreach ($orders as $order) {
+            $rawResponse = (array) ($order->raw_response ?? []);
+            $payment = (array) data_get($rawResponse, 'payment', []);
+            $payment['uab'] = [
+                'request_id' => $hostedCheckout->requestId,
+                'transaction_id' => $hostedCheckout->transactionId,
+                'payment_url' => $hostedCheckout->paymentUrl,
+                'status' => $hostedCheckout->status->value,
+                'provider_response' => $hostedCheckout->providerResponse,
+                'billing' => $billingData,
+            ];
+            $rawResponse['payment'] = $payment;
+            $order->raw_response = $rawResponse;
+            $order->save();
+        }
+    }
+
+    private function persistUabCheckoutCustomerMetadata(Collection $orders, array $customerData): void
+    {
+        foreach ($orders as $order) {
+            $rawResponse = (array) ($order->raw_response ?? []);
+            $payment = (array) data_get($rawResponse, 'payment', []);
+            $payment['uab'] = array_merge((array) ($payment['uab'] ?? []), [
+                'customer' => $customerData,
+            ]);
+            $rawResponse['payment'] = $payment;
+            $order->raw_response = $rawResponse;
+            $order->save();
+        }
+    }
+
+    private function resolveUabCustomerData(Collection $orders, $customer): array
+    {
+        $storedCustomerData = (array) data_get($orders->first()?->raw_response, 'payment.uab.customer', []);
+
+        return [
+            'full_name' => trim((string) ($storedCustomerData['full_name'] ?? $customer?->name ?? 'Customer')),
+            'email' => trim((string) ($storedCustomerData['email'] ?? $customer?->email ?? '')),
+            'phone' => preg_replace('/\D+/', '', (string) ($storedCustomerData['phone'] ?? $customer?->phone ?? '')) ?: '',
+        ];
+    }
+
+    private function resolveMerchantBillingDefaults(UabCredentialService $uabCredentialService): array
+    {
+        $credentials = $uabCredentialService->getActiveCredential();
+
+        $defaults = [
+            'address_line1' => trim((string) ($credentials->billingAddressLine1 ?? '')),
+            'address_line2' => trim((string) ($credentials->billingAddressLine2 ?? '')),
+            'city' => trim((string) ($credentials->billingCity ?? '')),
+            'postal_code' => trim((string) ($credentials->billingPostalCode ?? '')),
+            'state' => trim((string) ($credentials->billingState ?? '')),
+            'country' => strtoupper(trim((string) ($credentials->billingCountry ?? ''))),
+        ];
+
+        foreach ($defaults as $field => $value) {
+            if ($value === '') {
+                abort(500, "UAB billing default [{$field}] is not configured.");
+            }
+        }
+
+        return $defaults;
+    }
+
+    private function resolveGatewayPaymentMethods(UabCredentialService $uabCredentialService): string
+    {
+        $credentials = $uabCredentialService->getActiveCredential();
+        $configuredMethods = trim((string) ($credentials->gatewayPaymentMethods ?? ''));
+
+        return $configuredMethods !== '' ? $configuredMethods : PaymentMethod::gatewayOptions();
     }
 }

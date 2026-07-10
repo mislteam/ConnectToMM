@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\PaymentSetting;
-use App\Models\UabCredential;
 use Illuminate\Database\Seeder;
 
 class PaymentSeeder extends Seeder
@@ -23,20 +22,5 @@ class PaymentSeeder extends Seeder
             ]);
         }
 
-        $uabPaymentSetting = PaymentSetting::where('type', 'UAB Pay')->firstOrFail();
-
-        UabCredential::updateOrCreate(
-            [
-                'payment_setting_id' => $uabPaymentSetting->id,
-            ],
-            [
-                'channel' => 'Connect To Myanmar',
-                'merchant_user_id' => 'MM123456789',
-                'api_url' => 'https://sandbox-api.uabpay.com/payment',
-                'access_key' => 'AK_7x9d2f3k8m1n',
-                'secret_key' => 'SK_9p4q6r2t8v1w',
-                'client_secret' => 'CS_3h7j9k2m5n8p',
-            ]
-        );
     }
 }

@@ -96,31 +96,59 @@
                                 @elseif ($type == 'uab_pay')
                                     @php
                                         $uab_credential = \App\Models\UabCredential::first();
+                                        $selectedGatewayMethods = old(
+                                            'payment_methods',
+                                            $uab_credential?->payment_methods
+                                                ? explode(',', (string) $uab_credential->payment_methods)
+                                                : \App\Payment\Providers\Uab\Enums\PaymentMethod::values(),
+                                        );
                                     @endphp
+                                    <div class="col-lg-3">
+                                        <div class="mb-3">
+                                            <label class="col-form-label">Payment Methods<span
+                                                    class="text-danger">*</span></label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-9">
+                                        <div class="mb-3">
+                                            <div class="d-flex flex-wrap gap-3">
+                                                @foreach (\App\Payment\Providers\Uab\Enums\PaymentMethod::cases() as $gatewayMethod)
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox"
+                                                            name="payment_methods[]" value="{{ $gatewayMethod->value }}"
+                                                            id="gatewayMethod{{ $loop->index }}"
+                                                            {{ in_array($gatewayMethod->value, $selectedGatewayMethods, true) ? 'checked' : '' }}>
+                                                        <label class="form-check-label"
+                                                            for="gatewayMethod{{ $loop->index }}">
+                                                            {{ $gatewayMethod->label() }}
+                                                        </label>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+
+                                            <div class="my-1">
+                                                @error('payment_methods')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                                @error('payment_methods.*')
+                                                    <small class="text-danger d-block">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div class="col-lg-3">
                                         <div class="mb-3">
                                             <label class="col-form-label">Channel</label>
                                         </div>
                                     </div>
                                     <div class="col-lg-9">
-                                        <div class="mb-3 mx-2">
-                                            <label class="col-form-label">{{ $uab_credential->channel }}</label>
-                                        </div>
-                                    </div>
-
-                                    <div class="col-lg-3">
                                         <div class="mb-3">
-                                            <label class="col-form-label">Merchant User ID<span
-                                                    class="text-danger">*</span></label>
-                                        </div>
-                                    </div>
-                                    <div class="col-lg-9">
-                                        <div class="mb-3">
-                                            <input type="text" class="form-control" placeholder="Enter Merchant User ID"
-                                                value="{{ $uab_credential->merchant_user_id }}" required
-                                                name="merchant_user_id">
+                                            <input type="text" class="form-control" placeholder="Enter Channel"
+                                                value="{{ old('channel', $uab_credential->channel ?? '') }}" required
+                                                name="channel">
                                             <div class="my-1">
-                                                @error('merchant_user_id')
+                                                @error('channel')
                                                     <small class="text-danger">{{ $message }}</small>
                                                 @enderror
                                             </div>
@@ -129,15 +157,55 @@
 
                                     <div class="col-lg-3">
                                         <div class="mb-3">
-                                            <label class="col-form-label">API Url<span class="text-danger">*</span></label>
+                                            <label class="col-form-label">Merchant ID<span
+                                                    class="text-danger">*</span></label>
                                         </div>
                                     </div>
                                     <div class="col-lg-9">
                                         <div class="mb-3">
-                                            <input type="text" class="form-control" placeholder="Enter API Url"
-                                                value="{{ $uab_credential->api_url }}" required name="api_url">
+                                            <input type="text" class="form-control" placeholder="Enter Merchant ID"
+                                                value="{{ old('merchant_id', $uab_credential->merchant_id ?? ($uab_credential->merchant_user_id ?? '')) }}"
+                                                required name="merchant_id">
                                             <div class="my-1">
-                                                @error('api_url')
+                                                @error('merchant_id')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-3">
+                                        <div class="mb-3">
+                                            <label class="col-form-label">Base URL<span
+                                                    class="text-danger">*</span></label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-9">
+                                        <div class="mb-3">
+                                            <input type="text" class="form-control" placeholder="Enter Base URL"
+                                                value="{{ old('base_url', $uab_credential->base_url ?? ($uab_credential->api_url ?? '')) }}"
+                                                required name="base_url">
+                                            <div class="my-1">
+                                                @error('base_url')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-3">
+                                        <div class="mb-3">
+                                            <label class="col-form-label">Client ID<span
+                                                    class="text-danger">*</span></label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-9">
+                                        <div class="mb-3">
+                                            <input type="text" class="form-control" placeholder="Enter Client ID"
+                                                value="{{ old('client_id', $uab_credential->client_id ?? '') }}" required
+                                                name="client_id">
+                                            <div class="my-1">
+                                                @error('client_id')
                                                     <small class="text-danger">{{ $message }}</small>
                                                 @enderror
                                             </div>
@@ -153,7 +221,8 @@
                                     <div class="col-lg-9">
                                         <div class="mb-3">
                                             <input type="text" class="form-control" placeholder="Enter Access Key"
-                                                value="{{ $uab_credential->access_key }}" required name="access_key">
+                                                value="{{ old('access_key', $uab_credential->access_key ?? '') }}"
+                                                required name="access_key">
                                             <div class="my-1">
                                                 @error('access_key')
                                                     <small class="text-danger">{{ $message }}</small>
@@ -171,7 +240,8 @@
                                     <div class="col-lg-9">
                                         <div class="mb-3">
                                             <input type="text" class="form-control" placeholder="Enter Secret Key"
-                                                value="{{ $uab_credential->secret_key }}" required name="secret_key">
+                                                value="{{ old('secret_key', $uab_credential->secret_key ?? '') }}"
+                                                required name="secret_key">
                                             <div class="my-1">
                                                 @error('secret_key')
                                                     <small class="text-danger">{{ $message }}</small>
@@ -189,8 +259,8 @@
                                     <div class="col-lg-9">
                                         <div class="mb-3">
                                             <input type="text" class="form-control" placeholder="Enter Client Secret"
-                                                value="{{ $uab_credential->client_secret }}" required
-                                                name="client_secret">
+                                                value="{{ old('client_secret', $uab_credential->client_secret ?? '') }}"
+                                                required name="client_secret">
                                             <div class="my-1">
                                                 @error('client_secret')
                                                     <small class="text-danger">{{ $message }}</small>
@@ -198,6 +268,205 @@
                                             </div>
                                         </div>
                                     </div>
+
+                                    <div class="col-lg-3">
+                                        <div class="mb-3">
+                                            <label class="col-form-label">Ins ID<span class="text-danger">*</span></label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-9">
+                                        <div class="mb-3">
+                                            <input type="text" class="form-control" placeholder="Enter Ins ID"
+                                                value="{{ old('ins_id', $uab_credential->ins_id ?? '') }}" required
+                                                name="ins_id">
+                                            <div class="my-1">
+                                                @error('ins_id')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-3">
+                                        <div class="mb-3">
+                                            <label class="col-form-label">Notify URL<span
+                                                    class="text-danger">*</span></label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-9">
+                                        <div class="mb-3">
+                                            <input type="text" class="form-control" placeholder="Enter Notify URL"
+                                                value="{{ old('notify_url', $uab_credential->notify_url ?? '') }}"
+                                                required name="notify_url">
+                                            <div class="my-1">
+                                                @error('notify_url')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-3">
+                                        <div class="mb-3">
+                                            <label class="col-form-label">Success URL<span
+                                                    class="text-danger">*</span></label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-9">
+                                        <div class="mb-3">
+                                            <input type="text" class="form-control" placeholder="Enter Success URL"
+                                                value="{{ old('success_url', $uab_credential->success_url ?? '') }}"
+                                                required name="success_url">
+                                            <div class="my-1">
+                                                @error('success_url')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-3">
+                                        <div class="mb-3">
+                                            <label class="col-form-label">Cancel URL<span
+                                                    class="text-danger">*</span></label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-9">
+                                        <div class="mb-3">
+                                            <input type="text" class="form-control" placeholder="Enter Cancel URL"
+                                                value="{{ old('cancel_url', $uab_credential->cancel_url ?? '') }}"
+                                                required name="cancel_url">
+                                            <div class="my-1">
+                                                @error('cancel_url')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <div class="mb-3 mt-2">
+                                            <h5 class="fw-bold text-black mb-0">Merchant's info</h5>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-3">
+                                        <div class="mb-3">
+                                            <label class="col-form-label">Billing Address Line 1<span
+                                                    class="text-danger">*</span></label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-9">
+                                        <div class="mb-3">
+                                            <input type="text" class="form-control"
+                                                placeholder="Enter Billing Address Line 1"
+                                                value="{{ old('billing_address_line1', $uab_credential->billing_address_line1 ?? '') }}"
+                                                required name="billing_address_line1">
+                                            <div class="my-1">
+                                                @error('billing_address_line1')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-3">
+                                        <div class="mb-3">
+                                            <label class="col-form-label">Billing Address Line 2<span
+                                                    class="text-danger">*</span></label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-9">
+                                        <div class="mb-3">
+                                            <input type="text" class="form-control"
+                                                placeholder="Enter Billing Address Line 2"
+                                                value="{{ old('billing_address_line2', $uab_credential->billing_address_line2 ?? '') }}"
+                                                required name="billing_address_line2">
+                                            <div class="my-1">
+                                                @error('billing_address_line2')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-3">
+                                        <div class="mb-3">
+                                            <label class="col-form-label">Billing City<span
+                                                    class="text-danger">*</span></label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-9">
+                                        <div class="mb-3">
+                                            <input type="text" class="form-control" placeholder="Enter Billing City"
+                                                value="{{ old('billing_city', $uab_credential->billing_city ?? '') }}"
+                                                required name="billing_city">
+                                            <div class="my-1">
+                                                @error('billing_city')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-3">
+                                        <div class="mb-3">
+                                            <label class="col-form-label">Billing Postal Code<span
+                                                    class="text-danger">*</span></label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-9">
+                                        <div class="mb-3">
+                                            <input type="text" class="form-control"
+                                                placeholder="Enter Billing Postal Code"
+                                                value="{{ old('billing_postal_code', $uab_credential->billing_postal_code ?? '') }}"
+                                                required name="billing_postal_code">
+                                            <div class="my-1">
+                                                @error('billing_postal_code')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-3">
+                                        <div class="mb-3">
+                                            <label class="col-form-label">Billing State<span
+                                                    class="text-danger">*</span></label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-9">
+                                        <div class="mb-3">
+                                            <input type="text" class="form-control" placeholder="Enter Billing State"
+                                                value="{{ old('billing_state', $uab_credential->billing_state ?? '') }}"
+                                                required name="billing_state">
+                                            <div class="my-1">
+                                                @error('billing_state')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-lg-3">
+                                        <div class="mb-3">
+                                            <label class="col-form-label">Billing Country<span
+                                                    class="text-danger">*</span></label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-9">
+                                        <div class="mb-3">
+                                            <input type="text" class="form-control" placeholder="MM"
+                                                value="{{ old('billing_country', $uab_credential->billing_country ?? 'MM') }}"
+                                                required name="billing_country" maxlength="2">
+                                            <div class="my-1">
+                                                @error('billing_country')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <div class="d-flex gap-2 justify-content-end">
                                         <button type="submit" class="btn btn-primary">Update</button>
                                     </div>

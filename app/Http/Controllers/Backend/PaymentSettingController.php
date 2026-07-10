@@ -7,7 +7,7 @@ use App\Models\DirectBankCredential;
 use App\Models\PaymentSetting;
 use App\Models\UabCredential;
 use Illuminate\Http\Request;
-use PhpParser\Node\Scalar\MagicConst\Dir;
+use App\Payment\Providers\Uab\Enums\PaymentMethod;
 
 class PaymentSettingController extends Controller
 {
@@ -79,14 +79,41 @@ class PaymentSettingController extends Controller
     public function uabUpdate(Request $request)
     {
         $data = $request->validate([
-            'merchant_user_id' => 'required|string',
-            'api_url' => 'required|string',
+            'channel' => 'required|string|max:64',
+            'merchant_id' => 'required|string|max:64',
+            'base_url' => 'required|url|max:255',
+            'client_id' => 'required|string|max:128',
+            'client_secret' => 'required|string|max:255',
             'access_key' => 'required|string',
             'secret_key' => 'required|string',
-            'client_secret' => 'required|string'
+            'ins_id' => 'required|string|max:128',
+            'notify_url' => 'required|url|max:255',
+            'success_url' => 'required|url|max:255',
+            'cancel_url' => 'required|url|max:255',
+            'payment_methods' => 'required|array|min:1',
+            'payment_methods.*' => 'required|string|in:' . implode(',', PaymentMethod::values()),
+            'billing_address_line1' => 'required|string|max:120',
+            'billing_address_line2' => 'required|string|max:120',
+            'billing_city' => 'required|string|max:120',
+            'billing_postal_code' => 'required|digits_between:5,16',
+            'billing_state' => 'required|string|max:64',
+            'billing_country' => 'required|string|size:2',
         ]);
-        $uab_credential = UabCredential::first();
-        $uab_credential->update($data);
+
+        $paymentSetting = PaymentSetting::where('type', 'UAB Pay')->firstOrFail();
+
+        UabCredential::updateOrCreate(
+            [
+                'payment_setting_id' => $paymentSetting->id,
+            ],
+            array_merge($data, [
+                'payment_methods' => implode(',', $data['payment_methods']),
+                'merchant_user_id' => $data['merchant_id'],
+                'api_url' => $data['base_url'],
+                'is_active' => true,
+            ])
+        );
+
         return redirect()->back()->with('success', 'UAB Credentials updated Successfully!');
     }
 
