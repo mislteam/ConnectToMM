@@ -467,6 +467,17 @@
                             </div>
                         @endif
 
+                        @if ($statusView['show_payment_button'] ?? false)
+                            <div class="payment-section-block">
+                                <span class="payment-section-title">UAB Payment</span>
+                                <a href="{{ $statusView['payment_button_url'] ?? $payment_action_url ?? '#' }}"
+                                    class="button_text"
+                                    @if (!empty($statusView['payment_button_url'] ?? $payment_action_url)) target="_self" @endif>
+                                    {{ $statusView['payment_button_text'] ?? 'Continue to UAB Pay' }}
+                                </a>
+                            </div>
+                        @endif
+
                         @if ($statusView['show_upload_form'] ?? false)
                             <div class="form-group mb-0">
                                 <label>{{ $statusView['upload_label'] ?? 'Upload Payment Slip' }} <span class="required"

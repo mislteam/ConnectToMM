@@ -729,6 +729,8 @@ class ESimController extends Controller
             ?? $this->resolveServiceType($cartItem['sim_type'] ?? 'new_esim')
         ));
         $dpInfo = (int) ($dpInfo ?? $cartItem['dp_info'] ?? 0);
+        $locationLabel = trim((string) ($countryName !== '' ? $countryName : ($cartItem['service_data'] ?? $cartItem['plan_name'] ?? 'Package')));
+        $prefix = $orderType === 'recharge' ? 'Recharge' : 'New';
 
         if ($orderType === 'recharge') {
             if ($serviceType === 'physical') {
@@ -746,10 +748,14 @@ class ESimController extends Controller
                 }
             }
 
-            return '( Recharge ' . $labelPlan . ' - ' . $countryName . ' ) ICCID No';
+            return '( Recharge ' . $labelPlan . ' - ' . $locationLabel . ' ) ICCID No';
         }
 
-        return 'ICCID No';
+        $labelPlan = $serviceType === 'physical'
+            ? ($dpInfo === 21 ? 'FiROAM Asia' : 'FiROAM Global')
+            : 'FiROAM Esim';
+
+        return '( ' . $prefix . ' ' . $labelPlan . ' - ' . $locationLabel . ' ) ICCID No';
     }
 
     private function getIccidCount(array $cartItem): int

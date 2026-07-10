@@ -21,6 +21,8 @@ class DatabaseSeeder extends Seeder
             ItemSeeder::class,
             JoyUsageLocationSeeder::class,
             LinkSeeder::class,
+            PaymentSeeder::class,
+            UabCredentialSeeder::class,
         ]);
     }
 }

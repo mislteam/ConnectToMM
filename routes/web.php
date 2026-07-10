@@ -7,6 +7,7 @@ use App\Http\Controllers\Backend\DashboardController;
 use App\Http\Controllers\Backend\AdminController;
 use App\Http\Controllers\Backend\BlogCategoryController;
 use App\Http\Controllers\Backend\BlogController;
+use App\Payment\Providers\Uab\Http\Controllers\CallbackController;
 use App\Http\Controllers\Backend\ContactUsController;
 use App\Http\Controllers\Backend\CurrencyController;
 use App\Http\Controllers\Backend\CustomerController;
@@ -36,6 +37,11 @@ Route::get('/', function () {
 Route::get('/login', function () {
     return redirect()->route('user.login');
 });
+
+Route::post('/checkout', [CallbackController::class, 'notify'])->name('uab.callback.notify');
+Route::post('/notify', [CallbackController::class, 'notify'])->name('uab.callback.notify.alias');
+Route::get('/success', [CallbackController::class, 'success'])->name('uab.callback.success');
+Route::get('/cancel', [CallbackController::class, 'cancel'])->name('uab.callback.cancel');
 
 /// ==================
 // Public Routes
@@ -101,6 +107,7 @@ Route::middleware('auth:customers')->group(function () {
 
         // place order + payment
         Route::post('/place-order', [\App\Http\Controllers\Frontend\RoamCheckoutController::class, 'placeOrder'])->name('roam.place-order');
+        Route::get('/payment/{outerOrderId}/uab-pay', [\App\Http\Controllers\Frontend\RoamCheckoutController::class, 'startUabPayment'])->name('roam.uab.pay');
         Route::get('/payment/{outerOrderId}', [\App\Http\Controllers\Frontend\RoamCheckoutController::class, 'showPayment'])->name('roam.payment.show');
         Route::post('/payment/{outerOrderId}/upload-slip', [\App\Http\Controllers\Frontend\RoamCheckoutController::class, 'uploadPaymentSlip'])->name('roam.payment.upload-slip');
     });

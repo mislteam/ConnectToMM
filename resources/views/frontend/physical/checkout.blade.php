@@ -35,16 +35,26 @@
                             <div class="form-group mb-0">
                                 <label>Full Name <span class="required" aria-hidden="true">*</span></label>
                                 <input type="text" class="form_style text-dark" placeholder="Enter Your Full Name"
-                                    value="{{ auth()->user()->name }}">
+                                    name="customer_name" value="{{ old('customer_name', auth()->user()->name) }}">
+                                @error('customer_name')
+                                    <small class="text-danger d-block mt-2">{{ $message }}</small>
+                                @enderror
                             </div>
                             <div class="form-group mb-0">
                                 <label>E-Mail Address <span class="required" aria-hidden="true">*</span></label>
-                                <input type="text" class="form_style text-dark" placeholder="Enter Your Email"
-                                    value="{{ auth()->user()->email }}">
+                                <input type="email" class="form_style text-dark" placeholder="Enter Your Email"
+                                    name="customer_email" value="{{ old('customer_email', auth()->user()->email) }}">
+                                @error('customer_email')
+                                    <small class="text-danger d-block mt-2">{{ $message }}</small>
+                                @enderror
                             </div>
                             <div class="form-group mb-0">
-                                <label>Phone Number</label>
-                                <input type="text" class="form_style text-dark" placeholder="Enter Your Phone Number">
+                                <label>Phone Number<span class="required" aria-hidden="true">*</span></label>
+                                <input type="text" class="form_style text-dark" placeholder="Enter Your Phone Number"
+                                    name="customer_phone" value="{{ old('customer_phone', auth()->user()->phone) }}">
+                                @error('customer_phone')
+                                    <small class="text-danger d-block mt-2">{{ $message }}</small>
+                                @enderror
                             </div>
                             @foreach ($checkoutItems as $itemIndex => $item)
                                 @if (($item['iccid_count'] ?? 0) > 0)
@@ -149,20 +159,13 @@
                             @endif
                             @if ($is_uab)
                                 <div class="form-group mb-0">
-                                    <input type="radio" value="UAB Pay" id="paymentUabPay" name="payment_method"
-                                        {{ $is_uab ? '' : 'disabled' }}>
+                                    <input type="radio" value="uabpay" id="paymentUabPay" name="payment_method"
+                                        {{ $is_uab ? '' : 'disabled' }}
+                                        {{ old('payment_method') === 'uabpay' ? 'checked' : '' }}>
                                     <label for="paymentUabPay" class="{{ $is_uab ? '' : 'text-muted' }}">UAB Pay </label>
                                 </div>
                             @endif
 
-                            <div class="form-group mb-0">
-                                <small class="text-muted d-block">
-                                    Orders currently continue with direct bank transfer.
-                                </small>
-                                @error('payment_method')
-                                    <small class="text-danger d-block mt-2">{{ $message }}</small>
-                                @enderror
-                            </div>
                             <div class="form-group mb-0">
                                 <input type="checkbox" name="terms" required> Your personal data will be used to process
                                 your order, support your

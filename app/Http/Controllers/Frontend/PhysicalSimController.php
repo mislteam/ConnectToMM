@@ -69,7 +69,9 @@ class PhysicalSimController extends Controller
         $title = GeneralSetting::where('type', 'string')->first();
 
         $orderTabs = getOrderTypes('roam_order_types', 'physical');
-        $selectedOrderType = collect($orderTabs)->keys()->first();
+        if (!array_key_exists($selectedOrderType, $orderTabs)) {
+            $selectedOrderType = collect($orderTabs)->keys()->first() ?? 'recharge_physical';
+        }
 
         return view(
             'frontend.physical.roam-physical',
@@ -816,16 +818,16 @@ class PhysicalSimController extends Controller
         ));
         $dpInfo = (int) ($dpInfo ?? $cartItem['dp_info'] ?? 0);
         $planName = (string) ($cartItem['dp_label'] ?? $this->buildDpLabel($dpInfo));
+        $locationLabel = trim((string) ($countryName !== '' ? $countryName : ($cartItem['service_data'] ?? $cartItem['plan_name'] ?? 'Package')));
+        $prefix = $orderType === 'recharge' ? 'Recharge' : 'New';
 
         if ($orderType === 'recharge') {
             if ($serviceType === 'esim') {
                 $planName = 'FiROAM Esim';
             }
-
-            return '( Recharge ' . $planName . ' - ' . $countryName . ' ) ICCID No';
         }
 
-        return 'ICCID No';
+        return '( ' . $prefix . ' ' . $planName . ' - ' . $locationLabel . ' ) ICCID No';
     }
 
     private function buildDpLabel(int $dpInfo): string
