@@ -187,7 +187,7 @@ class TransactionStatusService implements TransactionInterface
     {
         return match (strtoupper($status)) {
             'SUCCESS' => TransactionStatus::SUCCESS,
-            'CANCELLED' => TransactionStatus::CANCELLED,
+            'CANCELLED', 'CANCELED' => TransactionStatus::CANCELLED,
             'EXPIRED' => TransactionStatus::EXPIRED,
             'DECLINED', 'ERROR', 'FAILED' => TransactionStatus::FAILED,
             'PENDING' => TransactionStatus::PENDING,
@@ -204,6 +204,8 @@ class TransactionStatusService implements TransactionInterface
         if ($signature === '' || $timestamp === '' || $nonce === '') {
             return false;
         }
+
+        unset($payload['Signature']);
 
         foreach (['/api/transaction/status', 'api/transaction/status'] as $uri) {
             if ($this->signatureService->verify($payload, $signature, [
