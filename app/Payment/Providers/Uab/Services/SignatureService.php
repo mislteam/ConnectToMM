@@ -39,7 +39,11 @@ class SignatureService implements SignatureInterface
         $requestId = (string) ($context['request_id'] ?? data_get($payload, 'RequestID', ''));
 
         if (isset($context['query_params']) && is_array($context['query_params'])) {
-            $queryString = $this->buildFormBodyString($payload, $context['query_params']);
+            $queryString = $this->buildFormBodyString(
+                $payload,
+                $context['query_params'],
+                (string) ($context['query_separator'] ?? ',')
+            );
 
             return implode('|', [
                 $method,
@@ -66,7 +70,8 @@ class SignatureService implements SignatureInterface
         if (isset($context['signed_fields']) && is_array($context['signed_fields'])) {
             $formBodyString = $this->buildFormBodyString(
                 $payload,
-                $context['signed_fields']
+                $context['signed_fields'],
+                (string) ($context['field_separator'] ?? ',')
             );
 
             return implode('|', [
@@ -89,7 +94,7 @@ class SignatureService implements SignatureInterface
         ]);
     }
 
-    private function buildFormBodyString(array $payload, array $signedFields): string
+    private function buildFormBodyString(array $payload, array $signedFields, string $separator = ','): string
     {
         $segments = [];
 
@@ -97,6 +102,6 @@ class SignatureService implements SignatureInterface
             $segments[] = $field . '=' . (string) ($payload[$field] ?? '');
         }
 
-        return implode(',', $segments);
+        return implode($separator, $segments);
     }
 }

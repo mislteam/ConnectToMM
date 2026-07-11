@@ -140,22 +140,40 @@ class CallbackService implements CallbackInterface
             $queryParams[] = 'TransactionID';
         }
 
-        $candidateUris = $data->eventType === 'success'
-            ? ['success_page', ltrim($data->uri, '/')]
-            : ['cancel_page', ltrim($data->uri, '/')];
+        $candidateUris = $this->redirectSignatureUris($data);
+        $querySeparators = [',', '&'];
 
-        foreach ($candidateUris as $uri) {
-            if ($this->signatureService->verify($data->payload, $data->signature, [
-                'method' => 'GET',
-                'uri' => $uri,
-                'request_id' => $data->requestId,
-                'query_params' => $queryParams,
-            ])) {
-                return true;
+        foreach ($candidateUris as $contextKey => $uris) {
+            foreach ($uris as $uri) {
+                foreach ($querySeparators as $separator) {
+                    if ($this->signatureService->verify($data->payload, $data->signature, [
+                        'method' => 'GET',
+                        $contextKey => $uri,
+                        'request_id' => $data->requestId,
+                        'query_params' => $queryParams,
+                        'query_separator' => $separator,
+                    ])) {
+                        return true;
+                    }
+                }
             }
         }
 
         return false;
+    }
+
+    private function redirectSignatureUris(CallbackData $data): array
+    {
+        $path = '/' . ltrim($data->uri, '/');
+        $alias = $data->eventType === 'success' ? 'success_page' : 'cancel_page';
+
+        return [
+            'uri' => array_values(array_unique([
+                $alias,
+                ltrim($data->uri, '/'),
+            ])),
+            'uri_exact' => [$path],
+        ];
     }
 
     private function resolveStatus(CallbackData $data): TransactionStatus
