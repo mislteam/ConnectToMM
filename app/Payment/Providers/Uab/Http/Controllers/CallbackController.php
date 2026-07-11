@@ -34,6 +34,7 @@ class CallbackController extends Controller
             ],
             eventType: 'notify',
             uri: $request->path(),
+            url: $request->url(),
         ));
 
         return response()->json($result, 200);
@@ -52,6 +53,7 @@ class CallbackController extends Controller
             payload: $payload,
             eventType: 'success',
             uri: $request->path(),
+            url: $request->url(),
         ));
 
         return $this->redirectToPaymentResult(
@@ -74,6 +76,7 @@ class CallbackController extends Controller
             payload: $payload,
             eventType: 'cancel',
             uri: $request->path(),
+            url: $request->url(),
         ));
 
         return $this->redirectToPaymentResult(

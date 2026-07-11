@@ -14,6 +14,7 @@ final class CallbackData
         public readonly array $headers = [],
         public readonly string $eventType = 'notify',
         public readonly string $uri = '',
+        public readonly string $url = '',
     ) {
     }
 }

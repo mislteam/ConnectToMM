@@ -125,8 +125,10 @@ class CallbackService implements CallbackInterface
             return false;
         }
 
+        $signature = str_replace(' ', '+', $data->signature);
+
         if ($data->eventType === 'notify') {
-            return $this->signatureService->verify($data->payload, $data->signature, [
+            return $this->signatureService->verify($data->payload, $signature, [
                 'method' => 'POST',
                 'uri' => $data->uri,
                 'timestamp' => (string) ($data->headers['X-Auth-Timestamp'] ?? ''),
@@ -135,25 +137,23 @@ class CallbackService implements CallbackInterface
             ]);
         }
 
-        $queryParams = ['RequestID', 'TransactionReferenceNumber'];
-        if ($data->eventType === 'success') {
-            $queryParams[] = 'TransactionID';
-        }
-
+        $queryParamSets = $this->redirectSignatureQueryParamSets($data);
         $candidateUris = $this->redirectSignatureUris($data);
         $querySeparators = [',', '&'];
 
         foreach ($candidateUris as $contextKey => $uris) {
             foreach ($uris as $uri) {
                 foreach ($querySeparators as $separator) {
-                    if ($this->signatureService->verify($data->payload, $data->signature, [
-                        'method' => 'GET',
-                        $contextKey => $uri,
-                        'request_id' => $data->requestId,
-                        'query_params' => $queryParams,
-                        'query_separator' => $separator,
-                    ])) {
-                        return true;
+                    foreach ($queryParamSets as $queryParams) {
+                        if ($this->signatureService->verify($data->payload, $signature, [
+                            'method' => 'GET',
+                            $contextKey => $uri,
+                            'request_id' => $data->requestId,
+                            'query_params' => $queryParams,
+                            'query_separator' => $separator,
+                        ])) {
+                            return true;
+                        }
                     }
                 }
             }
@@ -166,14 +166,31 @@ class CallbackService implements CallbackInterface
     {
         $path = '/' . ltrim($data->uri, '/');
         $alias = $data->eventType === 'success' ? 'success_page' : 'cancel_page';
+        $exactUris = [$path];
+
+        if ($data->url !== '') {
+            $exactUris[] = $data->url;
+        }
 
         return [
             'uri' => array_values(array_unique([
                 $alias,
                 ltrim($data->uri, '/'),
             ])),
-            'uri_exact' => [$path],
+            'uri_exact' => array_values(array_unique($exactUris)),
         ];
+    }
+
+    private function redirectSignatureQueryParamSets(CallbackData $data): array
+    {
+        $baseFields = ['RequestID', 'TransactionReferenceNumber'];
+        $fieldSets = [$baseFields];
+
+        if ($data->eventType === 'success' && array_key_exists('TransactionID', $data->payload)) {
+            $fieldSets[] = [...$baseFields, 'TransactionID'];
+        }
+
+        return array_values(array_unique($fieldSets, SORT_REGULAR));
     }
 
     private function resolveStatus(CallbackData $data): TransactionStatus
