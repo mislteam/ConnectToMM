@@ -143,10 +143,6 @@ class RoamCheckoutController extends Controller
         ]);
         session()->put('roam_last_outer_order_id', $result['outer_order_id']);
 
-        if ($paymentMethod === 'uabpay') {
-            return redirect()->route('roam.uab.pay', ['outerOrderId' => $result['outer_order_id']]);
-        }
-
         return redirect()->route('roam.payment.show', ['outerOrderId' => $result['outer_order_id']]);
     }
 
@@ -173,7 +169,14 @@ class RoamCheckoutController extends Controller
                 ->with('error', 'This order is no longer waiting for payment.');
         }
 
-        return $this->redirectToHostedUabPayment($orders, $hostedPaymentService, $uabCredentialService, $customer);
+        try {
+            return $this->redirectToHostedUabPayment($orders, $hostedPaymentService, $uabCredentialService, $customer);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return redirect()->route('roam.payment.show', ['outerOrderId' => $outerOrderId])
+                ->with('error', 'Unable to start UAB payment right now. Please try again in a moment.');
+        }
     }
 
     public function showPayment(string $outerOrderId)
@@ -481,8 +484,9 @@ class RoamCheckoutController extends Controller
                 'show_upload_form' => false,
                 'show_payment_guide' => false,
                 'show_bank_accounts' => false,
-                'show_payment_button' => !empty($paymentActionUrl),
-                'payment_button_url' => $paymentActionUrl,
+                'show_payment_button' => true,
+                'payment_button_url' => $paymentActionUrl
+                    ?: route('roam.uab.pay', ['outerOrderId' => $orders->first()?->outer_order_id]),
                 'payment_button_text' => 'Continue to UAB Pay',
             ],
         };
