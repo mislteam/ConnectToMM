@@ -193,6 +193,11 @@
                                 <small class="text-danger d-block mt-1">{{ $message }}</small>
                             @enderror
                         </div>
+                        <div class="cf-turnstile" data-sitekey="{{ config('services.turnstile.site_key') }}">
+                        </div>
+                        @error('captcha')
+                            <div class="text-danger">{{ $message }}</div>
+                        @enderror
                         <button type="submit" class="btn btn-primary mb-0">Sign Up</button>
                         <div class="text-center my-3 social-login-label">Or continue with</div>
                         <div class="social-auth-row">
@@ -222,7 +227,7 @@
             <img src="./assets/images/need-layer.png" alt="" class="img-fluid">
         </figure>
     </section>
-
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var storageKey = 'signup_password_visibility';

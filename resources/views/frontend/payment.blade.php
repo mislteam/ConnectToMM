@@ -8,6 +8,22 @@
     @php
         $currentStatusLabel = $orders->first()?->customer_status_label ?? 'Pending Payment';
         $statusView = $payment_status_view ?? [];
+        $detailRoute =
+            $payment_detail_route ?? route('customer.roam.order.detail', ['outerOrderId' => $outer_order_id]);
+        $uploadRoute = $payment_upload_route ?? route('roam.payment.upload-slip', ['outerOrderId' => $outer_order_id]);
+
+        $bankAccounts = [
+            [
+                'bank' => 'KBZ Pay',
+                'account_name' => 'U Myint',
+                'account_number' => '09452856556',
+            ],
+            [
+                'bank' => 'AYA Pay',
+                'account_name' => 'U Myint',
+                'account_number' => '09452856556',
+            ],
+        ];
     @endphp
 
     <style>
@@ -380,8 +396,7 @@
                         <div class="payment-status-card is-{{ $statusView['tone'] ?? 'warning' }}">
                             <div class="payment-status-header">
                                 <span class="payment-status-badge">{{ $statusView['badge'] ?? $currentStatusLabel }}</span>
-                                <a href="{{ route('customer.roam.order.detail', ['outerOrderId' => $outer_order_id]) }}"
-                                    class="payment-secondary-link">View order details</a>
+                                <a href="{{ $detailRoute }}" class="payment-secondary-link">View order details</a>
                             </div>
                             <div class="payment-status-title">{{ $statusView['title'] ?? 'Please complete your payment.' }}
                             </div>
@@ -415,18 +430,15 @@
                         @if ($statusView['show_bank_accounts'] ?? false)
                             <div class="payment-section-block">
                                 <span class="payment-section-title">Bank Accounts</span>
-
-                                @forelse ($credentials ?? [] as $account)
+                                @foreach ($bankAccounts as $account)
                                     <div class="bank-line-box">
-                                        <label><strong>Bank:</strong> {{ $account->bank_name }}</label>
-                                        <label><strong>Account Name:</strong> {{ $account->account_name }}</label>
-                                        <label><strong>Account Number:</strong> {{ $account->account_number }}</label>
+                                        <label><strong>Bank:</strong> {{ $account['bank'] }}</label>
+                                        <label><strong>Account Name:</strong> {{ $account['account_name'] }}</label>
+                                        <label><strong>Account Number:</strong> {{ $account['account_number'] }}</label>
                                         <label><strong>Payment Note:</strong> Please add your order ID
                                             {{ $outer_order_id }}</label>
                                     </div>
-                                @empty
-                                    <p>No account found.</p>
-                                @endforelse
+                                @endforeach
                             </div>
                         @endif
 
@@ -482,9 +494,7 @@
                             <div class="form-group mb-0">
                                 <label>{{ $statusView['upload_label'] ?? 'Upload Payment Slip' }} <span class="required"
                                         aria-hidden="true">*</span></label>
-                                <form method="POST"
-                                    action="{{ route('roam.payment.upload-slip', ['outerOrderId' => $outer_order_id]) }}"
-                                    enctype="multipart/form-data">
+                                <form method="POST" action="{{ $uploadRoute }}" enctype="multipart/form-data">
                                     @csrf
                                     <input type="file" name="payment_slip" class="form_style text-dark"
                                         accept=".jpg,.jpeg,.png,image/jpeg,image/png" required>

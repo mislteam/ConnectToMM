@@ -18,4 +18,6 @@ class JoytelCoupon extends Model
         'expired_date',
         'is_active'
     ];
+
+    
 }

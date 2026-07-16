@@ -276,12 +276,12 @@
             display: block !important;
         }
 
-        .order-pagination-wrap nav .d-none.flex-sm-fill.d-sm-flex > div:last-child {
+        .order-pagination-wrap nav .d-none.flex-sm-fill.d-sm-flex>div:last-child {
             display: flex;
             justify-content: flex-end;
         }
 
-        .order-pagination-wrap nav .page-item + .page-item .page-link {
+        .order-pagination-wrap nav .page-item+.page-item .page-link {
             margin-left: 0;
         }
 
@@ -315,6 +315,24 @@
             padding: 6px 12px;
             font-size: 13px;
             font-weight: 700;
+        }
+
+        .joytel-usage-result {
+            border: 1px solid #e7ebf3;
+            border-radius: 8px;
+            background: #f9fbff;
+            padding: 12px;
+        }
+
+        .joytel-usage-result table {
+            margin-bottom: 0;
+        }
+
+        .joytel-usage-result th,
+        .joytel-usage-result td {
+            font-size: 13px;
+            vertical-align: top;
+            word-break: break-word;
         }
 
         .provider-footer {
@@ -750,46 +768,70 @@
                                     <h5 class="order-provider-title provider-joytel">
                                         <span>Joytel Orders</span>
                                     </h5>
+                                    <div class="order-provider-link">
+                                        <a href="#" class="joytel-usage-check-btn" data-bs-toggle="modal"
+                                            data-bs-target="#joytelUsageModal" data-manual="1" data-service-type="esim"
+                                            data-outer-order-id="" data-items="[]">
+                                            Check Joytel Orders
+                                        </a>
+                                    </div>
                                 </div>
                                 <div class="table-responsive">
                                     <table class="table order-history-table">
                                         <thead>
                                             <tr>
                                                 <th>ORDER ID</th>
-                                                <th>DATE</th>
                                                 <th>PRODUCT NAME</th>
-                                                <th>AMOUNT</th>
-                                                <th>PAYMENT METHOD</th>
+                                                {{-- <th>AMOUNT</th>
+                                                <th>DATE</th>
+                                                <th>PAYMENT METHOD</th> --}}
+                                                <th>SERVICE TYPE</th>
                                                 <th>STATUS</th>
+                                                <th>ACTIONS</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @forelse ($joytelOrderGroups as $group)
                                                 <tr>
                                                     <td data-label="Order ID">{{ $group['order_id'] ?? '-' }}</td>
-                                                    <td data-label="Date">
-                                                        {{ optional($group['created_at'])->format('d M Y, h:i A') ?? '-' }}
-                                                    </td>
                                                     <td data-label="Product Name">
                                                         {!! nl2br(e($group['product_name'] ?? '-')) !!}
                                                     </td>
-                                                    <td data-label="Amount">
+                                                    {{-- <td data-label="Amount">
                                                         {{ number_format((float) ($group['amount'] ?? 0), 2) }}
                                                     </td>
+                                                     <td data-label="Date">
+                                                        {{ optional($group['created_at'])->format('d M Y, h:i A') ?? '-' }}
+                                                    </td>
                                                     <td data-label="Payment Method">
-                                                        {{ $group['payment_method'] ?: ($group['service_type'] ?? '-') }}
+                                                        {{ $group['payment_method'] ?: $group['service_type'] ?? '-' }}
+                                                    </td> --}}
+                                                    <td data-label="Service Method">
+                                                        {{ $group['service_type'] ?? '-' }}
+                                                        {{ $group['order_type'] ?? '-' }}
                                                     </td>
                                                     <td data-label="Status"
                                                         class="order-status {{ $group['status_class'] ?? '' }}">
                                                         {{ $group['status_label'] ?? '-' }}
                                                     </td>
+                                                    <td data-label="Actions">
+                                                        <div class="order-action-group">
+                                                            <a href="{{ route('customer.order.detail', ['outerOrderId' => $group['outer_order_id'] ?? $group['order_id']]) }}"
+                                                                class="order-detail-link">Detail</a>
+                                                            @if (!empty($group['can_pay']))
+                                                                <a href="{{ route('joytel.payment.show', ['outerOrderId' => $group['outer_order_id'] ?? $group['order_id']]) }}"
+                                                                    class="btn btn-primary btn-sm order-pay-btn">Pay</a>
+                                                            @endif
+                                                        </div>
+                                                    </td>
                                                 </tr>
                                             @empty
                                                 <tr class="order-empty-row">
-                                                    <td colspan="6">
+                                                    <td colspan="7">
                                                         <div class="order-empty-state">
                                                             <h6>No Joytel orders yet</h6>
-                                                            <p>Your Joytel order history will appear here after checkout.</p>
+                                                            <p>Your Joytel order history will appear here after checkout.
+                                                            </p>
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -847,7 +889,7 @@
                                 id="file" name="file">
                             @if (auth()->user()->profile_image)
                                 <div class="mt-2">
-                                    <a class="text-primary text-break" target="_blank"
+                                    <a class="text-primary" target="_blank"
                                         href="{{ asset('storage/profile_images/' . auth()->user()->profile_image) }}">{{ asset('storage/profile_images/' . auth()->user()->profile_image) }}</a>
                                 </div>
                             @endif
@@ -935,6 +977,82 @@
         </div>
     </div>
 
+    <div class="modal fade" id="joytelUsageModal" tabindex="-1" aria-labelledby="joytelUsageModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <form id="joytelUsageForm">
+                @csrf
+                <input type="hidden" name="outer_order_id" id="joytel_usage_outer_order_id">
+                <input type="hidden" name="service_type" id="joytel_usage_service_type">
+
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="joytelUsageModalLabel">Check Joytel Usage</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-danger d-none" id="joytelUsageError"></div>
+                        <div class="alert alert-success d-none" id="joytelUsageSuccess"></div>
+
+                        <div class="mb-3" id="joytelUsageTypeWrap">
+                            <label class="form-label d-block">Service Type</label>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input joytel-usage-type-radio" type="radio"
+                                    name="usage_type_choice" id="joytel_usage_type_esim" value="esim" checked>
+                                <label class="form-check-label" for="joytel_usage_type_esim">eSIM</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input joytel-usage-type-radio" type="radio"
+                                    name="usage_type_choice" id="joytel_usage_type_physical" value="physical">
+                                <label class="form-check-label" for="joytel_usage_type_physical">Recharge</label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3 d-none" id="joytelUsageItemWrap">
+                            <label for="joytel_usage_item" class="form-label">Joytel Item</label>
+                            <select id="joytel_usage_item" class="form-control"></select>
+                        </div>
+
+                        <div id="joytelUsageEsimFields">
+                            <div class="mb-3">
+                                <label for="joytel_usage_sn_pin" class="form-label">SN PIN <span
+                                        class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="sn_pin" id="joytel_usage_sn_pin"
+                                    placeholder="Enter SN PIN">
+                            </div>
+                        </div>
+
+                        <div id="joytelUsageRechargeFields" class="d-none">
+                            <div class="mb-3">
+                                <label for="joytel_usage_cid" class="form-label">SN Code / CID <span
+                                        class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="cid" id="joytel_usage_cid"
+                                    placeholder="Enter SN Code or CID">
+                            </div>
+                            <div class="mb-3">
+                                <label for="joytel_usage_rsp_order_id" class="form-label">RSP Order ID <span
+                                        class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="rsp_order_id"
+                                    id="joytel_usage_rsp_order_id" placeholder="Enter RSP Order ID">
+                            </div>
+                            {{-- <div class="mb-3">
+                                <label for="joytel_usage_imsi" class="form-label">IMSI</label>
+                                <input type="text" class="form-control" name="imsi" id="joytel_usage_imsi"
+                                    placeholder="Optional">
+                            </div> --}}
+                        </div>
+
+                        <div id="joytelUsageResult" class="joytel-usage-result d-none"></div>
+                    </div>
+                    <div class="modal-footer">
+                        {{-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button> --}}
+                        <button type="submit" class="btn btn-primary" id="joytelUsageSubmit">Check Usage</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var storageKey = 'profile_password_visibility';
@@ -1009,6 +1127,230 @@
                     });
                 });
             });
+
+            var joytelUsageForm = document.getElementById('joytelUsageForm');
+            var joytelUsageItems = [];
+            var joytelUsageItemSelect = document.getElementById('joytel_usage_item');
+            var joytelUsageItemWrap = document.getElementById('joytelUsageItemWrap');
+            var joytelUsageError = document.getElementById('joytelUsageError');
+            var joytelUsageSuccess = document.getElementById('joytelUsageSuccess');
+            var joytelUsageResult = document.getElementById('joytelUsageResult');
+            var joytelUsageSubmit = document.getElementById('joytelUsageSubmit');
+            var joytelUsageEsimFields = document.getElementById('joytelUsageEsimFields');
+            var joytelUsageRechargeFields = document.getElementById('joytelUsageRechargeFields');
+            var joytelUsageServiceType = document.getElementById('joytel_usage_service_type');
+            var joytelUsageTypeWrap = document.getElementById('joytelUsageTypeWrap');
+            var joytelUsageTypeRadios = document.querySelectorAll('.joytel-usage-type-radio');
+
+            function clearJoytelUsageAlerts() {
+                joytelUsageError.classList.add('d-none');
+                joytelUsageSuccess.classList.add('d-none');
+                joytelUsageResult.classList.add('d-none');
+                joytelUsageError.textContent = '';
+                joytelUsageSuccess.textContent = '';
+                joytelUsageResult.innerHTML = '';
+            }
+
+            function setJoytelUsageMode(serviceType) {
+                var mode = (serviceType || 'esim').toLowerCase();
+                var isRecharge = mode === 'physical';
+
+                joytelUsageServiceType.value = isRecharge ? 'physical' : 'esim';
+                document.getElementById(isRecharge ? 'joytel_usage_type_physical' : 'joytel_usage_type_esim')
+                    .checked = true;
+                joytelUsageEsimFields.classList.toggle('d-none', isRecharge);
+                joytelUsageRechargeFields.classList.toggle('d-none', !isRecharge);
+            }
+
+            function setJoytelUsageReadonly(readonly) {
+                document.getElementById('joytel_usage_sn_pin').readOnly = readonly;
+                document.getElementById('joytel_usage_cid').readOnly = readonly;
+                document.getElementById('joytel_usage_rsp_order_id').readOnly = readonly;
+            }
+
+            function fillJoytelUsageFields(item, options) {
+                item = item || {};
+                options = options || {};
+                setJoytelUsageMode(item.service_type || joytelUsageServiceType.value || 'esim');
+
+                document.getElementById('joytel_usage_sn_pin').value = item.sn_pin || '';
+                document.getElementById('joytel_usage_cid').value = item.cid || item.sn_code || '';
+                document.getElementById('joytel_usage_rsp_order_id').value = item.rsp_order_id || '';
+                if (document.getElementById('joytel_usage_imsi')) {
+                    document.getElementById('joytel_usage_imsi').value = '';
+                }
+                setJoytelUsageReadonly(!!options.readonly);
+            }
+
+            function escapeHtml(value) {
+                return String(value ?? '')
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            function humanizeKey(key) {
+                return String(key)
+                    .replace(/_/g, ' ')
+                    .replace(/([a-z])([A-Z])/g, '$1 $2')
+                    .replace(/\b\w/g, function(char) {
+                        return char.toUpperCase();
+                    });
+            }
+
+            function renderJoytelUsageValue(value) {
+                if (Array.isArray(value)) {
+                    if (value.length === 0) {
+                        return '<span class="text-muted">-</span>';
+                    }
+
+                    return value.map(function(item, index) {
+                        return '<div class="mb-2"><strong>Item ' + (index + 1) + '</strong>' +
+                            renderJoytelUsageValue(item) + '</div>';
+                    }).join('');
+                }
+
+                if (value && typeof value === 'object') {
+                    if (value.__joytelUsageSummary) {
+                        var mainRows = (value.rows || []).map(function(row) {
+                            return '<tr><td>' + escapeHtml(row.label || '-') +
+                                '</td><td class="text-right">' +
+                                escapeHtml(row.value || '-') + '</td></tr>';
+                        }).join('');
+                        var usageRecords = value.usage_records || [];
+                        var usageHtml = '';
+
+                        if (usageRecords.length > 0) {
+                            usageHtml = '<div class="mt-3"><strong>Daily Usage</strong>' +
+                                usageRecords.map(function(record, index) {
+                                    return '<div class="mt-2"><strong>Item ' + (index + 1) + '</strong>' +
+                                        renderJoytelUsageValue(record) + '</div>';
+                                }).join('') + '</div>';
+                        }
+
+                        return '<div class="table-responsive"><table class="table table-sm table-bordered">' +
+                            '<tbody><tr class="table-info"><th colspan="2">' +
+                            escapeHtml(value.title || 'Total Usage') +
+                            '</th></tr>' + mainRows + '</tbody></table></div>' + usageHtml;
+                    }
+
+                    var rows = Object.keys(value).map(function(key) {
+                        return '<tr><th style="width: 34%;">' + escapeHtml(humanizeKey(key)) +
+                            '</th><td>' + renderJoytelUsageValue(value[key]) + '</td></tr>';
+                    }).join('');
+
+                    return '<div class="table-responsive"><table class="table table-sm table-bordered">' +
+                        '<tbody>' + rows + '</tbody></table></div>';
+                }
+
+                return value === null || value === '' || typeof value === 'undefined' ?
+                    '<span class="text-muted">-</span>' :
+                    escapeHtml(value);
+            }
+
+            document.querySelectorAll('.joytel-usage-check-btn').forEach(function(button) {
+                button.addEventListener('click', function() {
+                    clearJoytelUsageAlerts();
+                    var isManual = button.getAttribute('data-manual') === '1';
+                    document.getElementById('joytel_usage_outer_order_id').value = button
+                        .getAttribute(
+                            'data-outer-order-id') || '';
+                    setJoytelUsageMode(button.getAttribute('data-service-type') || 'esim');
+                    joytelUsageTypeWrap.classList.toggle('d-none', !isManual);
+
+                    try {
+                        joytelUsageItems = JSON.parse(button.getAttribute('data-items') || '[]');
+                    } catch (error) {
+                        joytelUsageItems = [];
+                    }
+
+                    joytelUsageItemSelect.innerHTML = '';
+                    joytelUsageItemWrap.classList.add('d-none');
+
+                    joytelUsageItems.forEach(function(item, index) {
+                        var option = document.createElement('option');
+                        option.value = String(index);
+                        option.textContent = (item.product_name || item.product_code ||
+                                'Joytel Item') +
+                            ' - ' + (item.sn_pin || item.cid || item.sn_code || 'Manual');
+                        joytelUsageItemSelect.appendChild(option);
+                    });
+
+                    fillJoytelUsageFields(isManual ? {
+                        service_type: button.getAttribute('data-service-type') || 'esim'
+                    } : (joytelUsageItems[0] || {
+                        service_type: button.getAttribute('data-service-type') || 'esim'
+                    }), {
+                        readonly: !isManual
+                    });
+                });
+            });
+
+            joytelUsageItemSelect.addEventListener('change', function() {
+                fillJoytelUsageFields(joytelUsageItems[parseInt(joytelUsageItemSelect.value, 10)] || {}, {
+                    readonly: true
+                });
+                clearJoytelUsageAlerts();
+            });
+
+            joytelUsageTypeRadios.forEach(function(radio) {
+                radio.addEventListener('change', function() {
+                    setJoytelUsageMode(radio.value);
+                    clearJoytelUsageAlerts();
+                });
+            });
+
+            if (joytelUsageForm) {
+                joytelUsageForm.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    clearJoytelUsageAlerts();
+                    joytelUsageSubmit.disabled = true;
+                    joytelUsageSubmit.textContent = 'Checking...';
+
+                    fetch("{{ route('customer.joytel.usage.check') }}", {
+                            method: 'POST',
+                            headers: {
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': "{{ csrf_token() }}"
+                            },
+                            body: new FormData(joytelUsageForm)
+                        })
+                        .then(function(response) {
+                            return response.json().then(function(data) {
+                                return {
+                                    ok: response.ok,
+                                    data: data
+                                };
+                            });
+                        })
+                        .then(function(result) {
+                            if (!result.ok || !result.data.ok) {
+                                joytelUsageError.textContent = result.data.message ||
+                                    'Usage check failed.';
+                                joytelUsageError.classList.remove('d-none');
+                                return;
+                            }
+
+                            joytelUsageSuccess.textContent = result.data.message ||
+                                'Usage check success.';
+                            joytelUsageSuccess.classList.remove('d-none');
+                            joytelUsageResult.innerHTML = renderJoytelUsageValue(result.data.summary ||
+                                result
+                                .data.raw || {});
+                            joytelUsageResult.classList.remove('d-none');
+                        })
+                        .catch(function(error) {
+                            joytelUsageError.textContent = error.message || 'Usage check failed.';
+                            joytelUsageError.classList.remove('d-none');
+                        })
+                        .finally(function() {
+                            joytelUsageSubmit.disabled = false;
+                            joytelUsageSubmit.textContent = 'Check Usage';
+                        });
+                });
+            }
         });
     </script>
 @endsection

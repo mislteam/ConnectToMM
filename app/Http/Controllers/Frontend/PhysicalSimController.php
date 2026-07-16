@@ -59,7 +59,7 @@ class PhysicalSimController extends Controller
         $priceListByPlan = $priceList->groupBy('plan');
         $roamBySku = RoamPhysical::whereIn('sku_id', $activeSkus->pluck('sku_id')->all())
             ->get()
-            ->keyBy(fn($row) => $row->sku_id . ':' . (int) ($row->dp_id ?? 0));
+            ->keyBy(fn ($row) => $row->sku_id . ':' . (int) ($row->dp_id ?? 0));
         $packageCards = $this->buildPhysicalPackageCards($activeSkus, $priceListByPlan, $roamBySku);
 
         $globalPackageCards = $packageCards->where('dp_id', 9)->values();
@@ -75,18 +75,18 @@ class PhysicalSimController extends Controller
 
         return view(
             'frontend.physical.roam-physical',
-            compact(
-                'logo',
-                'title',
-                'countrys',
-                'globalCountries',
-                'asiaCountries',
-                'globalPackageCards',
-                'asiaPackageCards',
-                'selectedDpId',
-                'orderTabs',
-                'selectedOrderType'
-            )
+                compact(
+                    'logo',
+                    'title',
+                    'countrys',
+                    'globalCountries',
+                    'asiaCountries',
+                    'globalPackageCards',
+                    'asiaPackageCards',
+                    'selectedDpId'
+                    ,
+                    'selectedOrderType'
+                )
         );
     }
 
@@ -394,6 +394,11 @@ class PhysicalSimController extends Controller
 
     public function cart(Request $request)
     {
+        if (!empty(session('joytel_cart', []))) {
+            return redirect()->back()
+                ->with('error', 'Joytel order already exists in your cart. Please checkout or remove it before adding a Roam order.');
+        }
+
         // session()->forget('roam_order_cart');
         $sim_type = (string) $request->input('sim_type', session('sim_type', 'recharge_physical'));
         if (!in_array($sim_type, ['new_physical', 'recharge_physical'], true)) {

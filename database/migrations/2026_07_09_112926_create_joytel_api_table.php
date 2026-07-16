@@ -16,10 +16,12 @@ return new class extends Migration
             $table->string('customer_code');
             $table->string('customer_auth');
             $table->string('api_url');
+            $table->string('rsp_appid')->nullable();
+            $table->string('rsp_secret')->nullable();
+            $table->string('rsp_baseurl')->nullable();
             $table->timestamps();
         });
     }
-    
 
     /**
      * Reverse the migrations.

@@ -61,8 +61,8 @@
                                 @forelse ($contact_details as $msg)
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
-                                        <td class="{{ $msg->status === 0 ? 'bold_text' : '' }}">{{ $msg->name }}</td>
-                                        <td class="{{ $msg->status === 0 ? 'bold_text' : '' }}">
+                                        <td class="{{ !$msg->status ? 'bold_text' : '' }}">{{ $msg->name }}</td>
+                                        <td class="{{ !$msg->status ? 'bold_text' : '' }}">
                                             {{ Str::limit($msg->message, 50) }}</td>
                                         <td>
                                             <div class="d-flex justify-content-center gap-1">

@@ -99,7 +99,7 @@
                                     <span class="menu-text">Roam Orders</span>
                                 </a>
                             </li>
-                            <li class="side-nav-item {{ request()->routeIs('order.joytel') ? 'active' : '' }}">
+                            <li class="side-nav-item {{ request()->routeIs('order.joytel', 'order.joytel.show') ? 'active' : '' }}">
                                 <a href="{{ route('order.joytel') }}" class="side-nav-link">
                                     <span class="menu-text">Joytel Orders</span>
                                 </a>

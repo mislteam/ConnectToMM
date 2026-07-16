@@ -1,6 +1,7 @@
 @extends('frontend.layouts.index')
 @section('title', 'joytel Package View')
 @section('content')
+    @include('components.alert')
     <style>
         .quantity-static {
             min-width: 52px;
@@ -312,7 +313,7 @@
                     </div>
                     <div class="row">
                         <div class="col-lg-4 col-md-4 col-sm-12 col-12">
-                            <label class="font-weight-bold">recharge : </label>
+                            <label class="font-weight-bold">Recharge : </label>
                         </div>
                         <div class="col-lg-8 col-md-8 col-sm-12 col-12">
                             <div class="content">
@@ -327,14 +328,7 @@
                         <div class="col-lg-8 col-md-8 col-sm-12 col-12">
                             <div class="content">
                                 @php
-                                    $displayCoverages = collect($joytel->coverage ?? [])
-                                        ->reject(
-                                            fn($location) => preg_match(
-                                                '/^\s*\d+\s+destinations?\s*$/i',
-                                                (string) $location,
-                                            ),
-                                        )
-                                        ->values();
+                                    $displayCoverages = collect($joytel->coverage ?? [])->values();
                                 @endphp
                                 @foreach ($displayCoverages as $location)
                                     <label
@@ -391,6 +385,7 @@
                             method="POST">
                             @csrf
                             <input type="hidden" name="joytel_type" value="physical">
+                            <input type="hidden" name="sim_type" value="recharge_physical">
                             <!-- Traffic Types -->
                             <div class="form-group">
                                 <label for="trafficType" class="font-weight-bold">Type of Plan</label>
@@ -683,8 +678,9 @@
                                 </p>
                             </div>
                             <input type="hidden" name="display_price" id="display_price" value>
+                            <input type="hidden" name="product_code" id="product_code" value>
                             <!-- Add to Cart -->
-                            <button type="submit" id="addToCartBtn" class="button_text" disabled>Add To
+                            <button type="submit" id="addToCartBtn" class="button_text">Add To
                                 Cart</button>
                         </form>
                     @else
@@ -772,6 +768,7 @@
             const des = document.getElementById('plan-description');
             const memo = document.getElementById('plan-memo');
             const displayPriceInput = document.getElementById('display_price');
+            const productCodeInput = document.getElementById('product_code');
             const joytelModelType = 'physical';
 
             // Data from Blade
@@ -819,6 +816,7 @@
                     const total = pricePerUnit * qty;
                     total_price.innerText = `Total Price: ${total.toLocaleString()} MMK`;
                     displayPriceInput.value = total;
+                    productCodeInput.value = selectedData.dataset.productCode || '';
                     des.innerText = selectedData.dataset.description;
                     memo.innerText = selectedData.dataset.memo;
                 }

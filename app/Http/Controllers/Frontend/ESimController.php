@@ -19,8 +19,10 @@ class ESimController extends Controller
             $selectedSimType = 'new_esim';
         }
 
-        $orderTabs = getOrderTypes('roam_order_types', 'esim');
-        $selectedSimType = collect($orderTabs)->keys()->first();
+        $orderTabs = [
+            'new_esim' => ['label' => 'New eSIM'],
+            'recharge_esim' => ['label' => 'Recharge'],
+        ];
 
         $countrys = Roam::pluck('support_country')
             ->flatten()
@@ -269,6 +271,11 @@ class ESimController extends Controller
 
     public function cart(Request $request)
     {
+        if (!empty(session('joytel_cart', []))) {
+            return redirect()->back()
+                ->with('error', 'Joytel order already exists in your cart. Please checkout or remove it before adding a Roam order.');
+        }
+
         // session()->forget('roam_order_cart');
         // dd('hi');
         $sim_type = $this->normalizeSimType($request->input('sim_type', session()->get('sim_type')));

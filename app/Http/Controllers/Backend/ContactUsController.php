@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
 use App\Models\ContactUs;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Http\Request;
 
 class ContactUsController extends Controller
@@ -16,9 +17,16 @@ class ContactUsController extends Controller
 
     public function show(ContactUs $message)
     {
-        $message->status = true;
-        $message->save();
+       
+        $message->update(['status' => true]);
         return view('admin.message.show', array_merge($this->sharedData(), compact('message')));
+    }
+
+    public function markAsRead(ContactUs $message)
+    {
+        $message->update(['status' => true]);
+
+        return back();
     }
 
     public function store(Request $request)
@@ -28,7 +36,20 @@ class ContactUsController extends Controller
             'email' => 'string|email|max:255',
             'phone' => 'string|required',
             'msg' => 'string|required',
+            'cf-turnstile-response' => 'required',
         ]);
+
+         $response = Http::asForm()->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
+            'secret' => env('TURNSTILE_SECRET_KEY'),
+            'response' => $request->input('cf-turnstile-response'),
+            'remoteip' => $request->ip(),
+        ]);
+
+        if (! $response->json('success')) {
+            return back()
+                ->withErrors(['captcha' => 'Captcha verification failed. Please try again.'])
+                ->withInput();
+        }
         ContactUs::create([
             'name' => $data['name'],
             'email' => $data['email'],

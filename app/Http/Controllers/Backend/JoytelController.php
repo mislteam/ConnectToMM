@@ -498,19 +498,57 @@ class JoytelController extends Controller
 
     public function updateApi(Request $request)
     {
-        $validated = $request->validate([
-            'customer_code' => 'required|string',
-            'customer_auth' => 'required|string',
-            'api_url' => 'required|url',
+        $validated = $request->validateWithBag('warehouse', [
+            'customer_code' => 'required|string|max:255',
+            'customer_auth' => 'required|string|max:255',
+            'api_url'       => 'required|url|max:255',
         ]);
 
-        $api = JoytelApi::first() ?? new JoytelApi();
-        $api->fill([
-            'customer_code' => $validated['customer_code'],
-            'customer_auth' => $validated['customer_auth'],
-            'api_url'       => $validated['api_url'],
-        ])->save();
+        $api = JoytelApi::first();
 
-        return redirect()->back()->with('success', 'Joytel API credentials updated successfully!');
+        if (!$api) {
+           
+            $api = new JoytelApi();
+
+            $api->rsp_appid = '';
+            $api->rsp_secret = '';
+            $api->rsp_baseurl = '';
+        }
+
+        $api->customer_code = $validated['customer_code'];
+        $api->customer_auth = $validated['customer_auth'];
+        $api->api_url = $validated['api_url'];
+
+        $api->save();
+
+        return redirect()->back()->with('success', 'Warehouse API credentials updated successfully!')->with('active_tab', 'warehouse');
+    }
+
+    public function updateRsp(Request $request)
+    {
+        $validated = $request->validateWithBag('rsp', [
+            'rsp_appid'   => 'required|string|max:255',
+            'rsp_secret'  => 'required|string|max:255',
+            'rsp_baseurl' => 'required|url|max:255',
+        ]);
+
+        $api = JoytelApi::first();
+
+        if (!$api) {
+            $api = new JoytelApi();
+
+           
+            $api->customer_code = '';
+            $api->customer_auth = '';
+            $api->api_url = '';
+        }
+
+        $api->rsp_appid = $validated['rsp_appid'];
+        $api->rsp_secret = $validated['rsp_secret'];
+        $api->rsp_baseurl = $validated['rsp_baseurl'];
+
+        $api->save();
+
+        return redirect()->back()->with('success', 'RSP API credentials updated successfully!')->with('active_tab', 'rsp');
     }
 }

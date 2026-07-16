@@ -15,5 +15,8 @@ class JoytelApi extends Model
         'customer_code',
         'customer_auth',
         'api_url',
+        'rsp_appid',
+        'rsp_secret',
+        'rsp_baseurl'
     ];
 }

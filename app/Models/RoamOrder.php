@@ -22,6 +22,7 @@ class RoamOrder extends Model
     public const OUR_STATUS_CANCELLED = 7;
     public const OUR_STATUS_REFUNDED = 8;
     public const OUR_STATUS_ON_HOLD = 9;
+    public const OUR_STATUS_ADMIN_CANCELLED = 10;
 
     public const REFUND_METHOD_INTERNAL_PAYMENT = 'internal_payment';
     public const REFUND_METHOD_ROAM_API = 'roam_api';
@@ -48,6 +49,7 @@ class RoamOrder extends Model
         self::OUR_STATUS_COMPLETED => 'Completed',
         self::OUR_STATUS_CANCELLED => 'Cancelled',
         self::OUR_STATUS_REFUNDED => 'Refunded',
+        self::OUR_STATUS_ADMIN_CANCELLED => 'Admin Cancel',
     ];
 
     public const CUSTOMER_STATUS_LABELS = [
@@ -61,6 +63,7 @@ class RoamOrder extends Model
         self::OUR_STATUS_COMPLETED => 'Completed',
         self::OUR_STATUS_CANCELLED => 'Cancelled',
         self::OUR_STATUS_REFUNDED => 'Refunded',
+        self::OUR_STATUS_ADMIN_CANCELLED => 'Admin Cancel',
     ];
 
     public const ROAM_STATUS_LABELS = [
@@ -73,7 +76,11 @@ class RoamOrder extends Model
 
     public const OUR_STATUS_TRANSITIONS = [
         self::OUR_STATUS_ORDER_START => [self::OUR_STATUS_PENDING_PAYMENT],
-        self::OUR_STATUS_PENDING_PAYMENT => [self::OUR_STATUS_PAID, self::OUR_STATUS_CANCELLED],
+        self::OUR_STATUS_PENDING_PAYMENT => [
+            self::OUR_STATUS_PAID,
+            self::OUR_STATUS_CANCELLED,
+            self::OUR_STATUS_ADMIN_CANCELLED,
+        ],
         self::OUR_STATUS_PAID => [self::OUR_STATUS_ON_HOLD],
         self::OUR_STATUS_ON_HOLD => [self::OUR_STATUS_API_PROCESSING],
         self::OUR_STATUS_API_PROCESSING => [self::OUR_STATUS_API_SUCCESS, self::OUR_STATUS_API_FAILED],
@@ -82,6 +89,8 @@ class RoamOrder extends Model
         self::OUR_STATUS_COMPLETED => [self::OUR_STATUS_REFUNDED],
         self::OUR_STATUS_CANCELLED => [self::OUR_STATUS_REFUNDED],
         self::OUR_STATUS_REFUNDED => [],
+        self::OUR_STATUS_ADMIN_CANCELLED => [],
+
     ];
 
     protected $fillable = [

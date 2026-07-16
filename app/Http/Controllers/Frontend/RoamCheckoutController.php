@@ -9,6 +9,7 @@ use App\Payment\Providers\Uab\Enums\Currency;
 use App\Payment\Providers\Uab\Enums\PaymentMethod;
 use App\Models\UabPaymentTransaction;
 use App\Models\RoamOrder;
+use App\Services\OrderNotificationService;
 use App\Services\Roam\RoamIccidSupportService;
 use App\Services\Roam\RoamOrderDraftService;
 use App\Payment\Providers\Uab\Services\UabCredentialService;
@@ -42,7 +43,7 @@ class RoamCheckoutController extends Controller
         // - FiROAM Global SIM => 19 digits (dp_info != 21)
         // - FiROAM Asia SIM   => 18 digits (dp_info == 21)
         $iccidNumbersByIndex = (array) ($validated['iccid_numbers'] ?? []);
-        $cartItems = array_values(array_filter($cart, static fn($item) => is_array($item)));
+        $cartItems = array_values(array_filter($cart, static fn ($item) => is_array($item)));
         if (array_key_exists('sku_id', $cart) || array_key_exists('sku', $cart)) {
             $cartItems = [$cart];
         }
@@ -64,7 +65,7 @@ class RoamCheckoutController extends Controller
             }
 
             $iccids = (array) ($iccidNumbersByIndex[$index] ?? []);
-            if (empty(array_filter(array_map(static fn($iccid) => preg_replace('/\D+/', '', (string) $iccid), $iccids)))) {
+            if (empty(array_filter(array_map(static fn ($iccid) => preg_replace('/\D+/', '', (string) $iccid), $iccids)))) {
                 return $this->redirectWithIccidError(
                     $index,
                     'ICCID is required for recharge orders.',
@@ -135,7 +136,7 @@ class RoamCheckoutController extends Controller
             $customer,
             $cart,
             $iccidNumbersByIndex,
-            $validated['payment_method']
+            $validated['payment_method'] === 'UAB Pay' ? 'uab_pay' : $validated['payment_method']
         );
 
         session()->forget([
@@ -223,7 +224,7 @@ class RoamCheckoutController extends Controller
         return view('frontend.payment', [
             'outer_order_id' => $outerOrderId,
             'orders' => $orders,
-            'total' => $orders->sum(fn($order) => (float) $order->billable_total_price),
+            'total' => $orders->sum(fn ($order) => (float) $order->billable_total_price),
             'payment_status_view' => $statusView,
             'credentials' => $credentials,
             'payment_method' => $payment_method,
@@ -231,7 +232,7 @@ class RoamCheckoutController extends Controller
         ]);
     }
 
-    public function uploadPaymentSlip(Request $request, string $outerOrderId)
+    public function uploadPaymentSlip(Request $request, string $outerOrderId, OrderNotificationService $notifications)
     {
         Auth::shouldUse('customers');
         $customer = auth()->user();
@@ -250,7 +251,7 @@ class RoamCheckoutController extends Controller
             return redirect()->route('customer.roam.order.detail')->with('error', 'Order not found.');
         }
 
-        if ($orders->every(fn(RoamOrder $order) => (int) $order->our_status !== RoamOrder::OUR_STATUS_PENDING_PAYMENT)) {
+        if ($orders->every(fn (RoamOrder $order) => (int) $order->our_status !== RoamOrder::OUR_STATUS_PENDING_PAYMENT)) {
             return redirect()->route('roam.payment.show', ['outerOrderId' => $outerOrderId])
                 ->with('error', 'Payment slip can only be updated while the order is pending payment.');
         }
@@ -272,6 +273,8 @@ class RoamCheckoutController extends Controller
             $order->raw_response = $rawResponse;
             $order->save();
         }
+
+        $notifications->paymentSlipUploaded($orders->first()->refresh());
 
         if ($existingSlipPath && $existingSlipPath !== $storedPath && Storage::disk('public')->exists($existingSlipPath)) {
             Storage::disk('public')->delete($existingSlipPath);
@@ -296,26 +299,29 @@ class RoamCheckoutController extends Controller
     private function buildPaymentStatusView($orders, bool $hasUploadedSlip): array
     {
         $allRefunded = $orders->every(
-            fn(RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_REFUNDED
+            fn (RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_REFUNDED
         );
         $hasRoamRefund = $orders->contains(
-            fn(RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_COMPLETED
+            fn (RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_COMPLETED
                 && (int) $order->roam_status === RoamOrder::ROAM_STATUS_CANCELLED
         );
         $hasPendingPayment = $orders->contains(
-            fn(RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_PENDING_PAYMENT
+            fn (RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_PENDING_PAYMENT
         );
         $hasFailed = $orders->contains(
-            fn(RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_API_FAILED
+            fn (RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_API_FAILED
+        );
+        $hasAdminCancelled = $orders->contains(
+            fn (RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_ADMIN_CANCELLED
         );
         $hasCancelled = $orders->contains(
-            fn(RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_CANCELLED
+            fn (RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_CANCELLED
         );
         $allCompleted = $orders->every(
-            fn(RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_COMPLETED
+            fn (RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_COMPLETED
         );
         $isOngoing = $orders->contains(
-            fn(RoamOrder $order) => in_array((int) $order->our_status, [
+            fn (RoamOrder $order) => in_array((int) $order->our_status, [
                 RoamOrder::OUR_STATUS_PAID,
                 RoamOrder::OUR_STATUS_ON_HOLD,
                 RoamOrder::OUR_STATUS_API_PROCESSING,
@@ -364,6 +370,18 @@ class RoamCheckoutController extends Controller
                 'badge' => 'Failed',
                 'title' => 'We could not complete this order.',
                 'message' => 'Please contact support or check your order detail page for the latest status update.',
+                'tone' => 'danger',
+                'show_upload_form' => false,
+                'show_payment_guide' => false,
+                'show_bank_accounts' => false,
+            ];
+        }
+
+        if ($hasAdminCancelled) {
+            return [
+                'badge' => 'Admin Cancel',
+                'title' => 'This order was cancelled by admin.',
+                'message' => 'You can place a new order whenever you are ready.',
                 'tone' => 'danger',
                 'show_upload_form' => false,
                 'show_payment_guide' => false,

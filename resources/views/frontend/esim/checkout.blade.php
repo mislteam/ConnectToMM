@@ -3,9 +3,7 @@
 @section('content')
     <style>
         .order-summary .order-box {
-            /* height: 100%; */
-            position: sticky;
-            top: 135px;
+            height: 100%;
         }
 
         .order-summary .button_text {

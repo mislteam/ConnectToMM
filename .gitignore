@@ -19,8 +19,5 @@ yarn-error.log
 /.vscode
 .codex
 app/Console/Commands
-app/Models/JoytelOrder.php
-app/Models/JoytelOrderItem.php
-database/migrations/2026_05_05_000001_create_joytel_orders_table.php
-database/migrations/2026_05_05_000002_create_joytel_order_items_table.php
-docs/roam-order-files-explained-mm.md
+
+

@@ -51,7 +51,20 @@ class CustomerAuthController extends Controller
             'email' => ['required', 'email', 'max:255', 'unique:customers,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'terms' => ['accepted'],
+             'cf-turnstile-response' => 'required',
         ]);
+        
+         $response = Http::asForm()->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
+            'secret' => env('TURNSTILE_SECRET_KEY'),
+            'response' => $request->input('cf-turnstile-response'),
+            'remoteip' => $request->ip(),
+        ]);
+
+        if (! $response->json('success')) {
+            return back()
+                ->withErrors(['captcha' => 'Captcha verification failed. Please try again.'])
+                ->withInput();
+        }
 
         $customer = DB::transaction(function () use ($request) {
             return Customer::create([

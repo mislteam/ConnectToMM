@@ -257,6 +257,7 @@
                                         </option>
                                         <option value="failed" @selected(request('payment_status') === 'failed')>Failed</option>
                                         <option value="refunded" @selected(request('payment_status') === 'refunded')>Refunded</option>
+                                        <option value="admin_cancelled" @selected(request('payment_status') === 'admin_cancelled')>Admin Cancel</option>
                                         <option value="cancelled" @selected(request('payment_status') === 'cancelled')>Order Cancelled</option>
                                         <option value="completed" @selected(request('payment_status') === 'completed')>Completed</option>
                                         <option value="new" @selected(request('payment_status') === 'new')>Order Started</option>

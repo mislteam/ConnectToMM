@@ -292,6 +292,8 @@
             min-width: 70px;
             padding: 0.5rem 1rem;
             text-decoration: none;
+
+
             transition: all 0.2s ease;
         }
 
@@ -445,6 +447,50 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* for payment */
+
+        .payment-action-dropdown {
+            position: relative;
+        }
+
+        .payment-action-dropdown .order-action-btn {
+            height: 38px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .payment-action-menu {
+            min-width: 100% !important;
+            width: 100% !important;
+            /* margin-top: 6px !important; */
+            padding: 6px;
+            border: 1px solid #e5e7eb;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.12);
+            overflow: hidden;
+        }
+
+        .payment-action-menu .payment-action-item {
+            width: 100%;
+            height: 30px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .payment-action-menu .payment-action-item:hover {
+            background-color: #f8fafc;
+        }
+
+        .payment-action-menu form {
+            margin: 0;
+        }
     </style>
 
     @php
@@ -453,18 +499,19 @@
         $paymentSlipUrl = $paymentSlipPath ? \Illuminate\Support\Facades\Storage::url($paymentSlipPath) : null;
         $canApprovePayment =
             $primaryOrder && (int) $primaryOrder->our_status === \App\Models\RoamOrder::OUR_STATUS_PENDING_PAYMENT;
+        $canAdminCancel = $canApprovePayment;
         $isGroupRoamRefunded = (bool) ($summary['has_roam_refund'] ?? false);
         $statusTagClass = match ($summary['status_key'] ?? null) {
             'completed' => 'order-tag-success',
             'pending_payment' => 'order-tag-warning',
-            'failed', 'cancelled' => 'order-tag-danger',
+            'failed', 'admin_cancelled', 'cancelled' => 'order-tag-danger',
             'refunded' => 'order-tag-info',
             default => 'order-tag-primary',
         };
         $paymentTagClass = match ($summary['payment_label'] ?? null) {
             'Paid' => 'order-tag-success',
             'Pending' => 'order-tag-warning',
-            'Cancelled' => 'order-tag-danger',
+            'Admin Cancel', 'Cancelled' => 'order-tag-danger',
             'Refunded' => 'order-tag-info',
             default => 'order-tag-primary',
         };
@@ -546,7 +593,8 @@
                                 <div class="order-meta-heading">Order Summary</div>
                                 <div class="order-meta-row">
                                     <span class="order-meta-label">Products</span>
-                                    <div class="order-meta-value">{{ $summary['product_summary'] ?: '-' }}</div>
+                                    <div class="order-meta-value">
+                                        {!! nl2br(e($summary['product_summary'] ?: '-')) !!}</div>
                                 </div>
                                 <div class="order-meta-row">
                                     <span class="order-meta-label">Order total</span>
@@ -607,6 +655,7 @@
                                                 \App\Models\RoamOrder::OUR_STATUS_PENDING_PAYMENT
                                                     => 'order-tag-warning',
                                                 \App\Models\RoamOrder::OUR_STATUS_API_FAILED,
+                                                \App\Models\RoamOrder::OUR_STATUS_ADMIN_CANCELLED,
                                                 \App\Models\RoamOrder::OUR_STATUS_CANCELLED
                                                     => 'order-tag-danger',
                                                 \App\Models\RoamOrder::OUR_STATUS_REFUNDED => 'order-tag-info',
@@ -690,7 +739,7 @@
                                         </a>
                                     @endif
 
-                                    @if ($canApprovePayment)
+                                    {{-- @if ($canApprovePayment)
                                         <form method="POST"
                                             action="{{ route('order.approve-payment', ['roamOrder' => $primaryOrder->id]) }}"
                                             onsubmit="return confirm('Approve payment for this order reference and start provisioning?');">
@@ -700,6 +749,67 @@
                                                 <i class="ti ti-circle-check"></i> Approve Payment
                                             </button>
                                         </form>
+                                    @endif
+
+                                    @if ($canAdminCancel)
+                                        <form method="POST"
+                                            action="{{ route('order.cancel-payment', ['roamOrder' => $primaryOrder->id]) }}"
+                                            onsubmit="return confirm('Cancel this pending payment order? The customer will be notified.');">
+                                            @csrf
+                                            <button type="submit"
+                                                class="btn btn-danger order-action-btn order-action-btn-solid">
+                                                <i class="ti ti-x"></i> Admin Cancel
+                                            </button>
+                                        </form>
+                                    @endif --}}
+
+                                    @if ($canApprovePayment || $canAdminCancel)
+                                        <div class="payment-action-dropdown dropdown w-100">
+                                            <button
+                                                class="btn btn-success dropdown-toggle order-action-btn order-action-btn-solid w-100"
+                                                type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                {{-- <i class="ti ti-settings"></i>  --}}
+                                                Payment Actions
+                                            </button>
+
+                                            <ul class="dropdown-menu payment-action-menu w-100">
+                                                @if ($canApprovePayment)
+                                                    <li>
+                                                        <form method="POST"
+                                                            action="{{ route('order.approve-payment', ['roamOrder' => $primaryOrder->id]) }}"
+                                                            onsubmit="return confirm('Approve payment for this Roam order reference?');">
+                                                            @csrf
+                                                            <button type="submit"
+                                                                class="dropdown-item payment-action-item text-success">
+                                                                <i class="ti ti-circle-check"></i>
+                                                                <span>Approve Payment</span>
+                                                            </button>
+                                                        </form>
+                                                    </li>
+                                                @endif
+
+                                                @if ($canApprovePayment && $canAdminCancel)
+                                                    <li>
+                                                        <hr class="dropdown-divider my-1">
+                                                    </li>
+                                                @endif
+
+                                                @if ($canAdminCancel)
+                                                    <li>
+                                                        <form method="POST"
+                                                            action="{{ route('order.cancel-payment', ['roamOrder' => $primaryOrder->id]) }}"
+                                                            onsubmit="return confirm('Cancel this Roam order by admin?');">
+                                                            @csrf
+                                                            <button type="submit"
+                                                                class="dropdown-item payment-action-item text-danger">
+                                                                <i class="ti ti-circle-x"></i>
+                                                                <span>Admin Cancel</span>
+                                                            </button>
+                                                        </form>
+                                                    </li>
+                                                @endif
+                                            </ul>
+                                        </div>
                                     @endif
 
                                     @if (!$paymentSlipUrl && !$canApprovePayment)
@@ -742,6 +852,7 @@
                                                 \App\Models\RoamOrder::OUR_STATUS_PENDING_PAYMENT
                                                     => 'order-tag-warning',
                                                 \App\Models\RoamOrder::OUR_STATUS_API_FAILED,
+                                                \App\Models\RoamOrder::OUR_STATUS_ADMIN_CANCELLED,
                                                 \App\Models\RoamOrder::OUR_STATUS_CANCELLED
                                                     => 'order-tag-danger',
                                                 \App\Models\RoamOrder::OUR_STATUS_REFUNDED => 'order-tag-info',
@@ -843,6 +954,7 @@
                                                     \App\Models\RoamOrder::OUR_STATUS_PENDING_PAYMENT
                                                         => 'order-tag-warning',
                                                     \App\Models\RoamOrder::OUR_STATUS_API_FAILED,
+                                                    \App\Models\RoamOrder::OUR_STATUS_ADMIN_CANCELLED,
                                                     \App\Models\RoamOrder::OUR_STATUS_CANCELLED
                                                         => 'order-tag-danger',
                                                     \App\Models\RoamOrder::OUR_STATUS_REFUNDED => 'order-tag-info',

@@ -19,16 +19,22 @@
 
         <div class="d-flex align-items-center gap-2">
             <!-- Messages Dropdown -->
+            @php
+                $unreadContactMessages = $unreadContactMessages ?? collect();
+                $unreadContactMessageCount = $unreadContactMessageCount ?? $unreadContactMessages->count();
+            @endphp
             <div class="topbar-item">
                 <div class="dropdown">
                     <button class="topbar-link dropdown-toggle drop-arrow-none" data-bs-toggle="dropdown"
                         data-bs-offset="0,22" type="button" data-bs-auto-close="outside" aria-haspopup="false"
                         aria-expanded="false">
                         <i data-lucide="mails" class="fs-xxl"></i>
-                        <span class="badge text-bg-success badge-circle topbar-badge">7</span>
+                        @if ($unreadContactMessageCount > 0)
+                            <span class="badge text-bg-success badge-circle topbar-badge">{{ $unreadContactMessageCount }}</span>
+                        @endif
                     </button>
 
-                    <div class="dropdown-menu p-0 dropdown-menu-end dropdown-menu-lg">
+                    {{-- <div class="dropdown-menu p-0 dropdown-menu-end dropdown-menu-lg">
                         <div class="px-3 py-2 border-bottom">
                             <div class="row align-items-center">
                                 <div class="col">
@@ -40,129 +46,30 @@
                                 </div>
                             </div>
                         </div>
-
-                        <div style="max-height: 300px;" data-simplebar>
-                            <!-- item 1 -->
-                            <div class="dropdown-item notification-item py-2 text-wrap active" id="message-1">
-                                <span class="d-flex gap-3">
-                                    <span class="flex-shrink-0">
-                                        <img src="{{ asset('assets/images/user-3.jpg') }}"
-                                            class="avatar-md rounded-circle" alt="User Avatar">
-                                    </span>
-                                    <span class="flex-grow-1 text-muted">
-                                        <span class="fw-medium text-body">Liam Carter</span> uploaded a new document to
-                                        <span class="fw-medium text-body">Project Phoenix</span>
-                                        <br>
-                                        <span class="fs-xs">5 minutes ago</span>
-                                    </span>
-                                    <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0"
-                                        data-dismissible="#message-1">
-                                        <i class="ti ti-xbox-x-filled fs-xxl"></i>
-                                    </button>
-                                </span>
-                            </div>
-
-                            <!-- item 2 -->
-                            <div class="dropdown-item notification-item py-2 text-wrap" id="message-2">
-                                <span class="d-flex gap-3">
-                                    <span class="flex-shrink-0">
-                                        <img src="{{ asset('assets/images/user-3.jpg') }}"
-                                            class="avatar-md rounded-circle" alt="User Avatar">
-                                    </span>
-                                    <span class="flex-grow-1 text-muted">
-                                        <span class="fw-medium text-body">Ava Mitchell</span> commented on <span
-                                            class="fw-medium text-body">Marketing Campaign Q3</span>
-                                        <br>
-                                        <span class="fs-xs">12 minutes ago</span>
-                                    </span>
-                                    <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0"
-                                        data-dismissible="#message-2">
-                                        <i class="ti ti-xbox-x-filled fs-xxl"></i>
-                                    </button>
-                                </span>
-                            </div>
-
-                            <!-- item 3 -->
-                            <div class="dropdown-item notification-item py-2 text-wrap" id="message-3">
-                                <span class="d-flex gap-3">
-                                    <span class="avatar-md flex-shrink-0">
-                                        <span class="avatar-title text-bg-info rounded-circle fs-22">
-                                            <i data-lucide="shield-user" class="fs-22 fill-white"></i>
+                        @foreach ($contacts as $contact)
+                            <div style="max-height: 300px;" data-simplebar>
+                                <!-- item 1 -->
+                                <div class="dropdown-item notification-item py-2 text-wrap active" id="message-1">
+                                    <span class="d-flex gap-3">
+                                        <span class="flex-shrink-0">
+                                            <i data-lucide="mails" class="fs-xxl"></i>
                                         </span>
+                                        <span class="flex-grow-1 text-muted">
+                                            <span class="fw-medium text-body">{{ $contact->username }}</span> uploaded a
+                                            new
+                                            message.
+                                            <span class="fw-medium text-body"></span>
+                                            <br>
+                                            <span class="fs-xs">5 minutes ago</span>
+                                        </span>
+                                        <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0"
+                                            data-dismissible="#message-1">
+                                            <i class="ti ti-xbox-x-filled fs-xxl"></i>
+                                        </button>
                                     </span>
-                                    <span class="flex-grow-1 text-muted">
-                                        <span class="fw-medium text-body">Noah Blake</span> updated the status of <span
-                                            class="fw-medium text-body">Client Onboarding</span>
-                                        <br>
-                                        <span class="fs-xs">30 minutes ago</span>
-                                    </span>
-                                    <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0"
-                                        data-dismissible="#message-3">
-                                        <i class="ti ti-xbox-x-filled fs-xxl"></i>
-                                    </button>
-                                </span>
+                                </div>
                             </div>
-
-                            <!-- item 4 -->
-                            <div class="dropdown-item notification-item py-2 text-wrap" id="message-4">
-                                <span class="d-flex gap-3">
-                                    <span class="flex-shrink-0">
-                                        <img src="{{ asset('assets/images/user-3.jpg') }}"
-                                            class="avatar-md rounded-circle" alt="User Avatar">
-                                    </span>
-                                    <span class="flex-grow-1 text-muted">
-                                        <span class="fw-medium text-body">Sophia Taylor</span> sent an invoice for
-                                        <span class="fw-medium text-body">Service Renewal</span>
-                                        <br>
-                                        <span class="fs-xs">1 hour ago</span>
-                                    </span>
-                                    <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0"
-                                        data-dismissible="#message-4">
-                                        <i class="ti ti-xbox-x-filled fs-xxl"></i>
-                                    </button>
-                                </span>
-                            </div>
-
-                            <!-- item 5 -->
-                            <div class="dropdown-item notification-item py-2 text-wrap" id="message-5">
-                                <span class="d-flex gap-3">
-                                    <span class="flex-shrink-0">
-                                        <img src="{{ asset('assets/images/user-3.jpg') }}"
-                                            class="avatar-md rounded-circle" alt="User Avatar">
-                                    </span>
-                                    <span class="flex-grow-1 text-muted">
-                                        <span class="fw-medium text-body">Ethan Moore</span> completed the task <span
-                                            class="fw-medium text-body">UI Review</span>
-                                        <br>
-                                        <span class="fs-xs">2 hours ago</span>
-                                    </span>
-                                    <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0"
-                                        data-dismissible="#message-5">
-                                        <i class="ti ti-xbox-x-filled fs-xxl"></i>
-                                    </button>
-                                </span>
-                            </div>
-
-                            <!-- item 6 -->
-                            <div class="dropdown-item notification-item py-2 text-wrap" id="message-6">
-                                <span class="d-flex gap-3">
-                                    <span class="flex-shrink-0">
-                                        <img src="{{ asset('assets/images/user-3.jpg') }}"
-                                            class="avatar-md rounded-circle" alt="User Avatar">
-                                    </span>
-                                    <span class="flex-grow-1 text-muted">
-                                        <span class="fw-medium text-body">Olivia White</span> assigned you a task in
-                                        <span class="fw-medium text-body">Sales Pipeline</span>
-                                        <br>
-                                        <span class="fs-xs">Yesterday</span>
-                                    </span>
-                                    <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0"
-                                        data-dismissible="#message-6">
-                                        <i class="ti ti-xbox-x-filled fs-xxl"></i>
-                                    </button>
-                                </span>
-                            </div>
-                        </div>
+                        @endforeach
 
                         <!-- All-->
                         <a href="javascript:void(0);"
@@ -170,27 +77,88 @@
                             Read All Messages
                         </a>
 
-                    </div> <!-- End dropdown-menu -->
+                    </div> --}}
+                    <div class="dropdown-menu p-0 dropdown-menu-end dropdown-menu-lg">
+                        <div class="px-3 py-2 border-bottom">
+                            <div class="row align-items-center">
+                                <div class="col">
+                                    <h6 class="m-0 fs-md fw-semibold">Messages</h6>
+                                </div>
+                                <div class="col text-end">
+                                    <a href="#!" class="badge badge-soft-success badge-label py-1">
+                                        {{ $unreadContactMessageCount }} Notifications
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="max-height:300px;" data-simplebar>
+                            @forelse ($unreadContactMessages as $contact)
+                                <div class="dropdown-item notification-item py-2 text-wrap" id="contact-message-{{ $contact->id }}">
+                                    <span class="d-flex gap-3 align-items-start">
+                                        <span class="flex-shrink-0">
+                                            <i data-lucide="mails" class="fs-xxl"></i>
+                                        </span>
+
+                                        <a href="{{ route('message.show', $contact->id) }}"
+                                            class="flex-grow-1 text-muted text-decoration-none">
+                                            <span class="fw-medium text-body">
+                                                {{ $contact->name }}
+                                            </span>
+                                            uploaded a new message.
+                                            <br>
+                                            <span class="fs-xs">
+                                                {{ $contact->created_at->diffForHumans() }}
+                                            </span>
+                                        </a>
+                                        <form method="POST" action="{{ route('message.read', $contact->id) }}" class="flex-shrink-0 m-0">
+                                            @csrf
+                                            <button type="submit" class="text-muted btn btn-link p-0" title="Dismiss">
+                                                <i class="ti ti-xbox-x-filled fs-xxl"></i>
+                                            </button>
+                                        </form>
+                                    </span>
+
+                                </div>
+                            @empty
+                                <div class="dropdown-item notification-item py-3 text-center text-muted">
+                                    No unread messages
+                                </div>
+                            @endforelse
+                        </div>
+                    </div>
+                    <!-- End dropdown-menu -->
                 </div> <!-- end dropdown-->
-                </div> <!-- end topbar item-->
+            </div> <!-- end topbar item-->
 
             <!-- Theme Toggle -->
             <div class="topbar-item">
-                <button type="button" class="topbar-link px-2" id="light-dark-mode"
-                    aria-label="Toggle dark mode" title="Toggle theme">
+                <button type="button" class="topbar-link px-2" id="light-dark-mode" aria-label="Toggle dark mode"
+                    title="Toggle theme">
                     <i data-lucide="moon" class="fs-xxl mode-light-moon" aria-hidden="true"></i>
                     <i data-lucide="sun" class="fs-xxl mode-light-sun" aria-hidden="true"></i>
                 </button>
             </div>
 
-            <!-- Notification Dropdown -->
+            @php
+                $canLoadAdminNotifications = \Illuminate\Support\Facades\Schema::hasTable('notifications');
+                $adminNotifications = $canLoadAdminNotifications
+                    ? auth()->user()?->unreadNotifications()->latest()->limit(10)->get() ?? collect()
+                    : collect();
+                $adminNotificationCount = $canLoadAdminNotifications
+                    ? auth()->user()?->unreadNotifications()->count() ?? 0
+                    : 0;
+            @endphp
             <div class="topbar-item">
                 <div class="dropdown">
                     <button class="topbar-link dropdown-toggle drop-arrow-none" data-bs-toggle="dropdown"
                         data-bs-offset="0,22" type="button" data-bs-auto-close="outside" aria-haspopup="false"
                         aria-expanded="false">
                         <i data-lucide="bell" class="fs-xxl"></i>
-                        <span class="badge badge-square text-bg-warning topbar-badge">14</span>
+                        @if ($adminNotificationCount > 0)
+                            <span
+                                class="badge badge-square text-bg-warning topbar-badge">{{ $adminNotificationCount }}</span>
+                        @endif
                     </button>
 
                     <div class="dropdown-menu p-0 dropdown-menu-end dropdown-menu-lg">
@@ -200,299 +168,59 @@
                                     <h6 class="m-0 fs-md fw-semibold">Notifications</h6>
                                 </div>
                                 <div class="col text-end">
-                                    <a href="#!" class="badge text-bg-light badge-label py-1">14 Alerts</a>
+                                    <span class="badge text-bg-light badge-label py-1">{{ $adminNotificationCount }}
+                                        Alerts</span>
                                 </div>
                             </div>
                         </div>
 
                         <div style="max-height: 300px;" data-simplebar>
-                            <!-- item 1 -->
-                            <div class="dropdown-item notification-item py-2 text-wrap" id="notification-1">
-                                <span class="d-flex gap-2">
-                                    <span class="avatar-md flex-shrink-0">
-                                        <span class="avatar-title bg-danger-subtle text-danger rounded fs-22">
-                                            <i data-lucide="server-crash" class="fs-xl fill-danger"></i>
+                            @forelse ($adminNotifications as $notification)
+                                @php
+                                    $data = $notification->data;
+                                    $tone = $data['tone'] ?? 'primary';
+                                    $toneClass = match ($tone) {
+                                        'success' => 'bg-success-subtle text-success',
+                                        'warning' => 'bg-warning-subtle text-warning',
+                                        'info' => 'bg-info-subtle text-info',
+                                        'danger' => 'bg-danger-subtle text-danger',
+                                        default => 'bg-primary-subtle text-primary',
+                                    };
+                                @endphp
+                                <div class="dropdown-item notification-item py-2 text-wrap"
+                                    id="notification-{{ $notification->id }}">
+                                    <span class="d-flex gap-2">
+                                        <span class="avatar-md flex-shrink-0">
+                                            <span class="avatar-title {{ $toneClass }} rounded fs-22">
+                                                <i data-lucide="{{ $data['icon'] ?? 'bell' }}" class="fs-xl"></i>
+                                            </span>
                                         </span>
+                                        <a href="{{ route('notifications.open', ['notification' => $notification->id]) }}"
+                                            class="flex-grow-1 text-muted text-decoration-none">
+                                            <span
+                                                class="fw-medium text-body">{{ $data['title'] ?? 'Order notification' }}</span>
+                                            <br>
+                                            <span>{{ $data['message'] ?? '' }}</span>
+                                            <br>
+                                            <span
+                                                class="fs-xs">{{ $notification->created_at?->diffForHumans() }}</span>
+                                        </a>
+                                        <form method="POST"
+                                            action="{{ route('notifications.read', ['notification' => $notification->id]) }}"
+                                            class="flex-shrink-0 m-0">
+                                            @csrf
+                                            <button type="submit" class="text-muted btn btn-link p-0" title="Dismiss">
+                                                <i class="ti ti-xbox-x-filled fs-xxl"></i>
+                                            </button>
+                                        </form>
                                     </span>
-                                    <span class="flex-grow-1 text-muted">
-                                        <span class="fw-medium text-body">Critical alert: Server crash detected</span>
-                                        <br>
-                                        <span class="fs-xs">30 minutes ago</span>
-                                    </span>
-                                    <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0"
-                                        data-dismissible="#notification-1">
-                                        <i class="ti ti-xbox-x-filled fs-xxl"></i>
-                                    </button>
-                                </span>
-                            </div>
-
-                            <!-- item 2 -->
-                            <div class="dropdown-item notification-item py-2 text-wrap" id="notification-2">
-                                <span class="d-flex gap-2">
-                                    <span class="avatar-md flex-shrink-0">
-                                        <span class="avatar-title bg-warning-subtle text-warning rounded fs-22">
-                                            <i data-lucide="alert-triangle" class="fs-xl fill-warning"></i>
-                                        </span>
-                                    </span>
-                                    <span class="flex-grow-1 text-muted">
-                                        <span class="fw-medium text-body">High memory usage on Node A</span>
-                                        <br>
-                                        <span class="fs-xs">10 minutes ago</span>
-                                    </span>
-                                    <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0"
-                                        data-dismissible="#notification-2">
-                                        <i class="ti ti-xbox-x-filled fs-xxl"></i>
-                                    </button>
-                                </span>
-                            </div>
-
-                            <!-- item 3 -->
-                            <div class="dropdown-item notification-item py-2 text-wrap" id="notification-3">
-                                <span class="d-flex gap-2">
-                                    <span class="avatar-md flex-shrink-0">
-                                        <span class="avatar-title bg-success-subtle text-success rounded fs-22">
-                                            <i data-lucide="check-circle" class="fs-xl fill-success"></i>
-                                        </span>
-                                    </span>
-                                    <span class="flex-grow-1 text-muted">
-                                        <span class="fw-medium text-body">Backup completed successfully</span>
-                                        <br>
-                                        <span class="fs-xs">1 hour ago</span>
-                                    </span>
-                                    <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0"
-                                        data-dismissible="#notification-3">
-                                        <i class="ti ti-xbox-x-filled fs-xxl"></i>
-                                    </button>
-                                </span>
-                            </div>
-
-                            <!-- item 4 -->
-                            <div class="dropdown-item notification-item py-2 text-wrap" id="notification-4">
-                                <span class="d-flex gap-2">
-                                    <span class="avatar-md flex-shrink-0">
-                                        <span class="avatar-title bg-primary-subtle text-primary rounded fs-22">
-                                            <i data-lucide="user-plus" class="fs-xl fill-primary"></i>
-                                        </span>
-                                    </span>
-                                    <span class="flex-grow-1 text-muted">
-                                        <span class="fw-medium text-body">New user registration: Sarah Miles</span>
-                                        <br>
-                                        <span class="fs-xs">Just now</span>
-                                    </span>
-                                    <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0"
-                                        data-dismissible="#notification-4">
-                                        <i class="ti ti-xbox-x-filled fs-xxl"></i>
-                                    </button>
-                                </span>
-                            </div>
-
-                            <!-- item 5 -->
-                            <div class="dropdown-item notification-item py-2 text-wrap" id="notification-5">
-                                <span class="d-flex gap-2">
-                                    <span class="avatar-md flex-shrink-0">
-                                        <span class="avatar-title bg-danger-subtle text-danger rounded fs-22">
-                                            <i data-lucide="bug" class="fs-xl fill-danger"></i>
-                                        </span>
-                                    </span>
-                                    <span class="flex-grow-1 text-muted">
-                                        <span class="fw-medium text-body">Bug reported in payment module</span>
-                                        <br>
-                                        <span class="fs-xs">20 minutes ago</span>
-                                    </span>
-                                    <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0"
-                                        data-dismissible="#notification-5">
-                                        <i class="ti ti-xbox-x-filled fs-xxl"></i>
-                                    </button>
-                                </span>
-                            </div>
-
-                            <!-- item 6 -->
-                            <div class="dropdown-item notification-item py-2 text-wrap" id="notification-6">
-                                <span class="d-flex gap-2">
-                                    <span class="avatar-md flex-shrink-0">
-                                        <span class="avatar-title bg-info-subtle text-info rounded fs-22">
-                                            <i data-lucide="message-circle" class="fs-xl fill-info"></i>
-                                        </span>
-                                    </span>
-                                    <span class="flex-grow-1 text-muted">
-                                        <span class="fw-medium text-body">New comment on Task #142</span>
-                                        <br>
-                                        <span class="fs-xs">15 minutes ago</span>
-                                    </span>
-                                    <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0"
-                                        data-dismissible="#notification-6">
-                                        <i class="ti ti-xbox-x-filled fs-xxl"></i>
-                                    </button>
-                                </span>
-                            </div>
-
-                            <!-- item 7 -->
-                            <div class="dropdown-item notification-item py-2 text-wrap" id="notification-7">
-                                <span class="d-flex gap-2">
-                                    <span class="avatar-md flex-shrink-0">
-                                        <span class="avatar-title bg-warning-subtle text-warning rounded fs-22">
-                                            <i data-lucide="battery-warning" class="fs-xl fill-warning"></i>
-                                        </span>
-                                    </span>
-                                    <span class="flex-grow-1 text-muted">
-                                        <span class="fw-medium text-body">Low battery on Device X</span>
-                                        <br>
-                                        <span class="fs-xs">45 minutes ago</span>
-                                    </span>
-                                    <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0"
-                                        data-dismissible="#notification-7">
-                                        <i class="ti ti-xbox-x-filled fs-xxl"></i>
-                                    </button>
-                                </span>
-                            </div>
-
-                            <!-- item 8 -->
-                            <div class="dropdown-item notification-item py-2 text-wrap" id="notification-8">
-                                <span class="d-flex gap-2">
-                                    <span class="avatar-md flex-shrink-0">
-                                        <span class="avatar-title bg-success-subtle text-success rounded fs-22">
-                                            <i data-lucide="cloud-upload" class="fs-xl fill-success"></i>
-                                        </span>
-                                    </span>
-                                    <span class="flex-grow-1 text-muted">
-                                        <span class="fw-medium text-body">File upload completed</span>
-                                        <br>
-                                        <span class="fs-xs">1 hour ago</span>
-                                    </span>
-                                    <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0"
-                                        data-dismissible="#notification-8">
-                                        <i class="ti ti-xbox-x-filled fs-xxl"></i>
-                                    </button>
-                                </span>
-                            </div>
-
-                            <!-- item 9 -->
-                            <div class="dropdown-item notification-item py-2 text-wrap" id="notification-9">
-                                <span class="d-flex gap-2">
-                                    <span class="avatar-md flex-shrink-0">
-                                        <span class="avatar-title bg-primary-subtle text-primary rounded fs-22">
-                                            <i data-lucide="calendar" class="fs-xl fill-primary"></i>
-                                        </span>
-                                    </span>
-                                    <span class="flex-grow-1 text-muted">
-                                        <span class="fw-medium text-body">Team meeting scheduled at 3 PM</span>
-                                        <br>
-                                        <span class="fs-xs">2 hours ago</span>
-                                    </span>
-                                    <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0"
-                                        data-dismissible="#notification-9">
-                                        <i class="ti ti-xbox-x-filled fs-xxl"></i>
-                                    </button>
-                                </span>
-                            </div>
-
-                            <!-- item 10 -->
-                            <div class="dropdown-item notification-item py-2 text-wrap" id="notification-10">
-                                <span class="d-flex gap-2">
-                                    <span class="avatar-md flex-shrink-0">
-                                        <span class="avatar-title bg-secondary-subtle text-secondary rounded fs-22">
-                                            <i data-lucide="download" class="fs-xl fill-secondary"></i>
-                                        </span>
-                                    </span>
-                                    <span class="flex-grow-1 text-muted">
-                                        <span class="fw-medium text-body">Report ready for download</span>
-                                        <br>
-                                        <span class="fs-xs">3 hours ago</span>
-                                    </span>
-                                    <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0"
-                                        data-dismissible="#notification-10">
-                                        <i class="ti ti-xbox-x-filled fs-xxl"></i>
-                                    </button>
-                                </span>
-                            </div>
-
-                            <!-- item 11 -->
-                            <div class="dropdown-item notification-item py-2 text-wrap" id="notification-11">
-                                <span class="d-flex gap-2">
-                                    <span class="avatar-md flex-shrink-0">
-                                        <span class="avatar-title bg-danger-subtle text-danger rounded fs-22">
-                                            <i data-lucide="lock" class="fs-xl fill-danger"></i>
-                                        </span>
-                                    </span>
-                                    <span class="flex-grow-1 text-muted">
-                                        <span class="fw-medium text-body">Multiple failed login attempts</span>
-                                        <br>
-                                        <span class="fs-xs">5 hours ago</span>
-                                    </span>
-                                    <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0"
-                                        data-dismissible="#notification-11">
-                                        <i class="ti ti-xbox-x-filled fs-xxl"></i>
-                                    </button>
-                                </span>
-                            </div>
-
-                            <!-- item 12 -->
-                            <div class="dropdown-item notification-item py-2 text-wrap" id="notification-12">
-                                <span class="d-flex gap-2">
-                                    <span class="avatar-md flex-shrink-0">
-                                        <span class="avatar-title bg-info-subtle text-info rounded fs-22">
-                                            <i data-lucide="bell-ring" class="fs-xl fill-info"></i>
-                                        </span>
-                                    </span>
-                                    <span class="flex-grow-1 text-muted">
-                                        <span class="fw-medium text-body">Reminder: Submit your timesheet</span>
-                                        <br>
-                                        <span class="fs-xs">Today, 9:00 AM</span>
-                                    </span>
-                                    <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0"
-                                        data-dismissible="#notification-12">
-                                        <i class="ti ti-xbox-x-filled fs-xxl"></i>
-                                    </button>
-                                </span>
-                            </div>
-
-                            <!-- item 13 -->
-                            <div class="dropdown-item notification-item py-2 text-wrap" id="notification-13">
-                                <span class="d-flex gap-2">
-                                    <span class="avatar-md flex-shrink-0">
-                                        <span class="avatar-title bg-warning-subtle text-warning rounded fs-22">
-                                            <i data-lucide="database-zap" class="fs-xl fill-warning"></i>
-                                        </span>
-                                    </span>
-                                    <span class="flex-grow-1 text-muted">
-                                        <span class="fw-medium text-body">Database nearing capacity</span>
-                                        <br>
-                                        <span class="fs-xs">Yesterday</span>
-                                    </span>
-                                    <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0"
-                                        data-dismissible="#notification-13">
-                                        <i class="ti ti-xbox-x-filled fs-xxl"></i>
-                                    </button>
-                                </span>
-                            </div>
-
-                            <!-- item 14 -->
-                            <div class="dropdown-item notification-item py-2 text-wrap" id="notification-14">
-                                <span class="d-flex gap-2">
-                                    <span class="avatar-md flex-shrink-0">
-                                        <span class="avatar-title bg-success-subtle text-success rounded fs-22">
-                                            <i data-lucide="check-square" class="fs-xl fill-success"></i>
-                                        </span>
-                                    </span>
-                                    <span class="flex-grow-1 text-muted">
-                                        <span class="fw-medium text-body">System check completed</span>
-                                        <br>
-                                        <span class="fs-xs">2 days ago</span>
-                                    </span>
-                                    <button type="button" class="flex-shrink-0 text-muted btn btn-link p-0"
-                                        data-dismissible="#notification-14">
-                                        <i class="ti ti-xbox-x-filled fs-xxl"></i>
-                                    </button>
-                                </span>
-                            </div>
-                        </div> <!-- end dropdown-->
-
-                        <!-- All-->
-                        <a href="javascript:void(0);"
-                            class="dropdown-item text-center text-reset text-decoration-underline link-offset-2 fw-bold notify-item border-top border-light py-2">
-                            View All Alerts
-                        </a>
-
+                                </div>
+                            @empty
+                                <div class="dropdown-item notification-item py-3 text-center text-muted">
+                                    No unread notifications
+                                </div>
+                            @endforelse
+                        </div>
                     </div>
                 </div>
             </div>
