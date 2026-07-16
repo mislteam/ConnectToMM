@@ -34,7 +34,9 @@ class JoytelImport implements WithMultipleSheets, SkipsOnFailure, SkipsUnknownSh
         ];
     }
 
-    public function onUnknownSheet($sheetName) {}
+    public function onUnknownSheet($sheetName)
+    {
+    }
 
     protected array $expectedColumns = [
         'product name' => ['productname', 'product_name'],
@@ -245,47 +247,46 @@ class JoytelImport implements WithMultipleSheets, SkipsOnFailure, SkipsUnknownSh
         });
     }
 
-    private function syncProductNameReferences(string $productCode, string $oldProductName, string $newProductName): void
-    {
-        // 1. PriceList update
-        PriceList::where('product_code', $productCode)
-            ->where('plan', $oldProductName)
-            ->update([
-                'plan' => $newProductName,
-            ]);
+    private function syncProductNameReferences(string $productCode,string $oldProductName,string $newProductName): void {
+            // 1. PriceList update
+            PriceList::where('product_code', $productCode)
+                ->where('plan', $oldProductName)
+                ->update([
+                    'plan' => $newProductName,
+                ]);
 
-        // 2. Coupon JSON product_names update
-        JoytelCoupon::whereJsonContains('product_names', $oldProductName)
-            ->chunkById(100, function ($coupons) use ($oldProductName, $newProductName) {
-                foreach ($coupons as $coupon) {
-                    $productNames = $coupon->product_names;
+            // 2. Coupon JSON product_names update
+            JoytelCoupon::whereJsonContains('product_names', $oldProductName)
+                ->chunkById(100, function ($coupons) use ($oldProductName, $newProductName) {
+                    foreach ($coupons as $coupon) {
+                        $productNames = $coupon->product_names;
 
-                    if (! is_array($productNames)) {
-                        $productNames = json_decode($productNames, true) ?: [];
-                    }
+                        if (! is_array($productNames)) {
+                            $productNames = json_decode($productNames, true) ?: [];
+                        }
 
-                    // ["All"] ဆိုရင် product name update မလိုဘူး
-                    if (in_array('All', $productNames, true)) {
-                        continue;
-                    }
+                        // ["All"] ဆိုရင် product name update မလိုဘူး
+                        if (in_array('All', $productNames, true)) {
+                            continue;
+                        }
 
-                    $changed = false;
+                        $changed = false;
 
-                    foreach ($productNames as $index => $productName) {
-                        if ($productName === $oldProductName) {
-                            $productNames[$index] = $newProductName;
-                            $changed = true;
+                        foreach ($productNames as $index => $productName) {
+                            if ($productName === $oldProductName) {
+                                $productNames[$index] = $newProductName;
+                                $changed = true;
+                            }
+                        }
+
+                        if ($changed) {
+                            $coupon->update([
+                                'product_names' => array_values($productNames),
+                            ]);
                         }
                     }
-
-                    if ($changed) {
-                        $coupon->update([
-                            'product_names' => array_values($productNames),
-                        ]);
-                    }
-                }
-            });
-    }
+                });
+        }
 
     protected function validateProductType($row, $rowNumber)
     {
@@ -331,7 +332,7 @@ class JoytelImport implements WithMultipleSheets, SkipsOnFailure, SkipsUnknownSh
         return trim(preg_replace('/^Row\s+\d+\s*:\s*/i', '', $message));
     }
 
-    private function formatValidationErrors(array $errors): string
+   private function formatValidationErrors(array $errors): string
     {
         $requiredRows = [];
         $messages = [];
@@ -341,6 +342,7 @@ class JoytelImport implements WithMultipleSheets, SkipsOnFailure, SkipsUnknownSh
             if (str_contains($error['message'], 'field is required')) {
 
                 $requiredRows = array_merge($requiredRows, $error['rows']);
+
             } else {
 
                 $messages[] = $this->formatRows($error['rows']) . ': ' . $error['message'];
@@ -442,7 +444,9 @@ class JoytelImport implements WithMultipleSheets, SkipsOnFailure, SkipsUnknownSh
 
 class JoytelSheetImport implements ToCollection, WithHeadingRow
 {
-    public function __construct(private JoytelImport $import) {}
+    public function __construct(private JoytelImport $import)
+    {
+    }
 
     public function collection(Collection $rows)
     {

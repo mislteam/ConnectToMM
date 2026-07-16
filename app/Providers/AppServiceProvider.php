@@ -11,6 +11,12 @@ use App\Payment\Providers\Uab\Services\Authentication\AuthenticationService;
 use App\Payment\Providers\Uab\Services\Callback\CallbackService;
 use App\Payment\Providers\Uab\Services\HostedPayment\HostedPaymentService;
 use App\Payment\Providers\Uab\Services\SignatureService;
+use App\Models\JoytelOrder;
+use App\Models\ContactUs;
+use App\Models\RoamOrder;
+use App\Services\OrderNotificationService;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\View;
 use App\Payment\Providers\Uab\Services\Transaction\TransactionStatusService;
 use Illuminate\Support\ServiceProvider;
 

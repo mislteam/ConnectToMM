@@ -23,14 +23,12 @@ class RoamCheckoutController extends Controller
     public function placeOrder(
         Request $request,
         RoamOrderDraftService $draftService,
-        RoamIccidSupportService $iccidSupportService,
-    ) {
+        RoamIccidSupportService $iccidSupportService
+    )
+    {
         $validated = $request->validate([
             'iccid_numbers' => ['nullable', 'array'],
-            'payment_method' => ['required', 'in:direct_bank_transfer,uabpay'],
-            'customer_name' => ['required_if:payment_method,uabpay', 'nullable', 'string', 'max:120'],
-            'customer_email' => ['required_if:payment_method,uabpay', 'nullable', 'email', 'max:64'],
-            'customer_phone' => ['required_if:payment_method,uabpay', 'nullable', 'regex:/^[0-9]{7,13}$/'],
+            'payment_method' => ['required', 'in:direct_bank_transfer,uab_pay,UAB Pay'],
             'terms' => ['accepted'],
         ]);
 
@@ -86,7 +84,7 @@ class RoamCheckoutController extends Controller
                 if ($serviceType === 'physical') {
                     $expectedLength = $dpInfo === 21 ? 18 : 19;
                     if (strlen($digits) !== $expectedLength) {
-                        $label = $dpInfo === 9 ? 'FiROAM Global SIM' : 'FiROAM Asia SIM';
+                        $label = $dpInfo === 21 ? 'FiROAM Asia SIM' : 'FiROAM Global SIM';
                         return $this->redirectWithIccidError(
                             $index,
                             "ICCID for {$label} must be exactly {$expectedLength} digits.",
@@ -145,17 +143,7 @@ class RoamCheckoutController extends Controller
         ]);
         session()->put('roam_last_outer_order_id', $result['outer_order_id']);
 
-        if ($validated['payment_method'] === 'uabpay') {
-            $orders = $this->getCustomerOrders($customer->id, (string) $result['outer_order_id']);
-            $this->persistUabCheckoutCustomerMetadata($orders, [
-                'full_name' => (string) $validated['customer_name'],
-                'email' => (string) $validated['customer_email'],
-                'phone' => (string) $validated['customer_phone'],
-            ]);
-
-            return redirect()->route('roam.uab.pay', ['outerOrderId' => $result['outer_order_id']]);
-        }
-
+        // Next step: payment page (mock for now; replace with gateway redirect when integrating Dinger Pay).
         return redirect()->route('roam.payment.show', ['outerOrderId' => $result['outer_order_id']]);
     }
 
@@ -190,7 +178,12 @@ class RoamCheckoutController extends Controller
         Auth::shouldUse('customers');
         $customer = auth()->user();
 
-        $orders = $this->getCustomerOrders($customer->id, $outerOrderId);
+        $orders = \App\Models\RoamOrder::query()
+            ->with('items')
+            ->where('customer_id', $customer->id)
+            ->where('outer_order_id', $outerOrderId)
+            ->latest()
+            ->get();
 
         $paymentMethod = $orders->first()?->payment_method;
         $credentials = null;
@@ -199,10 +192,8 @@ class RoamCheckoutController extends Controller
         $paymentSetting = \App\Models\PaymentSetting::orderBy('id')->get();
         if ($paymentMethod === 'direct_bank_transfer') {
             $credentials = $paymentSetting->first()?->directBankCredentials;
-            $payment_method = $paymentSetting->first()?->type;
-        } elseif ($paymentMethod === 'uabpay' || $paymentMethod === 'UAB Pay') {
-            $payment_method = 'UAB Pay';
-            $paymentActionUrl = data_get($orders->first()?->raw_response, 'payment.uab.payment_url');
+        } else if ($paymentMethod == 'UAB Pay') {
+            // $credentials = $paymentSetting->last()?->uabCredential;
         }
 
         if ($orders->isEmpty()) {
@@ -210,16 +201,7 @@ class RoamCheckoutController extends Controller
         }
 
         $slipPath = data_get($orders->first()?->raw_response, 'payment.slip.path');
-        $statusView = ($paymentMethod === 'uabpay' || $paymentMethod === 'UAB Pay')
-            ? $this->buildUabPaymentStatusView(
-                $orders,
-                UabPaymentTransaction::query()
-                    ->where('merchant_reference', $outerOrderId)
-                    ->latest('id')
-                    ->first(),
-                $paymentActionUrl
-            )
-            : $this->buildPaymentStatusView($orders, !empty($slipPath));
+        $statusView = $this->buildPaymentStatusView($orders, !empty($slipPath));
 
         return view('frontend.payment', [
             'outer_order_id' => $outerOrderId,
