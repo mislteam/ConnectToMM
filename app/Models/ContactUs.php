@@ -12,6 +12,11 @@ class ContactUs extends Model
         'name',
         'email',
         'phone',
-        'message'
+        'message',
+        'status',
+    ];
+
+    protected $casts = [
+        'status' => 'boolean',
     ];
 }

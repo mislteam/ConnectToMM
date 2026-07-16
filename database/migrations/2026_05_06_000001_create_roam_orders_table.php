@@ -51,7 +51,7 @@ return new class extends Migration
             $table->dateTime('start_date')->nullable()->comment('Service start date');
             $table->dateTime('end_date')->nullable()->comment('Service end date');
 
-            $table->unsignedTinyInteger('our_status')->default(0)->comment('Internal order lifecycle:0=Order_Start,1=PENDING_PAYMENT,2=PAID,3=API_PROCESSING,4=API_SUCCESS,5=API_FAILED,6=COMPLETED,7=CANCELLED,8=REFUNDED');
+            $table->unsignedTinyInteger('our_status')->default(0)->comment('Internal order lifecycle:0=Order_Start,1=PENDING_PAYMENT,2=PAID,3=API_PROCESSING,4=API_SUCCESS,5=API_FAILED,6=COMPLETED,7=CANCELLED,8=REFUNDED,9=ON_HOLD,10=ADMIN_CANCEL');
             $table->unsignedTinyInteger('roam_status')->nullable()->comment('Roam upstream status: 0=Normal/Paid, 1=Unpaid, 2=Cancel, 3=Obsolete, 4=Partial Unsubscribe');
             $table->boolean('renewal')->default(false)->comment('Whether this is a renewal order');
 

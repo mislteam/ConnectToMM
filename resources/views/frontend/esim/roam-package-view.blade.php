@@ -1,6 +1,7 @@
 @extends('frontend.layouts.index')
 @section('title', 'Roam E-SIM Package View')
 @section('content')
+    @include('components.alert')
     <style>
         .quantity-static {
             min-width: 52px;

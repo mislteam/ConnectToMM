@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Backend;
 use App\Http\Controllers\Controller;
 use App\Models\GeneralSetting;
 use App\Models\RoamOrder;
+use App\Services\OrderNotificationService;
 use App\Services\Roam\OrderStateMachineService;
 use App\Services\Roam\RoamOrderService;
 use App\Services\Roam\RoamProvisioningFlowService;
@@ -32,7 +33,7 @@ class OrderController extends Controller
             ->map(fn(Collection $orders, string $reference) => $this->summarizeOrderGroup($reference, $orders))
             ->when($request->filled('payment_status'), function (Collection $summaries) use ($request) {
                 $status = strtolower((string) $request->input('payment_status'));
-                $allowedStatuses = ['pending_payment', 'failed', 'refunded', 'cancelled', 'completed', 'new', 'processing'];
+                $allowedStatuses = ['pending_payment', 'failed', 'refunded', 'admin_cancelled', 'cancelled', 'completed', 'new', 'processing'];
 
                 if (!in_array($status, $allowedStatuses, true)) {
                     return $summaries;
@@ -71,16 +72,11 @@ class OrderController extends Controller
         return view('admin.order.roam-order-view', compact('logo', 'title', 'orders', 'summary'));
     }
 
-    public function joytelIndex()
-    {
-        $logo = GeneralSetting::where('type', 'file')->first();
-        $title = GeneralSetting::where('type', 'string')->first();
-
-        return view('admin.order.joytel-list', compact('logo', 'title'));
-    }
-
-    public function approvePayment(RoamOrder $roamOrder, RoamProvisioningFlowService $provisioning)
-    {
+    public function approvePayment(
+        RoamOrder $roamOrder,
+        RoamProvisioningFlowService $provisioning,
+        OrderNotificationService $notifications
+    ) {
         $reference = $roamOrder->outer_order_id ?: $roamOrder->roam_order_num;
 
         if (!$reference) {
@@ -148,7 +144,50 @@ class OrderController extends Controller
             $message = 'Payment approved, but provisioning did not complete successfully. Please review the order status.';
         }
 
+        $notifications->paymentApproved($orders->first()->refresh());
+
         return back()->with('success', $message);
+    }
+
+    public function cancelPayment(RoamOrder $roamOrder, OrderNotificationService $notifications)
+    {
+        $reference = $roamOrder->outer_order_id ?: $roamOrder->roam_order_num;
+
+        if (!$reference) {
+            return back()->with('error', 'Order reference is missing for admin cancel.');
+        }
+
+        $pendingOrders = RoamOrder::query()
+            ->where('customer_id', $roamOrder->customer_id)
+            ->where(function ($query) use ($reference) {
+                $query->where('outer_order_id', $reference)
+                    ->orWhere('roam_order_num', $reference);
+            })
+            ->where('our_status', RoamOrder::OUR_STATUS_PENDING_PAYMENT)
+            ->orderBy('id')
+            ->get();
+
+        if ($pendingOrders->isEmpty()) {
+            return back()->with('error', 'This order reference is no longer waiting for payment approval.');
+        }
+
+        $cancelledBy = auth()->user();
+
+        $pendingOrders->each(function (RoamOrder $order) use ($cancelledBy) {
+            $rawResponse = (array) ($order->raw_response ?? []);
+            $rawResponse['admin_cancel'] = [
+                'cancelled_by' => $cancelledBy?->name ?? 'Admin',
+                'cancelled_at' => now()->toDateTimeString(),
+            ];
+
+            $order->raw_response = $rawResponse;
+            $order->our_status = RoamOrder::OUR_STATUS_ADMIN_CANCELLED;
+            $order->save();
+        });
+
+        $notifications->adminCancelled($pendingOrders->first()->refresh());
+
+        return back()->with('success', 'Order payment was cancelled by admin.');
     }
 
     public function retryRoamApi(RoamOrder $roamOrder, RoamProvisioningFlowService $provisioning)
@@ -334,8 +373,9 @@ class OrderController extends Controller
         return [
             'completed' => $summaries->where('status_key', 'completed')->count(),
             'pending_payment' => $summaries->where('status_key', 'pending_payment')->count(),
+            'admin_cancelled' => $summaries->where('status_key', 'admin_cancelled')->count(),
             'cancelled' => $summaries->where('status_key', 'cancelled')->count(),
-            'new' => $summaries->where('status_key', 'new')->count(),
+            'refunded' => $summaries->where('status_key', 'refunded')->count(),
             'failed' => $summaries->where('status_key', 'failed')->count(),
         ];
     }
@@ -371,9 +411,13 @@ class OrderController extends Controller
             'customer_name' => $latestOrder?->customer?->name ?? '-',
             'customer_email' => $latestOrder?->customer?->email ?? '-',
             'product_names' => $productNames,
-            'product_summary' => $productNames->implode(', '),
+            'product_summary' => $productNames->implode("\n"),
             'item_count' => $orders->count(),
             'amount' => $orders->sum(fn(RoamOrder $order) => (float) $order->billable_total_price),
+            'payment_method_display' => payment_method_display_label(
+                $primaryOrder?->payment_method,
+                $reference
+            ),
             'payment_label' => $paymentLabel,
             'payment_class' => $paymentClass,
             'status_key' => $statusKey,
@@ -420,6 +464,10 @@ class OrderController extends Controller
             return ['failed', 'Failed', 'text-danger'];
         }
 
+        if ($orders->contains(fn(RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_ADMIN_CANCELLED)) {
+            return ['admin_cancelled', 'Admin Cancel', 'text-danger'];
+        }
+
         if ($orders->contains(fn(RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_CANCELLED)) {
             return ['cancelled', 'Order Cancelled', 'text-danger'];
         }
@@ -443,6 +491,10 @@ class OrderController extends Controller
 
         if ($orders->contains(fn(RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_PENDING_PAYMENT)) {
             return ['Pending', 'text-warning'];
+        }
+
+        if ($orders->contains(fn(RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_ADMIN_CANCELLED)) {
+            return ['Admin Cancel', 'text-danger'];
         }
 
         if ($orders->contains(fn(RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_CANCELLED)) {

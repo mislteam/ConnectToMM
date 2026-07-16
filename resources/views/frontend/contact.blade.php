@@ -77,8 +77,14 @@
                                         <h4>Message:</h4>
                                         <textarea class="form_style" placeholder="Add Your Comment" rows="3" name="msg"></textarea>
                                     </div>
+
                                 </div>
                             </div>
+                            <div class="cf-turnstile" data-sitekey="{{ config('services.turnstile.site_key') }}">
+                            </div>
+                            @error('captcha')
+                                <div class="text-danger">{{ $message }}</div>
+                            @enderror
                             <div class="manage-button text-center">
                                 <button type="submit" class="submit">Submit</button>
                             </div>
@@ -102,4 +108,6 @@
     <!-- need more help? -->
     <x-frontend.section-item :section="$section" />
     <!-- Partner -->
+
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 @endsection

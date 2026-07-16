@@ -23,79 +23,97 @@
             <div class="col-12">
                 <div data-table data-table-rows-per-page="8" class="card">
                     <div class="card-header fw-semibold">Payment Setting</div>
-                    <form action="{{ $type == 'uab_pay' ? route('payment.uab.update') : '#' }}" method="POST">
-                        @csrf
-                        @method('patch')
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-lg-3">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-lg-3">
+                                <div class="mb-3">
+                                    <label class="col-form-label">Payment Type<span class="text-danger">*</span></label>
+                                </div>
+                            </div>
+                            <div class="col-lg-9">
+                                <form action="{{ route('admin.payment.update-type', $payment) }}" method="POST">
+                                    @csrf
+                                    @method('patch')
                                     <div class="mb-3">
-                                        <label class="col-form-label">Payment Type</label>
+                                        <div class="d-flex gap-2 align-items-center">
+                                            <input type="text" name="type" class="form-control"
+                                                value="{{ old('type', $payment->type) }}" maxlength="255" required
+                                                style="max-width: 620px;">
+                                            <button type="submit" class="btn btn-primary btn-sm text-nowrap px-3">Update
+                                                Name</button>
+                                        </div>
+                                        <div class="my-1">
+                                            @error('type')
+                                                <small class="text-danger">{{ $message }}</small>
+                                            @enderror
+                                        </div>
                                     </div>
-                                </div>
-                                <div class="col-lg-9">
-                                    <div class="mb-3 mx-2">
-                                        <label class="col-form-label">{{ $payment->type }}</label>
-                                    </div>
-                                </div>
+                                </form>
+                            </div>
 
-                                @if ($type == 'direct_bank_transfer')
-                                    <div class="col-lg-3 mt-4">
-                                        <div class="mb-3">
-                                            <label class="col-form-label">Account Details</label>
-                                        </div>
+                            @if ($type == 'direct_bank_transfer')
+                                <div class="col-lg-3 mt-4">
+                                    <div class="mb-3">
+                                        <label class="col-form-label">Account Details</label>
                                     </div>
-                                    <div class="col-lg-9 mt-4">
-                                        <div class="card mb-3">
-                                            <div class="table-responsive">
-                                                <table
-                                                    class="table table-border table-custom table-centered table-hover w-100 mb-0">
-                                                    <thead class="bg-light align-middle bg-opacity-25 thead-sm">
-                                                        <tr class="text-uppercase fs-xs">
-                                                            <th>Bank</th>
-                                                            <th>Account Name</th>
-                                                            <th>Account Number</th>
-                                                            <th class="text-center col-2">Actions</th>
+                                </div>
+                                <div class="col-lg-9 mt-4">
+                                    <div class="card mb-3">
+                                        <div class="table-responsive">
+                                            <table
+                                                class="table table-border table-custom table-centered table-hover w-100 mb-0">
+                                                <thead class="bg-light align-middle bg-opacity-25 thead-sm">
+                                                    <tr class="text-uppercase fs-xs">
+                                                        <th>Bank</th>
+                                                        <th>Account Name</th>
+                                                        <th>Account Number</th>
+                                                        <th class="text-center col-2">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach ($payment->directBankCredentials as $credential)
+                                                        <tr>
+                                                            <td>{{ $credential->bank_name }}</td>
+                                                            <td>{{ $credential->account_name }}</td>
+                                                            <td>{{ $credential->account_number }}</td>
+                                                            <td>
+                                                                <div class="d-flex justify-content-center gap-2">
+                                                                    <x-action-button permission="payment.edit"
+                                                                        :data-id="$credential->id" :data-bank="$credential->bank_name"
+                                                                        :data-setting-id="$credential->payment_setting_id" :data-name="$credential->account_name"
+                                                                        :data-number="$credential->account_number" icon="ti-edit"
+                                                                        target-name="edit-account"
+                                                                        class="edit-account-btn" />
+                                                                    <x-action-button :data-id="$credential->id"
+                                                                        permission="permission.delete" icon="ti-trash"
+                                                                        target-name="account-delete"
+                                                                        data-url="/payment/direct-bank/delete"
+                                                                        class="delete-btn" />
+                                                                </div>
+                                                            </td>
                                                         </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        @foreach ($payment->directBankCredentials as $credential)
-                                                            <tr>
-                                                                <td>{{ $credential->bank_name }}</td>
-                                                                <td>{{ $credential->account_name }}</td>
-                                                                <td>{{ $credential->account_number }}</td>
-                                                                <td>
-                                                                    <div class="d-flex justify-content-center gap-2">
-                                                                        <x-action-button permission="payment.edit"
-                                                                            :data-id="$credential->id" :data-bank="$credential->bank_name"
-                                                                            :data-setting-id="$credential->payment_setting_id" :data-name="$credential->account_name"
-                                                                            :data-number="$credential->account_number" icon="ti-edit"
-                                                                            target-name="edit-account"
-                                                                            class="edit-account-btn" />
-                                                                        <x-action-button :data-id="$credential->id"
-                                                                            permission="permission.delete" icon="ti-trash"
-                                                                            target-name="account-delete"
-                                                                            data-url="/payment/direct-bank/delete"
-                                                                            class="delete-btn" />
-                                                                    </div>
-                                                                </td>
-                                                            </tr>
-                                                        @endforeach
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                            <div class="card-footer border-0">
-                                                <div class="d-flex justify-content-end gap-1">
-                                                    <x-create-action :data-id="1" menu-text="Add Account"
-                                                        permission="payment.create" target-name="add-account"
-                                                        icon="ti-plus" />
-                                                </div>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="card-footer border-0">
+                                            <div class="d-flex justify-content-end gap-1">
+                                                <x-create-action :data-id="1" menu-text="Add Account"
+                                                    permission="payment.create" target-name="add-account" icon="ti-plus" />
                                             </div>
                                         </div>
                                     </div>
-                                @elseif ($type == 'uab_pay')
+                                </div>
+                            @elseif ($type == 'online_payment')
+                                <form action="{{ route('payment.uab.update') }}" method="POST" class="row w-100">
+                                    @csrf
+                                    @method('patch')
+                                    <input type="hidden" name="payment_setting_id" value="{{ $payment->id }}">
                                     @php
-                                        $uab_credential = \App\Models\UabCredential::first();
+                                        $uab_credential = \App\Models\UabCredential::where(
+                                            'payment_setting_id',
+                                            $payment->id,
+                                        )->first();
                                         $selectedGatewayMethods = old(
                                             'payment_methods',
                                             $uab_credential?->payment_methods
@@ -470,10 +488,10 @@
                                     <div class="d-flex gap-2 justify-content-end">
                                         <button type="submit" class="btn btn-primary">Update</button>
                                     </div>
-                                @endif
-                            </div>
+                                </form>
+                            @endif
                         </div>
-                    </form>
+                    </div>
 
                 </div>
             </div>

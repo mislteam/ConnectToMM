@@ -1,6 +1,30 @@
  @php
      $logo = \App\Models\GeneralSetting::where('type', 'file')->first();
      $customer = Auth::guard('customers')->user();
+     $roamCart = session()->get('roam_order_cart', []);
+     $joytelCart = session()->get('joytel_cart', []);
+     $roamCartCount = is_array($roamCart) ? count($roamCart) : 0;
+     $joytelCartCount = is_array($joytelCart) ? count($joytelCart) : 0;
+     $cartCount = $roamCartCount + $joytelCartCount;
+     $simType = strtolower((string) session('sim_type'));
+     $roamCartFirst = is_array($roamCart) ? collect($roamCart)->first(fn($item) => is_array($item)) : null;
+     $cartServiceType = strtolower((string) data_get($roamCartFirst, 'service_type', ''));
+     $isPhysicalFlow =
+         $cartServiceType === 'physical' ||
+         request()->routeIs('roam.physical.*', 'physical.*') ||
+         str_contains($simType, 'physical');
+     if ($joytelCartCount > 0) {
+         $cartRoute = route('joytelpackage.cartpage');
+     } else {
+         $cartRoute = $isPhysicalFlow ? route('roam.physical.cartpage') : route('roam.esim.cartpage');
+     }
+     $canLoadCustomerNotifications = $customer
+         ? \Illuminate\Support\Facades\Schema::hasTable('notifications')
+         : false;
+     $customerNotifications = $canLoadCustomerNotifications
+         ? $customer->unreadNotifications()->latest()->limit(8)->get()
+         : collect();
+     $customerNotificationCount = $canLoadCustomerNotifications ? $customer->unreadNotifications()->count() : 0;
  @endphp
  <div class="fixed-top">
      <div class="topbar">
@@ -41,10 +65,100 @@
      <header class="header bg-light">
          <div class="container">
              <nav class="navbar position-relative navbar-expand-lg navbar-light">
-                 <a class="navbar-brand col-8 col-md-6 col-lg-3" href="{{ route('Index') }}">
+                 <a class="navbar-brand" href="{{ route('Index') }}">
                      <figure class="mb-0"><img src="{{ asset('general/logo/' . $logo->value) }}"
                              class="img-fluid w-75" alt=""></figure>
                  </a>
+                 <div class="mobile-header-actions d-lg-none">
+                     <a class="mobile-header-action position-relative" href="{{ $cartRoute }}">
+                         <i class="fa-solid fa-cart-arrow-down"></i>
+                         <span class="position-absolute text-white badge badge-square bg-primary"
+                             style="top: -8px; right: -10px;" data-order-count="{{ $cartCount }}">
+                             {{ $cartCount }}
+                         </span>
+                     </a>
+                     @if ($customer)
+                         <div class="dropdown">
+                             <a class="mobile-header-action position-relative" href="#" id="customerNotificationsMobile"
+                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                 <i class="fa-solid fa-bell"></i>
+                                 @if ($customerNotificationCount > 0)
+                                     <span class="position-absolute text-white badge badge-square bg-danger"
+                                         style="top: -8px; right: -10px;">
+                                         {{ $customerNotificationCount }}
+                                     </span>
+                                 @endif
+                             </a>
+                             <div class="dropdown-menu dropdown-menu-right notification-dropdown-menu mobile-notification-menu p-0"
+                                 aria-labelledby="customerNotificationsMobile">
+                                 <div class="dropdown-header d-flex justify-content-between align-items-center">
+                                     <strong>Notifications</strong>
+                                     <small class="text-muted">{{ $customerNotificationCount }} unread</small>
+                                 </div>
+                                 <div class="dropdown-divider m-0"></div>
+                                 <div style="max-height: 320px; overflow-y: auto;">
+                                     @forelse ($customerNotifications as $notification)
+                                         @php
+                                             $data = $notification->data;
+                                         @endphp
+                                         <div class="dropdown-item customer-notification-item text-wrap py-2"
+                                             id="customer-notification-mobile-{{ $notification->id }}">
+                                             <div class="d-flex align-items-start">
+                                                 <a href="{{ route('notifications.open', ['notification' => $notification->id]) }}"
+                                                     class="notification-link flex-grow-1 text-decoration-none text-dark pr-2">
+                                                     <strong
+                                                         class="d-block">{{ $data['title'] ?? 'Order notification' }}</strong>
+                                                     <span
+                                                         class="d-block small text-muted">{{ $data['message'] ?? '' }}</span>
+                                                     <span
+                                                         class="d-block small text-muted">{{ $notification->created_at?->diffForHumans() }}</span>
+                                                 </a>
+                                                 <form method="POST"
+                                                     action="{{ route('notifications.read', ['notification' => $notification->id]) }}"
+                                                     class="m-0">
+                                                     @csrf
+                                                     <button type="submit" class="btn btn-link p-0 text-muted"
+                                                         title="Dismiss">
+                                                         <i class="fa-solid fa-xmark"></i>
+                                                     </button>
+                                                 </form>
+                                             </div>
+                                         </div>
+                                     @empty
+                                         <div class="dropdown-item py-3 text-center text-muted">
+                                             No unread notifications
+                                         </div>
+                                     @endforelse
+                                 </div>
+                             </div>
+                         </div>
+                         <div class="dropdown">
+                             <a class="mobile-header-action mobile-user-action" href="#" id="customerMenuMobile"
+                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                 <i class="fa-solid fa-user-check"></i>
+                             </a>
+                             <div class="dropdown-menu dropdown-menu-right customer-dropdown mobile-customer-menu"
+                                 aria-labelledby="customerMenuMobile">
+                                 <div class="dropdown-header">
+                                     <small class="text-muted d-block">Welcome back!</small>
+                                 </div>
+                                 <a href="{{ route('customer.profile.index') }}" class="dropdown-item">
+                                     <i class="ti ti-user-circle me-2 fs-17 align-middle"></i>
+                                     <span class="dropdown-item-label align-middle">Profile</span>
+                                 </a>
+                                 <div class="dropdown-divider"></div>
+                                 <form method="POST" action="{{ route('customer.logout') }}" class="m-0">
+                                     @csrf
+                                     <button type="submit" class="dropdown-item customer-logout-btn">Logout</button>
+                                 </form>
+                             </div>
+                         </div>
+                     @else
+                         <a class="mobile-header-action mobile-user-action" href="{{ route('user.register') }}">
+                             <i class="fa-solid fa-user-lock"></i>
+                         </a>
+                     @endif
+                 </div>
                  <button class="navbar-toggler collapsed" type="button" data-toggle="collapse"
                      data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
                      aria-label="Toggle navigation">
@@ -124,30 +238,75 @@
                          <li class="nav-item {{ request()->routeIs('Contact') ? 'active' : '' }}">
                              <a class="nav-link" href="{{ route('Contact') }}">Contact Us</a>
                          </li>
-                         @php
-                             $simType = strtolower((string) session('sim_type'));
-                             $isPhysicalFlow =
-                                 request()->routeIs('roam.physical.*', 'physical.*') ||
-                                 str_contains($simType, 'physical');
-                             $cartRoute = $isPhysicalFlow
-                                 ? route('roam.physical.cartpage')
-                                 : route('roam.esim.cartpage');
-                         @endphp
                          <li
-                             class="nav-item {{ request()->routeIs('roam.esim.*', 'roam.physical.*') ? 'active' : '' }}">
+                             class="nav-item header-action-item {{ request()->routeIs('roam.esim.*', 'roam.physical.*', 'joytelpackage.*') ? 'active' : '' }}">
                              <a class="nav-link position-relative d-inline-block" href="{{ $cartRoute }}">
                                  <i class="fa-solid fa-cart-arrow-down fs-4"></i>
                                  <span class="position-absolute text-white badge badge-square bg-primary"
-                                     style="top: -1px; right: -5px;"
-                                     data-order-count="{{ count(session()->get('roam_order_cart', [])) }}"
+                                     style="top: -1px; right: -5px;" data-order-count="{{ $cartCount }}"
                                      id="order_count">
-                                     {{ count(session()->get('roam_order_cart', [])) }}
+                                     {{ $cartCount }}
                                  </span>
 
                              </a>
                          </li>
                          @if ($customer)
-                             <li class="nav-item dropdown">
+                             <li class="nav-item dropdown customer-notification-nav header-action-item">
+                                 <a class="nav-link  position-relative d-inline-block" href="#"
+                                     id="customerNotifications" data-toggle="dropdown" aria-haspopup="true"
+                                     aria-expanded="false">
+                                     <i class="fa-solid fa-bell fs-4"></i>
+                                     @if ($customerNotificationCount > 0)
+                                         <span class="position-absolute text-white badge badge-square bg-danger"
+                                             style="top: -1px; right: -5px;">
+                                             {{ $customerNotificationCount }}
+                                         </span>
+                                     @endif
+                                 </a>
+                                 <div class="dropdown-menu dropdown-menu-end notification-dropdown-menu mt-4 p-0"
+                                     aria-labelledby="customerNotifications" style="min-width: 320px;">
+                                     <div class="dropdown-header d-flex justify-content-between align-items-center">
+                                         <strong>Notifications</strong>
+                                         <small class="text-muted">{{ $customerNotificationCount }} unread</small>
+                                     </div>
+                                     <div class="dropdown-divider m-0"></div>
+                                     <div style="max-height: 320px; overflow-y: auto;">
+                                         @forelse ($customerNotifications as $notification)
+                                             @php
+                                                 $data = $notification->data;
+                                             @endphp
+                                             <div class="dropdown-item customer-notification-item text-wrap py-2"
+                                                 id="customer-notification-{{ $notification->id }}">
+                                                 <div class="d-flex align-items-start">
+                                                     <a href="{{ route('notifications.open', ['notification' => $notification->id]) }}"
+                                                         class="notification-link flex-grow-1 text-decoration-none text-dark pr-2">
+                                                         <strong
+                                                             class="d-block">{{ $data['title'] ?? 'Order notification' }}</strong>
+                                                         <span
+                                                             class="d-block small text-muted">{{ $data['message'] ?? '' }}</span>
+                                                         <span
+                                                             class="d-block small text-muted">{{ $notification->created_at?->diffForHumans() }}</span>
+                                                     </a>
+                                                     <form method="POST"
+                                                         action="{{ route('notifications.read', ['notification' => $notification->id]) }}"
+                                                         class="m-0">
+                                                         @csrf
+                                                         <button type="submit" class="btn btn-link p-0 text-muted"
+                                                             title="Dismiss">
+                                                             <i class="fa-solid fa-xmark"></i>
+                                                         </button>
+                                                     </form>
+                                                 </div>
+                                             </div>
+                                         @empty
+                                             <div class="dropdown-item py-3 text-center text-muted">
+                                                 No unread notifications
+                                             </div>
+                                         @endforelse
+                                     </div>
+                                 </div>
+                             </li>
+                             <li class="nav-item dropdown header-action-item">
                                  <a class="nav-link dropdown-toggle signup" href="#" id="customerMenu"
                                      data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                      <i class="fa-solid fa-user-check"></i>
@@ -177,13 +336,14 @@
                                  </div>
                              </li>
                          @else
-                             <li class="nav-item {{ request()->routeIs('user.register') ? 'active' : '' }}">
+                             <li
+                                 class="nav-item header-action-item {{ request()->routeIs('user.register') ? 'active' : '' }}">
                                  <a class="nav-link signup" href="{{ route('user.register') }}"><i
                                          class="fa-solid fa-user-lock"></i></a>
                              </li>
                          @endif
-                    </ul>
-                </div>
+                     </ul>
+                 </div>
              </nav>
          </div>
      </header>

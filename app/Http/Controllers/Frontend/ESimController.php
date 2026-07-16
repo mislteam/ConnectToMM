@@ -19,8 +19,10 @@ class ESimController extends Controller
             $selectedSimType = 'new_esim';
         }
 
-        $orderTabs = getOrderTypes('roam_order_types', 'esim');
-        $selectedSimType = collect($orderTabs)->keys()->first();
+        $orderTabs = [
+            'new_esim' => ['label' => 'New eSIM'],
+            'recharge_esim' => ['label' => 'Recharge'],
+        ];
 
         $countrys = Roam::pluck('support_country')
             ->flatten()
@@ -269,6 +271,11 @@ class ESimController extends Controller
 
     public function cart(Request $request)
     {
+        if (!empty(session('joytel_cart', []))) {
+            return redirect()->back()
+                ->with('error', 'Joytel order already exists in your cart. Please checkout or remove it before adding a Roam order.');
+        }
+
         // session()->forget('roam_order_cart');
         // dd('hi');
         $sim_type = $this->normalizeSimType($request->input('sim_type', session()->get('sim_type')));
@@ -441,7 +448,17 @@ class ESimController extends Controller
             'price' => $price,
         ]);
 
-        $paymentSetting = \App\Models\PaymentSetting::orderBy('id')->get();
+        $paymentSetting = \App\Models\PaymentSetting::orderBy('id')->get()->keyBy('id');
+        $directPayment = $paymentSetting->get(1);
+        $uabPayment = $paymentSetting->get(2);
+        $isDirectActive = $directPayment?->status;
+        $isUabActive = $uabPayment?->status;
+        $uabCredential = \App\Models\UabCredential::query()
+            ->where('payment_setting_id', 2)
+            ->orderByDesc('is_active')
+            ->latest('id')
+            ->first();
+        $uabPaymentMethodLabels = uab_payment_method_labels($uabCredential?->payment_methods);
         $isDirectActive = $paymentSetting->first()?->status;
         $isUabActive = $paymentSetting->last()?->status;
 
@@ -469,7 +486,12 @@ class ESimController extends Controller
                 (string) ($primaryItem['order_type'] ?? '')
             ),
             'is_direct' => $isDirectActive,
-            'is_uab' => $isUabActive
+            'is_uab' => $isUabActive,
+            'direct_payment_name' => $directPayment?->type ?? 'Direct Bank Transfer',
+            'uab_payment_name' => $uabPayment?->type ?? 'Online Payment',
+            'uab_payment_methods_text' => !empty($uabPaymentMethodLabels)
+                ? 'Can pay with ' . implode(', ', $uabPaymentMethodLabels) . '.'
+                : null,
         ]);
     }
 

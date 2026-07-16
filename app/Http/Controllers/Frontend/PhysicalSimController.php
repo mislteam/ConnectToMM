@@ -69,9 +69,7 @@ class PhysicalSimController extends Controller
         $title = GeneralSetting::where('type', 'string')->first();
 
         $orderTabs = getOrderTypes('roam_order_types', 'physical');
-        if (!array_key_exists($selectedOrderType, $orderTabs)) {
-            $selectedOrderType = collect($orderTabs)->keys()->first() ?? 'recharge_physical';
-        }
+        $selectedOrderType = collect($orderTabs)->keys()->first();
 
         return view(
             'frontend.physical.roam-physical',
@@ -84,7 +82,6 @@ class PhysicalSimController extends Controller
                 'globalPackageCards',
                 'asiaPackageCards',
                 'selectedDpId',
-                'orderTabs',
                 'selectedOrderType'
             )
         );
@@ -394,6 +391,11 @@ class PhysicalSimController extends Controller
 
     public function cart(Request $request)
     {
+        if (!empty(session('joytel_cart', []))) {
+            return redirect()->back()
+                ->with('error', 'Joytel order already exists in your cart. Please checkout or remove it before adding a Roam order.');
+        }
+
         // session()->forget('roam_order_cart');
         $sim_type = (string) $request->input('sim_type', session('sim_type', 'recharge_physical'));
         if (!in_array($sim_type, ['new_physical', 'recharge_physical'], true)) {
@@ -596,7 +598,17 @@ class PhysicalSimController extends Controller
             'price' => $price,
         ]);
 
-        $paymentSetting = \App\Models\PaymentSetting::orderBy('id')->get();
+        $paymentSetting = \App\Models\PaymentSetting::orderBy('id')->get()->keyBy('id');
+        $directPayment = $paymentSetting->get(1);
+        $uabPayment = $paymentSetting->get(2);
+        $isDirectActive = $directPayment?->status;
+        $isUabActive = $uabPayment?->status;
+        $uabCredential = \App\Models\UabCredential::query()
+            ->where('payment_setting_id', 2)
+            ->orderByDesc('is_active')
+            ->latest('id')
+            ->first();
+        $uabPaymentMethodLabels = uab_payment_method_labels($uabCredential?->payment_methods);
         $isDirectActive = $paymentSetting->first()?->status;
         $isUabActive = $paymentSetting->last()?->status;
 
@@ -621,6 +633,11 @@ class PhysicalSimController extends Controller
             'iccid_numbers' => $iccidNumbers,
             'is_direct' => (bool) $isDirectActive,
             'is_uab' => (bool) $isUabActive,
+            'direct_payment_name' => $directPayment?->type ?? 'Direct Bank Transfer',
+            'uab_payment_name' => $uabPayment?->type ?? 'Online Payment',
+            'uab_payment_methods_text' => !empty($uabPaymentMethodLabels)
+                ? 'Can pay with ' . implode(', ', $uabPaymentMethodLabels) . '.'
+                : null,
         ]);
     }
 
@@ -825,9 +842,11 @@ class PhysicalSimController extends Controller
             if ($serviceType === 'esim') {
                 $planName = 'FiROAM Esim';
             }
+
+            return '( Recharge ' . $planName . ' - ' . $countryName . ' ) ICCID No';
         }
 
-        return '( ' . $prefix . ' ' . $planName . ' - ' . $locationLabel . ' ) ICCID No';
+        return 'ICCID No';
     }
 
     private function buildDpLabel(int $dpInfo): string

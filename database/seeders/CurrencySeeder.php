@@ -12,9 +12,17 @@ class CurrencySeeder extends Seeder
      */
     public function run(): void
     {
-        Currency::create([
-            "name"=>"cny",
-            "value"=>630
-        ]);
+        $currencies = [
+            'cny' => 680,
+            'usd' => 4500,
+            'user_usd_rate' => 2100,
+        ];
+
+        foreach ($currencies as $name => $value) {
+            Currency::updateOrCreate(
+                ['name' => $name],
+                ['value' => $value]
+            );
+        }
     }
 }

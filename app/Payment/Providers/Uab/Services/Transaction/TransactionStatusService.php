@@ -145,11 +145,11 @@ class TransactionStatusService implements TransactionInterface
             ['status_query' => $responsePayload]
         );
 
-        $this->paymentTransactionRepository->updateByRequestId($data->requestId, [
+        $this->paymentTransactionRepository->updateByRequestId($data->requestId, array_merge([
             'transaction_id' => is_string($transactionId) && $transactionId !== '' ? $transactionId : $transaction->transaction_id,
             'status' => $status->value,
             'provider_response' => $providerResponse,
-        ]);
+        ], $this->selectedPaymentAttributes((array) data_get($responsePayload, 'MsgData', []))));
 
         return new TransactionStatusResponseData(
             requestId: $data->requestId,
@@ -181,6 +181,25 @@ class TransactionStatusService implements TransactionInterface
                 'MerchantUserID' => $merchantId,
             ],
         ];
+    }
+
+    private function selectedPaymentAttributes(array $payload): array
+    {
+        $attributes = [];
+
+        foreach ([
+            'PaymentMethod' => 'selected_payment_method',
+            'PaymentType' => 'selected_payment_type',
+            'CardType' => 'selected_card_type',
+        ] as $payloadKey => $attributeKey) {
+            $value = $payload[$payloadKey] ?? null;
+
+            if (is_string($value) && trim($value) !== '') {
+                $attributes[$attributeKey] = trim($value);
+            }
+        }
+
+        return $attributes;
     }
 
     private function mapGatewayStatus(string $status): TransactionStatus

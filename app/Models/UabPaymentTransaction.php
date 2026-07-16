@@ -24,6 +24,9 @@ class UabPaymentTransaction extends Model
         'amount',
         'currency',
         'payment_method',
+        'selected_payment_method',
+        'selected_payment_type',
+        'selected_card_type',
         'status',
         'provider_response',
     ];

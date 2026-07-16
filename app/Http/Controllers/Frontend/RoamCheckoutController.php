@@ -9,6 +9,7 @@ use App\Payment\Providers\Uab\Enums\Currency;
 use App\Payment\Providers\Uab\Enums\PaymentMethod;
 use App\Models\UabPaymentTransaction;
 use App\Models\RoamOrder;
+use App\Services\OrderNotificationService;
 use App\Services\Roam\RoamIccidSupportService;
 use App\Services\Roam\RoamOrderDraftService;
 use App\Payment\Providers\Uab\Services\UabCredentialService;
@@ -22,14 +23,11 @@ class RoamCheckoutController extends Controller
     public function placeOrder(
         Request $request,
         RoamOrderDraftService $draftService,
-        RoamIccidSupportService $iccidSupportService,
+        RoamIccidSupportService $iccidSupportService
     ) {
         $validated = $request->validate([
             'iccid_numbers' => ['nullable', 'array'],
-            'payment_method' => ['required', 'in:direct_bank_transfer,uabpay'],
-            'customer_name' => ['required_if:payment_method,uabpay', 'nullable', 'string', 'max:120'],
-            'customer_email' => ['required_if:payment_method,uabpay', 'nullable', 'email', 'max:64'],
-            'customer_phone' => ['required_if:payment_method,uabpay', 'nullable', 'regex:/^[0-9]{7,13}$/'],
+            'payment_method' => ['required', 'in:direct_bank_transfer,uab_pay,UAB Pay'],
             'terms' => ['accepted'],
         ]);
 
@@ -85,7 +83,7 @@ class RoamCheckoutController extends Controller
                 if ($serviceType === 'physical') {
                     $expectedLength = $dpInfo === 21 ? 18 : 19;
                     if (strlen($digits) !== $expectedLength) {
-                        $label = $dpInfo === 9 ? 'FiROAM Global SIM' : 'FiROAM Asia SIM';
+                        $label = $dpInfo === 21 ? 'FiROAM Asia SIM' : 'FiROAM Global SIM';
                         return $this->redirectWithIccidError(
                             $index,
                             "ICCID for {$label} must be exactly {$expectedLength} digits.",
@@ -135,7 +133,7 @@ class RoamCheckoutController extends Controller
             $customer,
             $cart,
             $iccidNumbersByIndex,
-            $validated['payment_method']
+            $validated['payment_method'] === 'UAB Pay' ? 'uab_pay' : $validated['payment_method']
         );
 
         session()->forget([
@@ -144,17 +142,7 @@ class RoamCheckoutController extends Controller
         ]);
         session()->put('roam_last_outer_order_id', $result['outer_order_id']);
 
-        if ($validated['payment_method'] === 'uabpay') {
-            $orders = $this->getCustomerOrders($customer->id, (string) $result['outer_order_id']);
-            $this->persistUabCheckoutCustomerMetadata($orders, [
-                'full_name' => (string) $validated['customer_name'],
-                'email' => (string) $validated['customer_email'],
-                'phone' => (string) $validated['customer_phone'],
-            ]);
-
-            return redirect()->route('roam.uab.pay', ['outerOrderId' => $result['outer_order_id']]);
-        }
-
+        // Next step: payment page (mock for now; replace with gateway redirect when integrating Dinger Pay).
         return redirect()->route('roam.payment.show', ['outerOrderId' => $result['outer_order_id']]);
     }
 
@@ -189,18 +177,26 @@ class RoamCheckoutController extends Controller
         Auth::shouldUse('customers');
         $customer = auth()->user();
 
-        $orders = $this->getCustomerOrders($customer->id, $outerOrderId);
+        $orders = \App\Models\RoamOrder::query()
+            ->with('items')
+            ->where('customer_id', $customer->id)
+            ->where('outer_order_id', $outerOrderId)
+            ->latest()
+            ->get();
 
         $paymentMethod = $orders->first()?->payment_method;
         $credentials = null;
         $payment_method = null;
         $paymentActionUrl = null;
-        $paymentSetting = \App\Models\PaymentSetting::orderBy('id')->get();
+        $paymentSetting = \App\Models\PaymentSetting::orderBy('id')->get()->keyBy('id');
         if ($paymentMethod === 'direct_bank_transfer') {
-            $credentials = $paymentSetting->first()?->directBankCredentials;
-            $payment_method = $paymentSetting->first()?->type;
+            $directPayment = $paymentSetting->get(1);
+            $credentials = $directPayment?->directBankCredentials;
+            $payment_method = $directPayment?->type ?? payment_method_label($paymentMethod);
         } elseif ($paymentMethod === 'uabpay' || $paymentMethod === 'UAB Pay') {
-            $payment_method = 'UAB Pay';
+            $payment_method = payment_method_display_label($paymentMethod, $outerOrderId)
+                ?? $paymentSetting->get(2)?->type
+                ?? payment_method_label($paymentMethod);
             $paymentActionUrl = data_get($orders->first()?->raw_response, 'payment.uab.payment_url');
         }
 
@@ -209,16 +205,7 @@ class RoamCheckoutController extends Controller
         }
 
         $slipPath = data_get($orders->first()?->raw_response, 'payment.slip.path');
-        $statusView = ($paymentMethod === 'uabpay' || $paymentMethod === 'UAB Pay')
-            ? $this->buildUabPaymentStatusView(
-                $orders,
-                UabPaymentTransaction::query()
-                    ->where('merchant_reference', $outerOrderId)
-                    ->latest('id')
-                    ->first(),
-                $paymentActionUrl
-            )
-            : $this->buildPaymentStatusView($orders, !empty($slipPath));
+        $statusView = $this->buildPaymentStatusView($orders, !empty($slipPath));
 
         return view('frontend.payment', [
             'outer_order_id' => $outerOrderId,
@@ -231,7 +218,7 @@ class RoamCheckoutController extends Controller
         ]);
     }
 
-    public function uploadPaymentSlip(Request $request, string $outerOrderId)
+    public function uploadPaymentSlip(Request $request, string $outerOrderId, OrderNotificationService $notifications)
     {
         Auth::shouldUse('customers');
         $customer = auth()->user();
@@ -273,6 +260,8 @@ class RoamCheckoutController extends Controller
             $order->save();
         }
 
+        $notifications->paymentSlipUploaded($orders->first()->refresh());
+
         if ($existingSlipPath && $existingSlipPath !== $storedPath && Storage::disk('public')->exists($existingSlipPath)) {
             Storage::disk('public')->delete($existingSlipPath);
         }
@@ -307,6 +296,9 @@ class RoamCheckoutController extends Controller
         );
         $hasFailed = $orders->contains(
             fn(RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_API_FAILED
+        );
+        $hasAdminCancelled = $orders->contains(
+            fn(RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_ADMIN_CANCELLED
         );
         $hasCancelled = $orders->contains(
             fn(RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_CANCELLED
@@ -371,6 +363,18 @@ class RoamCheckoutController extends Controller
             ];
         }
 
+        if ($hasAdminCancelled) {
+            return [
+                'badge' => 'Admin Cancel',
+                'title' => 'This order was cancelled by admin.',
+                'message' => 'You can place a new order whenever you are ready.',
+                'tone' => 'danger',
+                'show_upload_form' => false,
+                'show_payment_guide' => false,
+                'show_bank_accounts' => false,
+            ];
+        }
+
         if ($hasCancelled) {
             return [
                 'badge' => 'Cancelled',
@@ -418,7 +422,7 @@ class RoamCheckoutController extends Controller
             'SUCCESS' => [
                 'badge' => 'Paid',
                 'title' => 'Your UAB payment was completed successfully.',
-                'message' => 'Your payment has been received. You can check your order details for the latest provisioning status.',
+                'message' => 'Please contact support if you would like to continue this order.',
                 'tone' => 'success',
                 'show_upload_form' => false,
                 'show_payment_guide' => false,
@@ -428,39 +432,37 @@ class RoamCheckoutController extends Controller
             'CANCELLED' => [
                 'badge' => 'Cancelled',
                 'title' => 'Your UAB payment was cancelled.',
-                'message' => 'You can start a new UAB payment session using the button below if you would like to continue this order.',
+                'message' => 'Please contact support if you would like to continue this order.',
                 'tone' => 'danger',
                 'show_upload_form' => false,
                 'show_payment_guide' => false,
                 'show_bank_accounts' => false,
-                'show_payment_button' => true,
-                'payment_button_url' => route('roam.uab.pay', ['outerOrderId' => $orders->first()?->outer_order_id]),
-                'payment_button_text' => 'Retry UAB Pay',
+                'show_payment_button' => false,
             ],
             'FAILED', 'EXPIRED' => [
                 'badge' => $status === 'EXPIRED' ? 'Expired' : 'Failed',
                 'title' => $status === 'EXPIRED'
                     ? 'Your UAB payment session expired.'
                     : 'Your UAB payment could not be completed.',
-                'message' => 'Please start a new UAB payment session for a fresh payment attempt if you still want to continue.',
+                'message' => 'Please contact support if you would like to continue this order.',
                 'tone' => 'warning',
                 'show_upload_form' => false,
                 'show_payment_guide' => false,
                 'show_bank_accounts' => false,
-                'show_payment_button' => true,
+                'show_payment_button' => false,
                 'payment_button_url' => route('roam.uab.pay', ['outerOrderId' => $orders->first()?->outer_order_id]),
                 'payment_button_text' => 'Start New UAB Payment',
             ],
             default => [
                 'badge' => 'Pending Payment',
                 'title' => 'Continue your payment with UAB Pay.',
-                'message' => 'Open a fresh UAB hosted payment session to complete your order.',
+                'message' => 'Continue to the UAB hosted payment page to complete your order.',
                 'tone' => 'warning',
                 'show_upload_form' => false,
                 'show_payment_guide' => false,
                 'show_bank_accounts' => false,
-                'show_payment_button' => true,
-                'payment_button_url' => route('roam.uab.pay', ['outerOrderId' => $orders->first()?->outer_order_id]),
+                'show_payment_button' => !empty($paymentActionUrl),
+                'payment_button_url' => $paymentActionUrl,
                 'payment_button_text' => 'Continue to UAB Pay',
             ],
         };
