@@ -72,11 +72,13 @@ class CallbackService implements CallbackInterface
             [$data->eventType => $data->payload]
         );
 
-        $updated = $this->transactionService->updateByRequestId($data->requestId, [
+        $updateAttributes = array_merge([
             'transaction_id' => $data->transactionId ?? $transaction->transaction_id,
             'status' => $status->value,
             'provider_response' => $providerResponse,
-        ]);
+        ], $this->selectedPaymentAttributes($data->payload));
+
+        $updated = $this->transactionService->updateByRequestId($data->requestId, $updateAttributes);
 
         if (!$updated) {
             $this->callbackLogRepository->create([
@@ -160,6 +162,27 @@ class CallbackService implements CallbackInterface
         }
 
         return false;
+    }
+
+    private function selectedPaymentAttributes(array $payload): array
+    {
+        $attributes = [];
+
+        foreach (
+            [
+                'PaymentMethod' => 'selected_payment_method',
+                'PaymentType' => 'selected_payment_type',
+                'CardType' => 'selected_card_type',
+            ] as $payloadKey => $attributeKey
+        ) {
+            $value = $payload[$payloadKey] ?? null;
+
+            if (is_string($value) && trim($value) !== '') {
+                $attributes[$attributeKey] = trim($value);
+            }
+        }
+
+        return $attributes;
     }
 
     private function redirectSignatureUris(CallbackData $data): array

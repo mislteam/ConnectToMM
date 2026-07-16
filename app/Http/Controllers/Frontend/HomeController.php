@@ -421,6 +421,17 @@ class HomeController extends Controller
             $statusClass = 'text-success';
         }
 
+        $serviceItems = $orders
+            ->map(function (RoamOrder $order) {
+                return [
+                    'service_type' => Str::headline((string) $order->service_type),
+                    'order_type' => Str::headline((string) $order->order_type),
+                ];
+            })
+            ->filter(fn(array $item) => $item['service_type'] !== '' || $item['order_type'] !== '')
+            ->unique(fn(array $item) => $item['service_type'] . '|' . $item['order_type'])
+            ->values();
+
         return [
             'provider' => 'Roam',
             'outer_order_id' => $outerOrderId,
@@ -430,8 +441,16 @@ class HomeController extends Controller
                 ->filter()
                 ->unique()
                 ->implode("\n"),
+            'service_items' => $serviceItems,
+            'service_summary' => $serviceItems
+                ->map(fn(array $item) => trim($item['service_type'] . ' ' . $item['order_type']))
+                ->implode(' '),
             'amount' => $orders->sum(fn(RoamOrder $order) => (float) $order->billable_total_price),
-            'payment_method' => 'Online Payment',
+            'payment_method' => $orders
+                ->map(fn(RoamOrder $order) => payment_method_display_label($order->payment_method, $outerOrderId))
+                ->filter()
+                ->unique()
+                ->implode(', '),
             'status_label' => $statusLabel,
             'status_class' => $statusClass,
             'can_pay' => $orders->contains(fn(RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_PENDING_PAYMENT),
@@ -552,7 +571,7 @@ class HomeController extends Controller
         //     ?: $item?->sale_plan_days
         //     ?: $order?->validity_days;
 
-         $durationDays = data_get($data, 'duration')
+        $durationDays = data_get($data, 'duration')
             ?: data_get($data, 'days');
 
 
@@ -567,7 +586,7 @@ class HomeController extends Controller
                 [
                     'label' => 'Duration',
                     // 'value' => $durationDays ? ((int) $durationDays . ' days') : '-',
-                     'value' => ($effectiveDate && $expiryDate) ? $this->durationLabel($effectiveDate, $expiryDate) : '-',
+                    'value' => ($effectiveDate && $expiryDate) ? $this->durationLabel($effectiveDate, $expiryDate) : '-',
                 ],
                 [
                     'label' => 'Remaining Duration',
@@ -692,10 +711,10 @@ class HomeController extends Controller
 
     private function resolveJoytelUsageExpiryDate(array $data, $item = null): ?\Carbon\Carbon
     {
-        
-        
+
+
         $expTime = data_get($data, 'expTime');
-       
+
         if (is_numeric($expTime)) {
             return \Carbon\Carbon::createFromTimestampMs((int) $expTime);
         }

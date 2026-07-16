@@ -958,7 +958,13 @@ class RoamController extends Controller
         $syncReport = session('syncReport', []);
         $parentPlanNames = RoamSku::whereIn(
             'sku_id',
-            collect($newPackages)->pluck('sku_id')->filter()->unique()->values()->all()
+            collect($newPackages)
+                ->merge($updatedPackages)
+                ->pluck('sku_id')
+                ->filter()
+                ->unique()
+                ->values()
+                ->all()
         )->pluck('country_name', 'sku_id')->all();
         $logo = GeneralSetting::where('type', 'file')->first();
         $title = GeneralSetting::where('type', 'string')->first();

@@ -76,8 +76,7 @@ class OrderController extends Controller
         RoamOrder $roamOrder,
         RoamProvisioningFlowService $provisioning,
         OrderNotificationService $notifications
-    )
-    {
+    ) {
         $reference = $roamOrder->outer_order_id ?: $roamOrder->roam_order_num;
 
         if (!$reference) {
@@ -376,7 +375,7 @@ class OrderController extends Controller
             'pending_payment' => $summaries->where('status_key', 'pending_payment')->count(),
             'admin_cancelled' => $summaries->where('status_key', 'admin_cancelled')->count(),
             'cancelled' => $summaries->where('status_key', 'cancelled')->count(),
-            'new' => $summaries->where('status_key', 'new')->count(),
+            'refunded' => $summaries->where('status_key', 'refunded')->count(),
             'failed' => $summaries->where('status_key', 'failed')->count(),
         ];
     }
@@ -415,6 +414,10 @@ class OrderController extends Controller
             'product_summary' => $productNames->implode("\n"),
             'item_count' => $orders->count(),
             'amount' => $orders->sum(fn(RoamOrder $order) => (float) $order->billable_total_price),
+            'payment_method_display' => payment_method_display_label(
+                $primaryOrder?->payment_method,
+                $reference
+            ),
             'payment_label' => $paymentLabel,
             'payment_class' => $paymentClass,
             'status_key' => $statusKey,

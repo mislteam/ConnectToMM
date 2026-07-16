@@ -340,7 +340,7 @@
                             <div class="summary-line">
                                 <div class="summary-line-label">Payment Method</div>
                                 <div class="summary-line-value">
-                                    {{ $payment_method ? ucwords(str_replace('_', ' ', $payment_method)) : '-' }}
+                                    {{ $payment_method ?: '-' }}
                                 </div>
                             </div>
                         </div>

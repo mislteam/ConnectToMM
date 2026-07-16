@@ -24,8 +24,7 @@ class RoamCheckoutController extends Controller
         Request $request,
         RoamOrderDraftService $draftService,
         RoamIccidSupportService $iccidSupportService
-    )
-    {
+    ) {
         $validated = $request->validate([
             'iccid_numbers' => ['nullable', 'array'],
             'payment_method' => ['required', 'in:direct_bank_transfer,uab_pay,UAB Pay'],
@@ -41,7 +40,7 @@ class RoamCheckoutController extends Controller
         // - FiROAM Global SIM => 19 digits (dp_info != 21)
         // - FiROAM Asia SIM   => 18 digits (dp_info == 21)
         $iccidNumbersByIndex = (array) ($validated['iccid_numbers'] ?? []);
-        $cartItems = array_values(array_filter($cart, static fn ($item) => is_array($item)));
+        $cartItems = array_values(array_filter($cart, static fn($item) => is_array($item)));
         if (array_key_exists('sku_id', $cart) || array_key_exists('sku', $cart)) {
             $cartItems = [$cart];
         }
@@ -63,7 +62,7 @@ class RoamCheckoutController extends Controller
             }
 
             $iccids = (array) ($iccidNumbersByIndex[$index] ?? []);
-            if (empty(array_filter(array_map(static fn ($iccid) => preg_replace('/\D+/', '', (string) $iccid), $iccids)))) {
+            if (empty(array_filter(array_map(static fn($iccid) => preg_replace('/\D+/', '', (string) $iccid), $iccids)))) {
                 return $this->redirectWithIccidError(
                     $index,
                     'ICCID is required for recharge orders.',
@@ -189,11 +188,16 @@ class RoamCheckoutController extends Controller
         $credentials = null;
         $payment_method = null;
         $paymentActionUrl = null;
-        $paymentSetting = \App\Models\PaymentSetting::orderBy('id')->get();
+        $paymentSetting = \App\Models\PaymentSetting::orderBy('id')->get()->keyBy('id');
         if ($paymentMethod === 'direct_bank_transfer') {
-            $credentials = $paymentSetting->first()?->directBankCredentials;
-        } else if ($paymentMethod == 'UAB Pay') {
-            // $credentials = $paymentSetting->last()?->uabCredential;
+            $directPayment = $paymentSetting->get(1);
+            $credentials = $directPayment?->directBankCredentials;
+            $payment_method = $directPayment?->type ?? payment_method_label($paymentMethod);
+        } elseif ($paymentMethod === 'uabpay' || $paymentMethod === 'UAB Pay') {
+            $payment_method = payment_method_display_label($paymentMethod, $outerOrderId)
+                ?? $paymentSetting->get(2)?->type
+                ?? payment_method_label($paymentMethod);
+            $paymentActionUrl = data_get($orders->first()?->raw_response, 'payment.uab.payment_url');
         }
 
         if ($orders->isEmpty()) {
@@ -206,7 +210,7 @@ class RoamCheckoutController extends Controller
         return view('frontend.payment', [
             'outer_order_id' => $outerOrderId,
             'orders' => $orders,
-            'total' => $orders->sum(fn ($order) => (float) $order->billable_total_price),
+            'total' => $orders->sum(fn($order) => (float) $order->billable_total_price),
             'payment_status_view' => $statusView,
             'credentials' => $credentials,
             'payment_method' => $payment_method,
@@ -233,7 +237,7 @@ class RoamCheckoutController extends Controller
             return redirect()->route('customer.roam.order.detail')->with('error', 'Order not found.');
         }
 
-        if ($orders->every(fn (RoamOrder $order) => (int) $order->our_status !== RoamOrder::OUR_STATUS_PENDING_PAYMENT)) {
+        if ($orders->every(fn(RoamOrder $order) => (int) $order->our_status !== RoamOrder::OUR_STATUS_PENDING_PAYMENT)) {
             return redirect()->route('roam.payment.show', ['outerOrderId' => $outerOrderId])
                 ->with('error', 'Payment slip can only be updated while the order is pending payment.');
         }
@@ -281,29 +285,29 @@ class RoamCheckoutController extends Controller
     private function buildPaymentStatusView($orders, bool $hasUploadedSlip): array
     {
         $allRefunded = $orders->every(
-            fn (RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_REFUNDED
+            fn(RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_REFUNDED
         );
         $hasRoamRefund = $orders->contains(
-            fn (RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_COMPLETED
+            fn(RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_COMPLETED
                 && (int) $order->roam_status === RoamOrder::ROAM_STATUS_CANCELLED
         );
         $hasPendingPayment = $orders->contains(
-            fn (RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_PENDING_PAYMENT
+            fn(RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_PENDING_PAYMENT
         );
         $hasFailed = $orders->contains(
-            fn (RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_API_FAILED
+            fn(RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_API_FAILED
         );
         $hasAdminCancelled = $orders->contains(
-            fn (RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_ADMIN_CANCELLED
+            fn(RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_ADMIN_CANCELLED
         );
         $hasCancelled = $orders->contains(
-            fn (RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_CANCELLED
+            fn(RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_CANCELLED
         );
         $allCompleted = $orders->every(
-            fn (RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_COMPLETED
+            fn(RoamOrder $order) => (int) $order->our_status === RoamOrder::OUR_STATUS_COMPLETED
         );
         $isOngoing = $orders->contains(
-            fn (RoamOrder $order) => in_array((int) $order->our_status, [
+            fn(RoamOrder $order) => in_array((int) $order->our_status, [
                 RoamOrder::OUR_STATUS_PAID,
                 RoamOrder::OUR_STATUS_ON_HOLD,
                 RoamOrder::OUR_STATUS_API_PROCESSING,
@@ -418,7 +422,7 @@ class RoamCheckoutController extends Controller
             'SUCCESS' => [
                 'badge' => 'Paid',
                 'title' => 'Your UAB payment was completed successfully.',
-                'message' => 'Your payment has been received. You can check your order details for the latest provisioning status.',
+                'message' => 'Please contact support if you would like to continue this order.',
                 'tone' => 'success',
                 'show_upload_form' => false,
                 'show_payment_guide' => false,
@@ -428,39 +432,37 @@ class RoamCheckoutController extends Controller
             'CANCELLED' => [
                 'badge' => 'Cancelled',
                 'title' => 'Your UAB payment was cancelled.',
-                'message' => 'You can start a new UAB payment session using the button below if you would like to continue this order.',
+                'message' => 'Please contact support if you would like to continue this order.',
                 'tone' => 'danger',
                 'show_upload_form' => false,
                 'show_payment_guide' => false,
                 'show_bank_accounts' => false,
-                'show_payment_button' => true,
-                'payment_button_url' => route('roam.uab.pay', ['outerOrderId' => $orders->first()?->outer_order_id]),
-                'payment_button_text' => 'Retry UAB Pay',
+                'show_payment_button' => false,
             ],
             'FAILED', 'EXPIRED' => [
                 'badge' => $status === 'EXPIRED' ? 'Expired' : 'Failed',
                 'title' => $status === 'EXPIRED'
                     ? 'Your UAB payment session expired.'
                     : 'Your UAB payment could not be completed.',
-                'message' => 'Please start a new UAB payment session for a fresh payment attempt if you still want to continue.',
+                'message' => 'Please contact support if you would like to continue this order.',
                 'tone' => 'warning',
                 'show_upload_form' => false,
                 'show_payment_guide' => false,
                 'show_bank_accounts' => false,
-                'show_payment_button' => true,
+                'show_payment_button' => false,
                 'payment_button_url' => route('roam.uab.pay', ['outerOrderId' => $orders->first()?->outer_order_id]),
                 'payment_button_text' => 'Start New UAB Payment',
             ],
             default => [
                 'badge' => 'Pending Payment',
                 'title' => 'Continue your payment with UAB Pay.',
-                'message' => 'Open a fresh UAB hosted payment session to complete your order.',
+                'message' => 'Continue to the UAB hosted payment page to complete your order.',
                 'tone' => 'warning',
                 'show_upload_form' => false,
                 'show_payment_guide' => false,
                 'show_bank_accounts' => false,
-                'show_payment_button' => true,
-                'payment_button_url' => route('roam.uab.pay', ['outerOrderId' => $orders->first()?->outer_order_id]),
+                'show_payment_button' => !empty($paymentActionUrl),
+                'payment_button_url' => $paymentActionUrl,
                 'payment_button_text' => 'Continue to UAB Pay',
             ],
         };

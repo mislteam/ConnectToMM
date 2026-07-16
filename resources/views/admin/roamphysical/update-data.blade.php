@@ -35,39 +35,7 @@
         html[data-bs-theme="dark"] .roam-physical-update-breadcrumb-link:hover {
             color: #dbe7ff;
         }
-
-        #loadingOverlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.3);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 99999;
-        }
-
-        .spinner {
-            width: 60px;
-            height: 60px;
-            border: 6px solid #ddd;
-            border-top-color: #007bff;
-            border-radius: 50%;
-            animation: spin 0.9s linear infinite;
-        }
-
-        @keyframes spin {
-            100% {
-                transform: rotate(360deg);
-            }
-        }
     </style>
-
-    <div id="loadingOverlay">
-        <div class="spinner"></div>
-    </div>
 
     <div class="container-fluid">
         <div class="page-title-head d-flex align-items-center">
@@ -236,6 +204,7 @@
                                 <tr class="text-uppercase fs-xxs">
                                     <th>No</th>
                                     <th>Pkg Pid</th>
+                                    <th>Country Name</th>
                                     <th>Old Plan</th>
                                     <th>New Plan</th>
                                     <th>Changed Fields</th>
@@ -246,10 +215,12 @@
                                     @php
                                         $old = $pkg['before'] ?? [];
                                         $new = $pkg['after'] ?? [];
+                                        $parentPlanName = $parentPlanNames[$pkg['sku_id'] ?? null] ?? '-';
                                     @endphp
                                     <tr class="table-warning">
                                         <td>{{ $loop->iteration }}</td>
                                         <td>{{ $pkg['pid'] ?? '-' }}</td>
+                                        <td>{{ $parentPlanName }}</td>
                                         <td>{{ $old['showName'] ?? '-' }}</td>
                                         <td>{{ $new['showName'] ?? '-' }}</td>
                                         <td>
@@ -262,7 +233,7 @@
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="5" class="text-center text-muted">No updated packages found</td>
+                                        <td colspan="6" class="text-center text-muted">No updated packages found</td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -278,16 +249,4 @@
             </div>
         @endcan
     </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const syncButton = document.querySelector('#syncBtn');
-
-            if (syncButton) {
-                syncButton.addEventListener('click', function() {
-                    document.getElementById('loadingOverlay').style.display = 'flex';
-                });
-            }
-        });
-    </script>
 @endsection

@@ -21,6 +21,9 @@ return new class extends Migration
             $table->decimal('amount', 16, 2);
             $table->string('currency', 3);
             $table->string('payment_method', 50);
+            $table->string('selected_payment_method', 50)->nullable()->after('payment_method');
+            $table->string('selected_payment_type', 50)->nullable()->after('selected_payment_method');
+            $table->string('selected_card_type', 50)->nullable()->after('selected_payment_type');
             $table->string('status', 20)->index();
             $table->json('provider_response')->nullable();
             $table->timestamps();

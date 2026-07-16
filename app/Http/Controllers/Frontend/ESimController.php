@@ -448,7 +448,17 @@ class ESimController extends Controller
             'price' => $price,
         ]);
 
-        $paymentSetting = \App\Models\PaymentSetting::orderBy('id')->get();
+        $paymentSetting = \App\Models\PaymentSetting::orderBy('id')->get()->keyBy('id');
+        $directPayment = $paymentSetting->get(1);
+        $uabPayment = $paymentSetting->get(2);
+        $isDirectActive = $directPayment?->status;
+        $isUabActive = $uabPayment?->status;
+        $uabCredential = \App\Models\UabCredential::query()
+            ->where('payment_setting_id', 2)
+            ->orderByDesc('is_active')
+            ->latest('id')
+            ->first();
+        $uabPaymentMethodLabels = uab_payment_method_labels($uabCredential?->payment_methods);
         $isDirectActive = $paymentSetting->first()?->status;
         $isUabActive = $paymentSetting->last()?->status;
 
@@ -476,7 +486,12 @@ class ESimController extends Controller
                 (string) ($primaryItem['order_type'] ?? '')
             ),
             'is_direct' => $isDirectActive,
-            'is_uab' => $isUabActive
+            'is_uab' => $isUabActive,
+            'direct_payment_name' => $directPayment?->type ?? 'Direct Bank Transfer',
+            'uab_payment_name' => $uabPayment?->type ?? 'Online Payment',
+            'uab_payment_methods_text' => !empty($uabPaymentMethodLabels)
+                ? 'Can pay with ' . implode(', ', $uabPaymentMethodLabels) . '.'
+                : null,
         ]);
     }
 

@@ -59,7 +59,7 @@ class PhysicalSimController extends Controller
         $priceListByPlan = $priceList->groupBy('plan');
         $roamBySku = RoamPhysical::whereIn('sku_id', $activeSkus->pluck('sku_id')->all())
             ->get()
-            ->keyBy(fn ($row) => $row->sku_id . ':' . (int) ($row->dp_id ?? 0));
+            ->keyBy(fn($row) => $row->sku_id . ':' . (int) ($row->dp_id ?? 0));
         $packageCards = $this->buildPhysicalPackageCards($activeSkus, $priceListByPlan, $roamBySku);
 
         $globalPackageCards = $packageCards->where('dp_id', 9)->values();
@@ -73,18 +73,17 @@ class PhysicalSimController extends Controller
 
         return view(
             'frontend.physical.roam-physical',
-                compact(
-                    'logo',
-                    'title',
-                    'countrys',
-                    'globalCountries',
-                    'asiaCountries',
-                    'globalPackageCards',
-                    'asiaPackageCards',
-                    'selectedDpId'
-                    ,
-                    'selectedOrderType'
-                )
+            compact(
+                'logo',
+                'title',
+                'countrys',
+                'globalCountries',
+                'asiaCountries',
+                'globalPackageCards',
+                'asiaPackageCards',
+                'selectedDpId',
+                'selectedOrderType'
+            )
         );
     }
 
@@ -599,7 +598,17 @@ class PhysicalSimController extends Controller
             'price' => $price,
         ]);
 
-        $paymentSetting = \App\Models\PaymentSetting::orderBy('id')->get();
+        $paymentSetting = \App\Models\PaymentSetting::orderBy('id')->get()->keyBy('id');
+        $directPayment = $paymentSetting->get(1);
+        $uabPayment = $paymentSetting->get(2);
+        $isDirectActive = $directPayment?->status;
+        $isUabActive = $uabPayment?->status;
+        $uabCredential = \App\Models\UabCredential::query()
+            ->where('payment_setting_id', 2)
+            ->orderByDesc('is_active')
+            ->latest('id')
+            ->first();
+        $uabPaymentMethodLabels = uab_payment_method_labels($uabCredential?->payment_methods);
         $isDirectActive = $paymentSetting->first()?->status;
         $isUabActive = $paymentSetting->last()?->status;
 
@@ -624,6 +633,11 @@ class PhysicalSimController extends Controller
             'iccid_numbers' => $iccidNumbers,
             'is_direct' => (bool) $isDirectActive,
             'is_uab' => (bool) $isUabActive,
+            'direct_payment_name' => $directPayment?->type ?? 'Direct Bank Transfer',
+            'uab_payment_name' => $uabPayment?->type ?? 'Online Payment',
+            'uab_payment_methods_text' => !empty($uabPaymentMethodLabels)
+                ? 'Can pay with ' . implode(', ', $uabPaymentMethodLabels) . '.'
+                : null,
         ]);
     }
 

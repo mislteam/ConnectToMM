@@ -221,8 +221,18 @@
             font-weight: 500;
         }
 
+        .order-service-list {
+            display: grid;
+            gap: 6px;
+        }
+
+        .order-service-name {
+            color: #4a4e5c;
+            font-weight: 500;
+        }
+
         .order-status {
-            font-weight: 700;
+            font-weight: 500;
         }
 
         .order-status.text-warning {
@@ -705,6 +715,7 @@
                                             <tr>
                                                 <th>ORDER ID</th>
                                                 <th>PRODUCT NAME</th>
+                                                <th>SERVICE TYPE</th>
                                                 <th>STATUS</th>
                                                 <th class="text-center">ACTIONS</th>
                                             </tr>
@@ -717,6 +728,22 @@
                                                     <td data-label="Product Name">
                                                         @php($productName = $group['product_name'] ?? '-')
                                                         {!! nl2br(e($productName)) !!}
+                                                    </td>
+                                                    <td data-label="Service">
+                                                        @if (!empty($group['service_items']) && $group['service_items']->isNotEmpty())
+                                                            <div class="order-service-list">
+                                                                @foreach ($group['service_items'] as $serviceItem)
+                                                                    <div>
+                                                                        <div class="order-service-name">
+                                                                            {{ $serviceItem['service_type'] ?: '-' }}
+                                                                            {{ $serviceItem['order_type'] ?: '-' }}
+                                                                        </div>
+                                                                    </div>
+                                                                @endforeach
+                                                            </div>
+                                                        @else
+                                                            -
+                                                        @endif
                                                     </td>
                                                     <td data-label="Status"
                                                         class="order-status {{ $group['status_class'] ?? '' }}">

@@ -8,6 +8,9 @@
     @php
         $currentStatusLabel = $orders->first()?->customer_status_label ?? 'Pending Payment';
         $statusView = $payment_status_view ?? [];
+        $canShowPaymentButton =
+            $statusView['show_payment_button'] ??
+            false && strtolower((string) ($statusView['badge'] ?? $currentStatusLabel)) !== 'cancelled';
         $detailRoute =
             $payment_detail_route ?? route('customer.roam.order.detail', ['outerOrderId' => $outer_order_id]);
         $uploadRoute = $payment_upload_route ?? route('roam.payment.upload-slip', ['outerOrderId' => $outer_order_id]);
@@ -479,7 +482,7 @@
                             </div>
                         @endif
 
-                        @if ($statusView['show_payment_button'] ?? false)
+                        @if ($canShowPaymentButton)
                             <div class="payment-section-block">
                                 <span class="payment-section-title">UAB Payment</span>
                                 <a href="{{ $statusView['payment_button_url'] ?? ($payment_action_url ?? '#') }}"

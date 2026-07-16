@@ -53,6 +53,161 @@ if (!function_exists('section_keys_by_page')) {
     }
 }
 
+if (!function_exists('payment_setting_id_for_method')) {
+    function payment_setting_id_for_method(?string $paymentMethod): ?int
+    {
+        return match ($paymentMethod) {
+            'direct_bank_transfer' => 1,
+            'uabpay', 'UAB Pay' => 2,
+            default => null,
+        };
+    }
+}
+
+if (!function_exists('payment_method_label')) {
+    function payment_method_label(?string $paymentMethod): ?string
+    {
+        if ($paymentMethod === null || trim($paymentMethod) === '') {
+            return null;
+        }
+
+        $settingId = payment_setting_id_for_method($paymentMethod);
+
+        if ($settingId !== null) {
+            static $paymentSettings = [];
+
+            if (!array_key_exists($settingId, $paymentSettings)) {
+                $paymentSettings[$settingId] = \App\Models\PaymentSetting::query()->find($settingId);
+            }
+
+            $paymentSetting = $paymentSettings[$settingId];
+
+            if ($paymentSetting?->type) {
+                return $paymentSetting->type;
+            }
+        }
+
+        return \Illuminate\Support\Str::headline($paymentMethod);
+    }
+}
+
+if (!function_exists('uab_payment_method_labels')) {
+    function uab_payment_method_labels(?string $paymentMethods): array
+    {
+        if ($paymentMethods === null || trim($paymentMethods) === '') {
+            return [];
+        }
+
+        return collect(explode(',', $paymentMethods))
+            ->map(fn($method) => trim((string) $method))
+            ->filter()
+            ->map(function (string $method): string {
+                $gatewayMethod = \App\Payment\Providers\Uab\Enums\PaymentMethod::tryFrom($method);
+
+                return $gatewayMethod?->label() ?? \Illuminate\Support\Str::headline($method);
+            })
+            ->unique()
+            ->values()
+            ->all();
+    }
+}
+
+if (!function_exists('uab_selected_payment_method_label')) {
+    function uab_selected_payment_method_label(
+        ?string $paymentMethod,
+        ?string $paymentType = null,
+        ?string $cardType = null
+    ): ?string {
+        $paymentMethod = trim((string) $paymentMethod);
+        $paymentType = trim((string) $paymentType);
+        $cardType = trim((string) $cardType);
+
+        if ($cardType !== '') {
+            return match (strtolower($cardType)) {
+                'master', 'mastercard' => 'Master Card',
+                'visa' => 'Visa',
+                'unionpay', 'union pay' => 'UnionPay',
+                'mpu' => 'MPU',
+                default => \Illuminate\Support\Str::headline($cardType),
+            };
+        }
+
+        if ($paymentMethod !== '') {
+            $gatewayMethod = \App\Payment\Providers\Uab\Enums\PaymentMethod::tryFrom($paymentMethod);
+
+            if ($gatewayMethod !== null) {
+                return $gatewayMethod->label();
+            }
+
+            return match (strtolower($paymentMethod)) {
+                'uab bank', 'uab_bank' => 'UAB Bank',
+                default => \Illuminate\Support\Str::headline($paymentMethod),
+            };
+        }
+
+        return $paymentType !== '' ? \Illuminate\Support\Str::headline($paymentType) : null;
+    }
+}
+
+if (!function_exists('uab_transaction_selected_payment_label')) {
+    function uab_transaction_selected_payment_label(?string $outerOrderId): ?string
+    {
+        if ($outerOrderId === null || trim($outerOrderId) === '') {
+            return null;
+        }
+
+        static $labels = [];
+        $outerOrderId = trim($outerOrderId);
+
+        if (array_key_exists($outerOrderId, $labels)) {
+            return $labels[$outerOrderId];
+        }
+
+        $transaction = \App\Models\UabPaymentTransaction::query()
+            ->where('merchant_reference', $outerOrderId)
+            ->latest('id')
+            ->first();
+
+        if ($transaction === null) {
+            return $labels[$outerOrderId] = null;
+        }
+
+        $paymentMethod = $transaction->selected_payment_method;
+        $paymentType = $transaction->selected_payment_type;
+        $cardType = $transaction->selected_card_type;
+
+        if (!$paymentMethod && !$paymentType && !$cardType) {
+            $notifyPayload = (array) data_get($transaction->provider_response, 'notify', []);
+            $paymentMethod = $notifyPayload['PaymentMethod'] ?? null;
+            $paymentType = $notifyPayload['PaymentType'] ?? null;
+            $cardType = $notifyPayload['CardType'] ?? null;
+        }
+
+        return $labels[$outerOrderId] = uab_selected_payment_method_label(
+            is_string($paymentMethod) ? $paymentMethod : null,
+            is_string($paymentType) ? $paymentType : null,
+            is_string($cardType) ? $cardType : null,
+        );
+    }
+}
+
+if (!function_exists('payment_method_display_label')) {
+    function payment_method_display_label(?string $paymentMethod, ?string $outerOrderId = null): ?string
+    {
+        $baseLabel = payment_method_label($paymentMethod);
+
+        if (in_array($paymentMethod, ['uabpay', 'UAB Pay'], true)) {
+            $selectedLabel = uab_transaction_selected_payment_label($outerOrderId);
+
+            if ($selectedLabel) {
+                return ($baseLabel ?: 'Online Payment') . ' (' . $selectedLabel . ')';
+            }
+        }
+
+        return $baseLabel;
+    }
+}
+
 if (!function_exists('parseProductName')) {
 
     function parseProductName($name)

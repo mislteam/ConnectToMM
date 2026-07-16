@@ -85,14 +85,14 @@ Route::middleware('guest:customers')->group(function () {
 
     Route::get('/customer/email/verify', [CustomerAuthController::class, 'showVerificationNotice'])->name('verification.notice');
     Route::post('/customer/email/verify', [CustomerAuthController::class, 'verifyEmailOtp'])->name('verification.verify.otp');
-    Route::delete('/customer/email/resend', [CustomerAuthController::class, 'resendEmailOtp'])->name('verification.resend.otp');
+    Route::post('/customer/email/resend', [CustomerAuthController::class, 'resendEmailOtp'])->name('verification.resend.otp');
 });
 
 Route::middleware('auth:customers')->group(function () {
     Route::post('/customer/logout', [CustomerAuthController::class, 'logout'])->name('customer.logout');
 
     // joy checkout
-     Route::post('/joytel-package/cart/{joytel}', [FrontendJoytelController::class, 'cart'])->name('joytelpackage.cart');
+    Route::post('/joytel-package/cart/{joytel}', [FrontendJoytelController::class, 'cart'])->name('joytelpackage.cart');
     Route::get('/joytel-package/cart/page', [FrontendJoytelController::class, 'cartPage'])->name('joytelpackage.cartpage');
     Route::patch('/joytel-package/cart/{key}', [FrontendJoytelController::class, 'updateCartQuantity'])->name('joytelpackage.cart.update');
     Route::delete('/joytel-package/remove-cart/{key}', [FrontendJoytelController::class, 'removeCart'])->name('joytelpackage.cart.remove');
@@ -153,10 +153,10 @@ Route::prefix("joytel")->group(function () {
 
     // Route::get("/package/{joytel}", [FrontendJoytelController::class, "packageView"])->name("joytel.packageview"); // show each package
     Route::get('/esim/package/{id}', [FrontendJoytelController::class, 'esimPackageView'])
-    ->name('joytel.esim.packageview');
+        ->name('joytel.esim.packageview');
 
     Route::get('/joytel/physical/package/{id}', [FrontendJoytelController::class, 'physicalPackageView'])
-    ->name('joytel.physical.packageview');
+        ->name('joytel.physical.packageview');
     // physical
     Route::get('/physical-sim/search', [FrontendJoytelController::class, 'physicalIndex'])->name('physicalIndex');
     Route::get("/physical-sim/packages", [FrontendJoytelController::class, "physicalSearch"])->name("physical.search"); // search and show packages
@@ -287,7 +287,7 @@ Route::middleware(['auth'])->group(function () { //, 'admin.permission'
         Route::post("/direct-bank/store", [PaymentSettingController::class, 'directStore'])->name('payment.direct.store');
         Route::patch("/direct-bank/update", [PaymentSettingController::class, 'directUpdate'])->name('payment.direct.update');
         Route::delete("/direct-bank/delete", [PaymentSettingController::class, 'directDelete'])->name('payment.direct.delete');
-
+        Route::patch('/{payment}/update-type', [PaymentSettingController::class, 'updateType'])->name('admin.payment.update-type');
         Route::patch("/uab-credential/update", [PaymentSettingController::class, 'uabUpdate'])->name('payment.uab.update');
     });
 
@@ -301,7 +301,7 @@ Route::middleware(['auth'])->group(function () { //, 'admin.permission'
         Route::get('/joytel-api', [JoytelController::class, 'Apiindex'])->name('joytelApiIndex');
         Route::patch('/joytel-api/update', [JoytelController::class, 'updateApi'])->name('joytel-api.update');
         Route::patch('/joytel-api/rsp', [JoytelController::class, 'updateRsp'])->name('joytel-api.rsp.update');
-        
+
         // status + manage price
         Route::post('/update-code-status', [JoytelController::class, 'updateCodeStatus'])->name('update.code.status');
         Route::post('/update-price', [JoytelController::class, 'updateExchangeRate'])->name('update.price');

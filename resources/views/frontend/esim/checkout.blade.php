@@ -204,9 +204,7 @@
                                         name="payment_method" required {{ $is_direct ? '' : 'disabled' }}
                                         {{ old('payment_method') === 'direct_bank_transfer' ? 'checked' : '' }}>
                                     <label for="paymentDirectBankTransfer"
-                                        class="{{ $is_direct ? '' : 'text-muted' }}">Direct
-                                        Bank
-                                        Transfer</label>
+                                        class="{{ $is_direct ? '' : 'text-muted' }}">{{ $direct_payment_name ?? 'Direct Bank Transfer' }}</label>
                                 </div>
                             @endif
                             @if ($is_uab)
@@ -214,8 +212,12 @@
                                     <input type="radio" value="uabpay" id="paymentUabPay" name="payment_method"
                                         {{ $is_uab ? '' : 'disabled' }}
                                         {{ old('payment_method') === 'uabpay' ? 'checked' : '' }}>
-                                    <label for="paymentUabPay" class="{{ $is_uab ? '' : 'text-muted' }}">UAB Pay
+                                    <label for="paymentUabPay"
+                                        class="{{ $is_uab ? '' : 'text-muted' }}">{{ $uab_payment_name ?? 'Online Payment' }}
                                     </label>
+                                    @if (!empty($uab_payment_methods_text))
+                                        <small class="d-block mt-2">{{ $uab_payment_methods_text }}</small>
+                                    @endif
                                 </div>
                             @endif
                             <div class="form-group mb-0">

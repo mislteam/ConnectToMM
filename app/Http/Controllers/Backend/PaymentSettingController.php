@@ -24,7 +24,11 @@ class PaymentSettingController extends Controller
             'type' => 'required|string'
         ]);
         $payment = PaymentSetting::findOrFail($request->payment);
-        $type = str_replace(' ', '_', strtolower($request->type));
+        $type = match ((int) $payment->id) {
+            1 => 'direct_bank_transfer',
+            2 => 'online_payment',
+            default => str_replace(' ', '_', strtolower($request->type)),
+        };
 
         return view('admin.payment.edit', compact('payment', 'type'));
     }
@@ -38,6 +42,24 @@ class PaymentSettingController extends Controller
             'success' => true,
             'message' => 'Payment Status Updated Successfully!'
         ]);
+    }
+
+    public function updateType(Request $request, PaymentSetting $payment)
+    {
+        $data = $request->validate([
+            'type' => 'required|string|max:255',
+        ]);
+
+        $payment->update([
+            'type' => $data['type'],
+        ]);
+
+        return redirect()
+            ->route('admin.payment.edit', [
+                'payment' => $payment->id,
+                'type' => $payment->type,
+            ])
+            ->with('success', 'Payment Type Updated Successfully!');
     }
 
     public function directStore(Request $request)
@@ -98,9 +120,10 @@ class PaymentSettingController extends Controller
             'billing_postal_code' => 'required|digits_between:5,16',
             'billing_state' => 'required|string|max:64',
             'billing_country' => 'required|string|size:2',
+            'payment_setting_id' => 'required|integer|exists:payment_setting,id',
         ]);
 
-        $paymentSetting = PaymentSetting::where('type', 'UAB Pay')->firstOrFail();
+        $paymentSetting = PaymentSetting::findOrFail($data['payment_setting_id']);
 
         UabCredential::updateOrCreate(
             [

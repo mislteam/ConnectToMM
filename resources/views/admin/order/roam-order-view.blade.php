@@ -605,7 +605,7 @@
                                 <div class="order-meta-row">
                                     <span class="order-meta-label">Payment Method</span>
                                     <div class="order-meta-value fw-semibold">
-                                        {{ ucwords(str_replace('_', ' ', optional($summary['primary_order'])->payment_method ?? '-')) }}
+                                        {{ $summary['payment_method_display'] ?? (payment_method_display_label(optional($summary['primary_order'])->payment_method, $summary['reference'] ?? null) ?? '-') }}
                                     </div>
                                 </div>
                             </div>
@@ -623,7 +623,7 @@
                                 <tr class="text-uppercase fs-xxs">
                                     <th>Roam Order ID</th>
                                     <th>Product</th>
-                                    <th>Service Type</th>
+                                    <th>Service</th>
                                     <th>ICCID</th>
                                     <th>PDF</th>
                                     <th>Amount</th>
@@ -663,6 +663,8 @@
                                             };
                                         $iccids = $order->items?->pluck('iccid')->filter()->values() ?? collect();
                                         $pdfUrls = $order->items?->pluck('pdf_url')->filter()->values() ?? collect();
+                                        $serviceType = \Illuminate\Support\Str::headline((string) $order->service_type);
+                                        $orderType = \Illuminate\Support\Str::headline((string) $order->order_type);
                                     @endphp
                                     <tr>
                                         <td>
@@ -677,7 +679,10 @@
                                         </td>
                                         <td>
                                             <div class="order-item-name">
-                                                {{ \Illuminate\Support\Str::headline((string) $order->service_type) ?: '-' }}
+                                                {{ $serviceType ?: '-' }}
+                                            </div>
+                                            <div class="order-item-subtext">
+                                                {{ $orderType ?: '-' }}
                                             </div>
                                         </td>
                                         <td>

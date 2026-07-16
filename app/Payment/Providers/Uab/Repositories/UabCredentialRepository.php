@@ -14,9 +14,7 @@ class UabCredentialRepository
     public function active(): ?UabCredential
     {
         $query = $this->model->newQuery()
-            ->whereHas('paymentSetting', function ($builder): void {
-                $builder->where('type', 'UAB Pay');
-            })
+            ->where('payment_setting_id', 2)
             ->orderByDesc('is_active')
             ->latest('id');
 

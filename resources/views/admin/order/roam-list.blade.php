@@ -137,10 +137,11 @@
 
         <div class="page-title-head d-flex align-items-center">
             <div class="flex-grow-1 py-3">
-                <h4 class="fs-sm fw-bold m-0 orders-page-title">Roam Orders</h4>
+                <h4 class="fs-sm fw-bold m-0 orders-page-title">{{ $settings['roam_title']->value ?? 'FiROAM' }} Orders</h4>
                 <ol class="breadcrumb m-0 py-0">
                     <li class="breadcrumb-item"><a href="javascript: void(0);" class="orders-breadcrumb-link">Home</a></li>
-                    <li class="breadcrumb-item active orders-breadcrumb-current">Roam Orders</li>
+                    <li class="breadcrumb-item active orders-breadcrumb-current">
+                        {{ $settings['roam_title']->value ?? 'FiROAM' }} Orders</li>
                 </ol>
             </div>
         </div>
@@ -205,12 +206,12 @@
                         <div class="d-flex align-items-center gap-2 mb-3">
                             <div class="avatar-md flex-shrink-0">
                                 <span class="avatar-title text-bg-info rounded-circle fs-22">
-                                    <i class="ti ti-shopping-cart"></i>
+                                    <i class="ti ti-receipt-refund"></i>
                                 </span>
                             </div>
-                            <h3 class="mb-0">{{ number_format((int) ($stats['new'] ?? 0)) }}</h3>
+                            <h3 class="mb-0">{{ number_format((int) ($stats['refunded'] ?? 0)) }}</h3>
                         </div>
-                        <p class="mb-0">Order Started</p>
+                        <p class="mb-0">Refunded Orders</p>
                     </div>
                 </div>
             </div>
@@ -347,7 +348,7 @@
                         <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                             <div data-table-pagination-info="orders">
                                 Showing {{ $orders->firstItem() ?? 0 }} to {{ $orders->lastItem() ?? 0 }} of
-                                {{ $orders->total() }} Roam orders
+                                {{ $orders->total() }} {{ $settings['roam_title']->value ?? 'FiROAM' }} orders
                             </div>
                             <div data-table-pagination>
                                 {{ $orders->links('pagination::bootstrap-5') }}
