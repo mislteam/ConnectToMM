@@ -27,9 +27,10 @@ class RoamCheckoutController extends Controller
     ) {
         $validated = $request->validate([
             'iccid_numbers' => ['nullable', 'array'],
-            'payment_method' => ['required', 'in:direct_bank_transfer,uab_pay,UAB Pay'],
+            'payment_method' => ['required', 'in:direct_bank_transfer,uabpay,uab_pay,UAB Pay'],
             'terms' => ['accepted'],
         ]);
+        $paymentMethod = $this->normalizePaymentMethod($validated['payment_method']);
 
         Auth::shouldUse('customers');
         $customer = auth()->user();
@@ -133,7 +134,7 @@ class RoamCheckoutController extends Controller
             $customer,
             $cart,
             $iccidNumbersByIndex,
-            $validated['payment_method'] === 'UAB Pay' ? 'uab_pay' : $validated['payment_method']
+            $paymentMethod
         );
 
         session()->forget([
@@ -142,7 +143,10 @@ class RoamCheckoutController extends Controller
         ]);
         session()->put('roam_last_outer_order_id', $result['outer_order_id']);
 
-        // Next step: payment page (mock for now; replace with gateway redirect when integrating Dinger Pay).
+        if ($paymentMethod === 'uabpay') {
+            return redirect()->route('roam.uab.pay', ['outerOrderId' => $result['outer_order_id']]);
+        }
+
         return redirect()->route('roam.payment.show', ['outerOrderId' => $result['outer_order_id']]);
     }
 
@@ -205,7 +209,16 @@ class RoamCheckoutController extends Controller
         }
 
         $slipPath = data_get($orders->first()?->raw_response, 'payment.slip.path');
-        $statusView = $this->buildPaymentStatusView($orders, !empty($slipPath));
+        $statusView = strtolower((string) $paymentMethod) === 'uabpay'
+            ? $this->buildUabPaymentStatusView(
+                $orders,
+                UabPaymentTransaction::query()
+                    ->where('merchant_reference', $outerOrderId)
+                    ->latest('id')
+                    ->first(),
+                $paymentActionUrl
+            )
+            : $this->buildPaymentStatusView($orders, !empty($slipPath));
 
         return view('frontend.payment', [
             'outer_order_id' => $outerOrderId,
@@ -280,6 +293,13 @@ class RoamCheckoutController extends Controller
                 "iccid_numbers.{$index}.0" => $message,
             ])
             ->with('error_popup_html', $popupHtml);
+    }
+
+    private function normalizePaymentMethod(string $paymentMethod): string
+    {
+        return in_array($paymentMethod, ['uabpay', 'uab_pay', 'UAB Pay'], true)
+            ? 'uabpay'
+            : $paymentMethod;
     }
 
     private function buildPaymentStatusView($orders, bool $hasUploadedSlip): array
