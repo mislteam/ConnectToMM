@@ -26,11 +26,26 @@ class RoamCheckoutController extends Controller
         RoamIccidSupportService $iccidSupportService
     ) {
         $validated = $request->validate([
+            'customer_name' => ['required', 'string', 'max:255'],
+            'customer_email' => ['required', 'email', 'max:255'],
+            'customer_phone' => ['required', 'string', 'max:50'],
             'iccid_numbers' => ['nullable', 'array'],
             'payment_method' => ['required', 'in:direct_bank_transfer,uabpay,uab_pay,UAB Pay'],
             'terms' => ['accepted'],
         ]);
         $paymentMethod = $this->normalizePaymentMethod($validated['payment_method']);
+        $billingPhone = preg_replace('/\D+/', '', (string) $validated['customer_phone']);
+        if (strlen($billingPhone) < 8) {
+            return back()
+                ->withInput()
+                ->withErrors(['customer_phone' => 'Phone number must be at least 8 digits.']);
+        }
+
+        $checkoutCustomerData = [
+            'full_name' => trim((string) $validated['customer_name']),
+            'email' => trim((string) $validated['customer_email']),
+            'phone' => $billingPhone,
+        ];
 
         Auth::shouldUse('customers');
         $customer = auth()->user();
@@ -136,6 +151,7 @@ class RoamCheckoutController extends Controller
             $iccidNumbersByIndex,
             $paymentMethod
         );
+        $this->persistUabCheckoutCustomerMetadata($result['orders'], $checkoutCustomerData);
 
         session()->forget([
             'roam_order_cart',
@@ -444,7 +460,7 @@ class RoamCheckoutController extends Controller
         return match ($status) {
             'SUCCESS' => [
                 'badge' => 'Paid',
-                'title' => 'Your UAB payment was completed successfully.',
+                'title' => 'Your payment was completed successfully.',
                 'message' => 'Please contact support if you would like to continue this order.',
                 'tone' => 'success',
                 'show_upload_form' => false,
@@ -454,7 +470,7 @@ class RoamCheckoutController extends Controller
             ],
             'CANCELLED' => [
                 'badge' => 'Cancelled',
-                'title' => 'Your UAB payment was cancelled.',
+                'title' => 'Your payment was cancelled.',
                 'message' => 'Please contact support if you would like to continue this order.',
                 'tone' => 'danger',
                 'show_upload_form' => false,
@@ -465,8 +481,8 @@ class RoamCheckoutController extends Controller
             'FAILED', 'EXPIRED' => [
                 'badge' => $status === 'EXPIRED' ? 'Expired' : 'Failed',
                 'title' => $status === 'EXPIRED'
-                    ? 'Your UAB payment session expired.'
-                    : 'Your UAB payment could not be completed.',
+                    ? 'Your payment session expired.'
+                    : 'Your payment could not be completed.',
                 'message' => 'Please contact support if you would like to continue this order.',
                 'tone' => 'warning',
                 'show_upload_form' => false,
@@ -478,8 +494,8 @@ class RoamCheckoutController extends Controller
             ],
             default => [
                 'badge' => 'Pending Payment',
-                'title' => 'Continue your payment with UAB Pay.',
-                'message' => 'Continue to the UAB hosted payment page to complete your order.',
+                'title' => 'Continue your payment with Online payment',
+                'message' => 'Continue to the payment page to complete your order.',
                 'tone' => 'warning',
                 'show_upload_form' => false,
                 'show_payment_guide' => false,
@@ -487,7 +503,7 @@ class RoamCheckoutController extends Controller
                 'show_payment_button' => true,
                 'payment_button_url' => $paymentActionUrl
                     ?: route('roam.uab.pay', ['outerOrderId' => $orders->first()?->outer_order_id]),
-                'payment_button_text' => 'Continue to UAB Pay',
+                'payment_button_text' => 'Continue to Payment',
             ],
         };
     }
@@ -500,6 +516,11 @@ class RoamCheckoutController extends Controller
     ) {
         $outerOrderId = (string) $orders->first()?->outer_order_id;
         $customerData = $this->resolveUabCustomerData($orders, $customer);
+        if ($customerData['phone'] === '') {
+            return redirect()->route('roam.payment.show', ['outerOrderId' => $outerOrderId])
+                ->with('error', 'Please update your phone number before continuing to payment.');
+        }
+
         $merchantBillingDefaults = $this->resolveMerchantBillingDefaults($uabCredentialService);
         [$forename, $surname] = $this->splitCustomerName($customerData['full_name']);
 
@@ -534,6 +555,11 @@ class RoamCheckoutController extends Controller
             array_merge($customerData, $merchantBillingDefaults),
             $hostedCheckout
         );
+
+        if ($hostedCheckout->paymentHtml !== null) {
+            return response($hostedCheckout->paymentHtml)
+                ->header('Content-Type', 'text/html; charset=UTF-8');
+        }
 
         return redirect()->away($hostedCheckout->paymentUrl);
     }
@@ -584,6 +610,7 @@ class RoamCheckoutController extends Controller
                 'request_id' => $hostedCheckout->requestId,
                 'transaction_id' => $hostedCheckout->transactionId,
                 'payment_url' => $hostedCheckout->paymentUrl,
+                'payment_html_returned' => $hostedCheckout->paymentHtml !== null,
                 'status' => $hostedCheckout->status->value,
                 'provider_response' => $hostedCheckout->providerResponse,
                 'billing' => $billingData,
@@ -611,12 +638,26 @@ class RoamCheckoutController extends Controller
     private function resolveUabCustomerData(Collection $orders, $customer): array
     {
         $storedCustomerData = (array) data_get($orders->first()?->raw_response, 'payment.uab.customer', []);
+        $storedBillingData = (array) data_get($orders->first()?->raw_response, 'billing', []);
+        $phone = $this->normalizeUabPhone(
+            $storedCustomerData['phone']
+                ?? $storedBillingData['phone']
+                ?? $customer?->phone
+                ?? ''
+        );
 
         return [
-            'full_name' => trim((string) ($storedCustomerData['full_name'] ?? $customer?->name ?? 'Customer')),
-            'email' => trim((string) ($storedCustomerData['email'] ?? $customer?->email ?? '')),
-            'phone' => preg_replace('/\D+/', '', (string) ($storedCustomerData['phone'] ?? $customer?->phone ?? '')) ?: '',
+            'full_name' => trim((string) ($storedCustomerData['full_name'] ?? $storedBillingData['full_name'] ?? $customer?->name ?? 'Customer')),
+            'email' => trim((string) ($storedCustomerData['email'] ?? $storedBillingData['email'] ?? $customer?->email ?? '')),
+            'phone' => $phone,
         ];
+    }
+
+    private function normalizeUabPhone(mixed $phone): string
+    {
+        $digits = preg_replace('/\D+/', '', (string) $phone) ?? '';
+
+        return strlen($digits) >= 8 ? $digits : '';
     }
 
     private function resolveMerchantBillingDefaults(UabCredentialService $uabCredentialService): array

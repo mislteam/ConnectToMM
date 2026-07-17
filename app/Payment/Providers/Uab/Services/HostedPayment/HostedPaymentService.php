@@ -139,10 +139,14 @@ class HostedPaymentService implements HostedPaymentInterface
         }
 
         $paymentUrl = $this->extractPaymentUrl($response, $credentials->baseUrl);
+        $paymentHtml = $paymentUrl === null
+            ? $this->extractPaymentHtml($response->body(), $credentials->baseUrl)
+            : null;
         $responsePayload = [
             'headers' => $response->headers(),
             'body' => $response->body(),
             'payment_url' => $paymentUrl,
+            'payment_html_returned' => $paymentHtml !== null,
         ];
 
         $this->apiLogService->log([
@@ -158,8 +162,8 @@ class HostedPaymentService implements HostedPaymentInterface
             throw new UabAuthenticationException('UAB hosted payment request failed.', max(400, $response->status()));
         }
 
-        if ($paymentUrl === null) {
-            throw new UabInvalidResponseException('UAB hosted payment URL was not returned.');
+        if ($paymentUrl === null && $paymentHtml === null) {
+            throw new UabInvalidResponseException('UAB hosted payment URL or checkout page was not returned.');
         }
 
         $transaction = $this->paymentTransactionRepository->create([
@@ -181,6 +185,7 @@ class HostedPaymentService implements HostedPaymentInterface
             paymentUrl: $paymentUrl,
             status: TransactionStatus::PENDING,
             providerResponse: $responsePayload,
+            paymentHtml: $paymentHtml,
         );
     }
 
@@ -193,18 +198,96 @@ class HostedPaymentService implements HostedPaymentInterface
     {
         $location = $response->header('Location');
         if (is_string($location) && $location !== '') {
-            return $this->normalizePaymentUrl($location, $baseUrl);
+            $paymentUrl = $this->normalizeValidPaymentUrl($location, $baseUrl);
+            if ($paymentUrl !== null) {
+                return $paymentUrl;
+            }
         }
 
         $json = $response->json();
-        foreach (['payment_url', 'paymentUrl', 'HostedPaymentUrl', 'HostedCheckoutUrl', 'redirect_url'] as $key) {
-            $value = data_get($json, $key);
-            if (is_string($value) && $value !== '') {
-                return $this->normalizePaymentUrl($value, $baseUrl);
+        if (is_array($json)) {
+            $paymentUrl = $this->extractPaymentUrlFromPayload($json, $baseUrl);
+            if ($paymentUrl !== null) {
+                return $paymentUrl;
             }
         }
 
         return null;
+    }
+
+    private function extractPaymentUrlFromPayload(array $payload, string $baseUrl): ?string
+    {
+        $urlKeys = [
+            'payment_url',
+            'paymenturl',
+            'hostedpaymenturl',
+            'hostedcheckouturl',
+            'redirect_url',
+            'redirecturl',
+            'checkout_url',
+            'checkouturl',
+            'url',
+        ];
+
+        foreach ($payload as $key => $value) {
+            if (is_string($value) && $value !== '' && in_array(strtolower((string) $key), $urlKeys, true)) {
+                $paymentUrl = $this->normalizeValidPaymentUrl($value, $baseUrl);
+                if ($paymentUrl !== null) {
+                    return $paymentUrl;
+                }
+            }
+
+            if (is_array($value)) {
+                $paymentUrl = $this->extractPaymentUrlFromPayload($value, $baseUrl);
+                if ($paymentUrl !== null) {
+                    return $paymentUrl;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private function extractPaymentHtml(?string $body, string $baseUrl): ?string
+    {
+        if (!is_string($body) || trim($body) === '') {
+            return null;
+        }
+
+        if (stripos($body, '<html') === false || stripos($body, '<form') === false) {
+            return null;
+        }
+
+        return $this->rewriteGatewayRelativeUrls($body, $baseUrl);
+    }
+
+    private function rewriteGatewayRelativeUrls(string $html, string $baseUrl): string
+    {
+        $baseUrl = rtrim($baseUrl, '/');
+
+        $html = preg_replace_callback(
+            '/(<form\b[^>]*\saction=)(["\'])(\/(?!\/)[^"\']*)(\2)/i',
+            static fn(array $matches) => $matches[1] . $matches[2] . $baseUrl . $matches[3] . $matches[4],
+            $html
+        ) ?? $html;
+
+        $html = preg_replace_callback(
+            '/(<(?:script|img)\b[^>]*\ssrc=)(["\'])(\/(?!\/)[^"\']*)(\2)/i',
+            static fn(array $matches) => $matches[1] . $matches[2] . $baseUrl . $matches[3] . $matches[4],
+            $html
+        ) ?? $html;
+
+        $html = preg_replace_callback(
+            '/(<link\b[^>]*\shref=)(["\'])(\/(?!\/)[^"\']*)(\2)/i',
+            static fn(array $matches) => $matches[1] . $matches[2] . $baseUrl . $matches[3] . $matches[4],
+            $html
+        ) ?? $html;
+
+        return preg_replace_callback(
+            '/(<a\b[^>]*\shref=)(["\'])\/mailto:([^"\']*)(\2)/i',
+            static fn(array $matches) => $matches[1] . $matches[2] . 'mailto:' . $matches[3] . $matches[4],
+            $html
+        ) ?? $html;
     }
 
     private function normalizePaymentUrl(string $value, string $baseUrl): string
@@ -214,6 +297,20 @@ class HostedPaymentService implements HostedPaymentInterface
         }
 
         return rtrim($baseUrl, '/') . '/' . ltrim($value, '/');
+    }
+
+    private function normalizeValidPaymentUrl(string $value, string $baseUrl): ?string
+    {
+        $paymentUrl = $this->normalizePaymentUrl($value, $baseUrl);
+
+        return $this->isRequestEndpointUrl($paymentUrl) ? null : $paymentUrl;
+    }
+
+    private function isRequestEndpointUrl(string $paymentUrl): bool
+    {
+        $path = parse_url($paymentUrl, PHP_URL_PATH);
+
+        return is_string($path) && strtolower(rtrim($path, '/')) === '/payments/request';
     }
 
     private function calculateExecutionTime(float $startedAt): int
