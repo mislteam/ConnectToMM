@@ -181,29 +181,17 @@
         }
 
         .pdf-link {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 82px;
-            padding: 7px 14px;
-            border: 1px solid #004aad;
             color: #004aad;
-            text-align: center;
             text-decoration: none;
-            font-size: 13px;
-            font-weight: 600;
-            line-height: 1.2;
-            background: #fff;
+            font-weight: 700;
         }
 
         .pdf-link:hover {
-            background: #004aad;
-            color: #fff;
-            text-decoration: none;
+            text-decoration: underline;
         }
 
         .sim-details-list {
-            max-width: 520px;
+            max-width: 620px;
             border-top: 1px solid #dee2e6;
         }
 
@@ -385,12 +373,13 @@
                                         <div class="mt-4">
                                             <h5 class="mb-3">SIM Details</h5>
                                             <div class="sim-details-list">
-                                                <div class="sim-details-row is-head">
+                                                <div class="sim-details-row is-head has-check">
                                                     <div>ICCID</div>
                                                     <div class="sim-details-pdf">PDF</div>
+                                                    <div class="sim-details-pdf">Check</div>
                                                 </div>
                                                 @foreach ($order->items as $item)
-                                                    <div class="sim-details-row">
+                                                    <div class="sim-details-row has-check">
                                                         <div class="sim-details-value">
                                                             {{ $item->iccid }}
                                                         </div>
@@ -401,6 +390,13 @@
                                                             @else
                                                                 -
                                                             @endif
+                                                        </div>
+                                                        <div class="sim-details-pdf">
+                                                            <a href="https://globalesimstore.com/E?iccid={{ urlencode((string) $item->iccid) }}"
+                                                                target="_blank" rel="noopener noreferrer"
+                                                                class="btn btn-primary btn-sm">
+                                                                Check
+                                                            </a>
                                                         </div>
                                                     </div>
                                                 @endforeach
