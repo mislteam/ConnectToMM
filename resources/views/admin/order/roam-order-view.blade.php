@@ -585,7 +585,7 @@
                                 </div>
                                 <div class="order-meta-row">
                                     <span class="order-meta-label">Phone</span>
-                                    <div class="order-meta-value">{{ $primaryOrder?->customer?->phone ?: '-' }}</div>
+                                    <div class="order-meta-value">{{ $summary['customer_phone'] ?: '-' }}</div>
                                 </div>
                             </div>
 

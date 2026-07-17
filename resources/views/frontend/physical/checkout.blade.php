@@ -1,11 +1,25 @@
 @extends('frontend.layouts.index')
 @section('title', 'Connect To Myanmar')
 @section('content')
+    @include('components.alert')
     <style>
         .order-summary .order-box {
             /* height: 100%; */
             position: sticky;
             top: 135px;
+        }
+
+        .uab-payment-methods-text.is-hidden {
+            display: none !important;
+        }
+
+        .uab-payment-methods-text {
+            margin-top: 0 !important;
+            line-height: 1.25;
+        }
+
+        .uab-payment-option label {
+            margin-bottom: 0 !important;
         }
     </style>
     <!-- Sub-Banner -->
@@ -145,27 +159,34 @@
                                     </tr>
                                 </tbody>
                             </table>
+                            @php
+                                $selectedPaymentMethod = old(
+                                    'payment_method',
+                                    $is_direct ? 'direct_bank_transfer' : ($is_uab ? 'uabpay' : null),
+                                );
+                            @endphp
                             <h3 class="mb-4">Payment</h3>
                             @if ($is_direct)
                                 <div class="form-group mb-0">
                                     <input type="radio" value="direct_bank_transfer" id="paymentDirectBankTransfer"
                                         name="payment_method" required
-                                        {{ old('payment_method') === 'direct_bank_transfer' ? 'checked' : '' }}
+                                        {{ $selectedPaymentMethod === 'direct_bank_transfer' ? 'checked' : '' }}
                                         {{ $is_direct ? '' : 'disabled' }}>
                                     <label for="paymentDirectBankTransfer"
                                         class="{{ $is_direct ? '' : 'text-muted' }}">{{ $direct_payment_name ?? 'Direct Bank Transfer' }}</label>
                                 </div>
                             @endif
                             @if ($is_uab)
-                                <div class="form-group mb-0">
+                                <div class="form-group mb-0 uab-payment-option">
                                     <input type="radio" value="uabpay" id="paymentUabPay" name="payment_method"
                                         {{ $is_uab ? '' : 'disabled' }}
-                                        {{ old('payment_method') === 'uabpay' ? 'checked' : '' }}>
+                                        {{ $selectedPaymentMethod === 'uabpay' ? 'checked' : '' }}>
                                     <label for="paymentUabPay"
                                         class="{{ $is_uab ? '' : 'text-muted' }}">{{ $uab_payment_name ?? 'Online Payment' }}
                                     </label>
                                     @if (!empty($uab_payment_methods_text))
-                                        <small class="d-block text-danger ms-3">{{ $uab_payment_methods_text }}</small>
+                                        <small id="uabPaymentMethodsText"
+                                            class="uab-payment-methods-text d-block text-danger ms-3 {{ $selectedPaymentMethod === 'uabpay' ? '' : 'is-hidden' }}">{{ $uab_payment_methods_text }}</small>
                                     @endif
                                 </div>
                             @endif
@@ -184,4 +205,27 @@
             </form>
         </div>
     </section>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const uabPaymentMethodsText = document.getElementById('uabPaymentMethodsText');
+
+            if (!uabPaymentMethodsText) {
+                return;
+            }
+
+            const toggleUabPaymentMethodsText = function() {
+                const selectedPaymentMethod = document.querySelector('input[name="payment_method"]:checked');
+                uabPaymentMethodsText.classList.toggle(
+                    'is-hidden',
+                    !selectedPaymentMethod || selectedPaymentMethod.value !== 'uabpay'
+                );
+            };
+
+            document.querySelectorAll('input[name="payment_method"]').forEach(function(paymentMethod) {
+                paymentMethod.addEventListener('change', toggleUabPaymentMethodsText);
+            });
+
+            toggleUabPaymentMethodsText();
+        });
+    </script>
 @endsection
