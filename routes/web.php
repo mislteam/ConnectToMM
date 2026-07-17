@@ -129,6 +129,7 @@ Route::middleware('auth:customers')->group(function () {
     // Roam order detail page
     Route::get('/customer/order-detail/{outerOrderId?}', [HomeController::class, 'orderDetail'])->name('customer.order.detail');
     Route::get('/customer/roam-order-detail/{outerOrderId?}', [HomeController::class, 'roamOrderDetail'])->name('customer.roam.order.detail');
+    Route::get('/customer/joytel-order-detail/{outerOrderId?}', [HomeController::class, 'joytelOrderDetailPage'])->name('customer.joytel.order.detail');
 });
 
 // e-sim

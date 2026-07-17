@@ -252,7 +252,7 @@ class JoytelOrderController extends Controller
         }
 
         return back()->with('success', (int) $joytelOrder->our_status === JoytelOrder::OUR_STATUS_COMPLETED
-            ? 'Joytel eSIM details synced and customer email sent.'
+            ? 'Joytel item details synced successfully.'
             : 'Joytel order is not Delivered yet. It remains Processing.');
     }
 
@@ -461,7 +461,7 @@ class JoytelOrderController extends Controller
         $png = (new PngWriter())->write($qrCode)->getString();
         $path = 'joytel-qrcodes/' . $order->id . '-' . $itemId . '.png';
 
-        Storage::disk('local')->put($path, $png);
+        Storage::disk('public')->put($path, $png);
 
         return $path;
     }
@@ -673,6 +673,7 @@ class JoytelOrderController extends Controller
             'product_summary' => $productNames->implode("\n"),
             'item_count' => $orders->sum(fn(JoytelOrder $order) => max(1, (int) $order->quantity)),
             'amount' => $orders->sum(fn(JoytelOrder $order) => (float) $order->billable_total_price),
+            'payment_method_display' => payment_method_display_label($latestOrder?->payment_method, $reference),
             'payment_label' => $paymentLabel,
             'payment_class' => $paymentClass,
             'status_key' => $statusKey,

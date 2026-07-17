@@ -36,6 +36,19 @@ class OrderNotification extends Notification
 
     public function toMail(object $notifiable): MailMessage
     {
+        if (
+            ($this->payload['provider'] ?? null) === 'joytel'
+            && ($this->payload['service_type'] ?? null) === 'esim'
+            && !empty($this->payload['joytel_items'])
+        ) {
+            return (new MailMessage)
+                ->subject((string) ($this->payload['mail_subject'] ?? 'Joytel order completed'))
+                ->view('emails.joytel-order-completed', [
+                    'payload' => $this->payload,
+                    'notifiable' => $notifiable,
+                ]);
+        }
+
         $mail = (new MailMessage)
             ->subject((string) ($this->payload['mail_subject'] ?? $this->payload['title'] ?? 'Order update'))
             ->greeting('Hello ' . ($notifiable->name ?? 'Customer') . ',')
@@ -67,8 +80,13 @@ class OrderNotification extends Notification
             }
 
             $qrPath = $item['plain_qr_path'] ?? null;
-            if ($qrPath && is_file(storage_path('app/' . $qrPath))) {
-                $mail->attach(storage_path('app/' . $qrPath), [
+            $qrFullPath = $qrPath ? storage_path('app/public/' . $qrPath) : null;
+            if ($qrFullPath && !is_file($qrFullPath)) {
+                $qrFullPath = storage_path('app/' . $qrPath);
+            }
+
+            if ($qrFullPath && is_file($qrFullPath)) {
+                $mail->attach($qrFullPath, [
                     'as' => 'joytel-esim-' . ($index + 1) . '-qr.png',
                     'mime' => 'image/png',
                 ]);

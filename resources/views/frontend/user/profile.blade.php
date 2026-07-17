@@ -843,7 +843,7 @@
                                                     </td>
                                                     <td data-label="Actions">
                                                         <div class="order-action-group">
-                                                            <a href="{{ route('customer.order.detail', ['outerOrderId' => $group['outer_order_id'] ?? $group['order_id']]) }}"
+                                                            <a href="{{ route('customer.joytel.order.detail', ['outerOrderId' => $group['outer_order_id'] ?? $group['order_id']]) }}"
                                                                 class="order-detail-link">Detail</a>
                                                             @if (!empty($group['can_pay']))
                                                                 <a href="{{ route('joytel.payment.show', ['outerOrderId' => $group['outer_order_id'] ?? $group['order_id']]) }}"
@@ -1234,7 +1234,11 @@
                     }
 
                     return value.map(function(item, index) {
-                        return '<div class="mb-2"><strong>Item ' + (index + 1) + '</strong>' +
+                        var label = item && item.__joytelUsageSummary ?
+                            (item.title || 'Total Usage') :
+                            ('Item ' + (index + 1));
+
+                        return '<div class="mb-2"><strong>' + escapeHtml(label) + '</strong>' +
                             renderJoytelUsageValue(item) + '</div>';
                     }).join('');
                 }
@@ -1252,7 +1256,11 @@
                         if (usageRecords.length > 0) {
                             usageHtml = '<div class="mt-3"><strong>Daily Usage</strong>' +
                                 usageRecords.map(function(record, index) {
-                                    return '<div class="mt-2"><strong>Item ' + (index + 1) + '</strong>' +
+                                    var recordLabel = record.package_name || record.product_name ||
+                                        record.salePlanName || record.sale_plan_name ||
+                                        ('Usage ' + (index + 1));
+
+                                    return '<div class="mt-2"><strong>' + escapeHtml(recordLabel) + '</strong>' +
                                         renderJoytelUsageValue(record) + '</div>';
                                 }).join('') + '</div>';
                         }

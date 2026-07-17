@@ -375,6 +375,7 @@
                                     <span class="order-meta-label">Phone</span>
                                     <div class="order-meta-value">{{ $summary['customer_phone'] ?: '-' }}</div>
                                 </div>
+
                             </div>
 
                             <div class="order-meta-panel">
@@ -394,20 +395,20 @@
                                         @endforelse
                                     </div>
                                 </div>
-                                {{-- <div class="order-meta-row">
-                                    <span class="order-meta-label">Payment</span>
-                                    <div class="order-meta-value">
-                                        <span class="order-tag {{ $paymentTagClass }}">
-                                            <i class="ti ti-credit-card"></i> {{ $summary['payment_label'] }}
-                                        </span>
-                                    </div>
-                                </div> --}}
+
                                 <div class="order-meta-row">
                                     <span class="order-meta-label">Order total</span>
                                     <div class="order-meta-value fw-semibold">
                                         {{ number_format((float) $summary['amount']) }} MMK
                                     </div>
                                 </div>
+                                <div class="order-meta-row">
+                                    <span class="order-meta-label">Payment Method</span>
+                                    <div class="order-meta-value fw-semibold">
+                                        {{ $summary['payment_method_display'] ?? (payment_method_display_label(optional($summary['primary_order'])->payment_method, $summary['reference'] ?? null) ?? '-') }}
+                                    </div>
+                                </div>
+
                             </div>
                         </div>
                     </div>
@@ -702,10 +703,16 @@
                                                 ],
                                                 true,
                                             );
+                                        $isRechargeOrder =
+                                            strtolower((string) $order->service_type) === 'physical' &&
+                                            strtolower((string) $order->order_type) === 'recharge';
                                         $canSyncJoytelItems =
                                             !str_starts_with((string) $order->joytel_order_num, 'JTMP-') &&
                                             ((int) $order->our_status ===
                                                 \App\Models\JoytelOrder::OUR_STATUS_API_PROCESSING ||
+                                                ($isRechargeOrder &&
+                                                    (int) $order->our_status ===
+                                                        \App\Models\JoytelOrder::OUR_STATUS_COMPLETED) ||
                                                 $order->items->contains(
                                                     fn($item) => empty($item->sn_code) ||
                                                         (strtolower((string) $order->service_type) === 'esim' &&
@@ -740,11 +747,11 @@
                                             @elseif ($canSyncJoytelItems)
                                                 <form method="POST"
                                                     action="{{ route('order.joytel.sync-items', ['joytelOrder' => $order->id]) }}"
-                                                    onsubmit="return confirm('Sync delivery status and eSIM details from Joytel?');">
+                                                    onsubmit="return confirm('Sync this order status and item details from Joytel?');">
                                                     @csrf
                                                     <button type="submit"
                                                         class="btn btn-secondary order-action-btn order-action-btn-solid">
-                                                        <i class="ti ti-refresh"></i> Sync Joytel eSIM
+                                                        <i class="ti ti-refresh"></i> Sync Joytel Items
                                                     </button>
                                                 </form>
                                             @else

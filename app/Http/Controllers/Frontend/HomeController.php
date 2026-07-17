@@ -9,6 +9,7 @@ use App\Models\Customer;
 use App\Models\Faq;
 use App\Models\HelpSection;
 use App\Models\JoytelOrder;
+use App\Models\JoytelOrderItem;
 use App\Models\RoamOrder;
 use App\Services\Joytel\JoytelOrderApiService;
 use App\Models\Section;
@@ -238,6 +239,7 @@ class HomeController extends Controller
         return $this->orderDetail($outerOrderId);
     }
 
+
     public function orderDetail(?string $outerOrderId = null)
     {
         $customer = auth()->user();
@@ -342,7 +344,7 @@ class HomeController extends Controller
         }
 
         $orders->transform(function (JoytelOrder $order) {
-            $order->formatted_product_name = $order->product_name ?: ($order->remark ?? $order->product_code);
+            $order->formatted_product_name = $this->formatJoytelOrderProductName($order);
 
             return $order;
         });
@@ -357,7 +359,7 @@ class HomeController extends Controller
                 'can_pay' => false,
             ];
 
-        return view('frontend.user.roam-order-detail', [
+        return view('frontend.user.joytel-order-detail', [
             'provider' => 'joytel',
             'provider_order_no_label' => 'Joytel Order No',
             'payment_route' => !empty($outerOrderId) ? route('joytel.payment.show', ['outerOrderId' => $outerOrderId]) : null,
@@ -371,6 +373,13 @@ class HomeController extends Controller
             'can_pay' => $summary['can_pay'],
             'roamOrderGroups' => collect(),
         ]);
+    }
+
+    public function joytelOrderDetailPage(?string $outerOrderId = null)
+    {
+        $customer = auth()->user();
+
+        return $this->joytelOrderDetail($customer, $outerOrderId, $this->customerJoytelOrderGroups($customer));
     }
 
     private function customerRoamOrderGroups(Customer $customer): Collection
@@ -504,7 +513,7 @@ class HomeController extends Controller
         }
 
         $productName = $orders
-            ->map(fn(JoytelOrder $order) => $order->product_name ?: $order->remark)
+            ->map(fn(JoytelOrder $order) => $this->joytelProductLabel($order))
             ->filter()
             ->unique()
             ->implode("\n");
@@ -537,7 +546,7 @@ class HomeController extends Controller
                 return $order->items->map(function ($item) use ($order) {
                     return [
                         'service_type' => strtolower((string) $order->service_type),
-                        'product_name' => $order->product_name ?: $order->remark ?: $item->product_code,
+                        'product_name' => $this->joytelProductLabel($order),
                         'product_code' => $item->product_code,
                         'sn_pin' => $item->sn_pin,
                         'cid' => $item->cid ?: $item->sn_code,
@@ -577,7 +586,7 @@ class HomeController extends Controller
 
         $summary = [
             '__joytelUsageSummary' => true,
-            'title' => 'Total Usage',
+            'title' => $order ? $this->joytelProductLabel($order) : 'Total Usage',
             'rows' => [
                 [
                     'label' => 'Total Data Balance',
@@ -779,6 +788,41 @@ class HomeController extends Controller
     private function bytesToMb(float $bytes): string
     {
         return number_format($bytes / 1024 / 1024, 2) . ' MB';
+    }
+
+    private function formatJoytelOrderProductName(JoytelOrder $order): string
+    {
+        $name = trim((string) ($order->product_name ?: $order->remark ?: $order->items->pluck('product_code')->filter()->first()));
+        $meta = [];
+        $data = $this->resolveJoytelOrderProductData($order);
+
+        if ($data !== '') {
+            $meta[] = $data;
+        }
+
+        if (!empty($order->validity_days)) {
+            $days = (int) $order->validity_days;
+            $meta[] = $days . ' ' . ($days === 1 ? 'day' : 'days');
+        }
+
+        return trim($name . (!empty($meta) ? ' - ' . implode(' - ', $meta) : ''));
+    }
+
+    private function joytelProductLabel(JoytelOrder $order): string
+    {
+        $label = trim((string) ($order->formatted_product_name ?? ''));
+
+        return $label !== '' ? $label : $this->formatJoytelOrderProductName($order);
+    }
+
+    private function resolveJoytelOrderProductData(JoytelOrder $order): string
+    {
+        $data = data_get($order->raw_response, 'cart_item.service_data')
+            ?? data_get($order->raw_response, 'cart_item.data')
+            ?? data_get($order->raw_response, 'request_payload.serviceData')
+            ?? data_get($order->raw_response, 'request_payload.data');
+
+        return is_string($data) ? trim($data) : '';
     }
 
     private function paginateCollection(Collection $items, int $perPage, string $pageName): LengthAwarePaginator
