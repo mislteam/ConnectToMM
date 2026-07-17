@@ -484,10 +484,10 @@
 
                         @if ($canShowPaymentButton)
                             <div class="payment-section-block">
-                                <span class="payment-section-title">UAB Payment</span>
+                                <span class="payment-section-title">{{ $payment_method ?? 'Payment' }}</span>
                                 <a href="{{ $statusView['payment_button_url'] ?? ($payment_action_url ?? '#') }}"
                                     class="button_text" @if (!empty($statusView['payment_button_url'] ?? $payment_action_url)) target="_self" @endif>
-                                    {{ $statusView['payment_button_text'] ?? 'Continue to UAB Pay' }}
+                                    {{ $statusView['payment_button_text'] ?? 'Continue to Payment' }}
                                 </a>
                             </div>
                         @endif

@@ -410,6 +410,7 @@ class OrderController extends Controller
             'created_at' => $latestOrder?->created_at,
             'customer_name' => $latestOrder?->customer?->name ?? '-',
             'customer_email' => $latestOrder?->customer?->email ?? '-',
+            'customer_phone' => $this->resolveCustomerPhone($orders),
             'product_names' => $productNames,
             'product_summary' => $productNames->implode("\n"),
             'item_count' => $orders->count(),
@@ -427,6 +428,25 @@ class OrderController extends Controller
             'payment_slip_path' => $this->extractPaymentSlipPath($orders),
             'orders' => $sortedOrders,
         ];
+    }
+
+    private function resolveCustomerPhone(Collection $orders): string
+    {
+        foreach ($orders as $order) {
+            $phone = data_get($order->raw_response, 'payment.uab.customer.phone')
+                ?? data_get($order->raw_response, 'payment.uab.billing.phone')
+                ?? data_get($order->raw_response, 'billing.phone');
+
+            $phone = trim((string) $phone);
+
+            if ($phone !== '') {
+                return $phone;
+            }
+        }
+
+        $phone = trim((string) ($orders->first()?->customer?->phone ?? ''));
+
+        return $phone !== '' ? $phone : '-';
     }
 
     private function extractPaymentSlipPath(Collection $orders): ?string
