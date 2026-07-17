@@ -107,13 +107,18 @@ class OrderNotificationService
             'title' => $title,
             'message' => $message,
             'mail' => $shouldSendMail,
-            'mail_subject' => $title,
+            'mail_subject' => $order instanceof JoytelOrder && Str::lower((string) $order->service_type) === 'esim'
+                ? '[Order Success Notification] eSIM Redemption'
+                : $title,
             'mail_action_text' => 'View Order',
             'icon' => 'check-circle',
             'tone' => 'success',
             'provider' => $provider,
             'reference' => $reference,
             'joytel_order_num' => $joytelOrderNum,
+            'customer_email' => $order->customer?->email,
+            'order_created_at' => $order->created_at?->format('Y/m/d H:i:s'),
+            'service_type' => $order instanceof JoytelOrder ? (string) $order->service_type : null,
             'joytel_items' => $order instanceof JoytelOrder
                 ? $order->items->map(function ($item) {
                     return [
