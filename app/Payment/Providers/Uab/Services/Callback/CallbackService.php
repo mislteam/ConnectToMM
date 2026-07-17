@@ -41,6 +41,8 @@ class CallbackService implements CallbackInterface
     private function process(CallbackData $data): array
     {
         if (!$this->verifySignature($data)) {
+            $this->storeSelectedPaymentForConfirmedTransaction($data);
+
             $this->callbackLogRepository->create([
                 'payment_transaction_id' => null,
                 'request_payload' => $data->payload,
@@ -72,11 +74,17 @@ class CallbackService implements CallbackInterface
             [$data->eventType => $data->payload]
         );
 
+        $selectedPaymentAttributes = $this->selectedPaymentAttributes($data->payload);
+
+        if (empty($selectedPaymentAttributes)) {
+            $selectedPaymentAttributes = $this->selectedPaymentAttributesFromPreviousCallback($data);
+        }
+
         $updateAttributes = array_merge([
             'transaction_id' => $data->transactionId ?? $transaction->transaction_id,
             'status' => $status->value,
             'provider_response' => $providerResponse,
-        ], $this->selectedPaymentAttributes($data->payload));
+        ], $selectedPaymentAttributes);
 
         $updated = $this->transactionService->updateByRequestId($data->requestId, $updateAttributes);
 
@@ -183,6 +191,80 @@ class CallbackService implements CallbackInterface
         }
 
         return $attributes;
+    }
+
+    private function selectedPaymentAttributesFromPreviousCallback(CallbackData $data): array
+    {
+        foreach ($this->callbackLogRepository->findMethodPayloadsByRequestId($data->requestId) as $payload) {
+            if (!$this->callbackPayloadMatchesTransaction($payload, $data)) {
+                continue;
+            }
+
+            $attributes = $this->selectedPaymentAttributes($payload);
+
+            if (!empty($attributes)) {
+                return $attributes;
+            }
+        }
+
+        return [];
+    }
+
+    private function callbackPayloadMatchesTransaction(array $payload, CallbackData $data): bool
+    {
+        $payloadTransactionId = (string) ($payload['TransactionID'] ?? '');
+        $payloadReference = (string) ($payload['TransactionReferenceNumber'] ?? '');
+
+        if ($data->transactionId !== null && $payloadTransactionId !== '' && $payloadTransactionId !== $data->transactionId) {
+            return false;
+        }
+
+        if (
+            $data->transactionReferenceNumber !== null
+            && $payloadReference !== ''
+            && $payloadReference !== $data->transactionReferenceNumber
+        ) {
+            return false;
+        }
+
+        $responseCode = (string) ($payload['RespCode'] ?? '');
+        $responseDescription = strtoupper((string) ($payload['RespDescription'] ?? ''));
+
+        return $responseCode === '000' || $responseDescription === 'SUCCESS';
+    }
+
+    private function storeSelectedPaymentForConfirmedTransaction(CallbackData $data): void
+    {
+        if ($data->eventType !== 'notify') {
+            return;
+        }
+
+        $attributes = $this->selectedPaymentAttributes($data->payload);
+
+        if (empty($attributes)) {
+            return;
+        }
+
+        $transaction = $this->transactionService->findByRequestId($data->requestId);
+
+        if ($transaction === null) {
+            return;
+        }
+
+        if ($this->transactionStatusValue($transaction->status) !== TransactionStatus::SUCCESS->value) {
+            return;
+        }
+
+        if (!$this->callbackPayloadMatchesTransaction($data->payload, $data)) {
+            return;
+        }
+
+        $this->transactionService->updateByRequestId($data->requestId, $attributes);
+    }
+
+    private function transactionStatusValue(mixed $status): string
+    {
+        return $status instanceof TransactionStatus ? $status->value : (string) $status;
     }
 
     private function redirectSignatureUris(CallbackData $data): array
