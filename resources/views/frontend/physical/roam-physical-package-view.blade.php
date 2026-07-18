@@ -449,7 +449,7 @@
                                 <div class="content">
                                     <h4>{{ $package->country_name ?? 'Unnamed Package' }}</h4>
                                     @if ($lowestPrice)
-                                        <p class="text-size-16">From {{ number_format($lowestPrice) }} MMK</p>
+                                        <p class="text-size-16">From {{ displayPrice($lowestPrice, 'user_usd_rate') }}</p>
                                     @else
                                         <p class="text-size-16 text-danger">Not available</p>
                                     @endif
@@ -469,6 +469,9 @@
     </section>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const selectedCurrency = "{{ session('currency', config('currency.default')) }}";
+            const userUsdRate = Number(@json($userUsdRate));
+
             const hasValidPlans = @json($hasValidPlans);
             const canAdjustQuantity = @json($canAdjustQuantity);
 
@@ -813,7 +816,21 @@
                     }
 
                     const total = unitPrice * qty;
-                    total_price.innerText = `Total Price: ${total.toLocaleString()} MMK`;
+
+                    const validUsdRate =
+                        Number.isFinite(userUsdRate) &&
+                        userUsdRate > 0;
+
+                    const usdTotal = validUsdRate ? total / userUsdRate : null;
+
+                    if (selectedCurrency === 'USD') {
+                        total_price.innerText = usdTotal !== null ?
+                            `Total Price: $${usdTotal.toFixed(2)}` :
+                            'Total Price: USD rate unavailable';
+                    } else {
+                        total_price.innerText =
+                            `Total Price: ${total.toLocaleString('en-US')} MMK`;
+                    }
                     if (displayPriceInput) displayPriceInput.value = total;
                     return;
                 }

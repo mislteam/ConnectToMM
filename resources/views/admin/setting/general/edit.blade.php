@@ -23,7 +23,7 @@
             </div>
             <div class="d-flex align-items-center gap-2">
                 <div class="d-flex gap-1">
-                    <a href="{{ route('generalIndex') }}" class="btn btn-dark ms-1">Back</a>
+                    <a href="{{ route('generalIndex') }}" class="btn btn-primary ms-1">Back</a>
                 </div>
             </div>
         </div>
@@ -96,7 +96,7 @@
                                 @endif
                             </div>
                             <div class="mt-2 mb-4 d-flex gap-2 justify-content-end">
-                                <button type="submit" class="btn btn-dark">Update</button>
+                                <button type="submit" class="btn btn-primary">Update</button>
                             </div>
                         </form>
                     </div> <!-- end card-body-->

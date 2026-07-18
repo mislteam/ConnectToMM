@@ -12,7 +12,7 @@
             </div>
             <div class="d-flex align-items-center gap-2">
                 <div class="d-flex gap-1">
-                    <a href="{{ route('currency.index') }}" class="btn btn-dark ms-1">Back</a>
+                    <a href="{{ route('currency.index') }}" class="btn btn-primary ms-1">Back</a>
                 </div>
             </div>
         </div>
@@ -25,7 +25,7 @@
                     </div>
 
                     <div class="card-body">
-                        <form action="{{ route('currency.update',$currency->id) }}" method="POST">
+                        <form action="{{ route('currency.update', $currency->id) }}" method="POST">
                             @csrf
                             @method('patch')
                             <div class="row">
@@ -36,8 +36,8 @@
                                 </div>
                                 <div class="col-lg-9">
                                     <div class="mb-3">
-                                        <input type="text" name="value" class="form-control"
-                                            required="" value="{{ $currency->value }}">
+                                        <input type="text" name="value" class="form-control" required=""
+                                            value="{{ $currency->value }}">
                                         <div class="my-1">
                                             @error('value')
                                                 <small class="text-danger"></small>
@@ -47,7 +47,7 @@
                                 </div>
                             </div>
                             <div class="mt-2 mb-4 d-flex gap-2 justify-content-end">
-                                <button type="submit" class="btn btn-dark">Update</button>
+                                <button type="submit" class="btn btn-primary">Update</button>
                             </div>
                         </form>
                     </div> <!-- end card-body-->

@@ -124,13 +124,11 @@
                                                             <i class="ti ti-dots-vertical fs-lg"></i>
                                                         </button>
                                                         <div class="dropdown-menu">
-                                                            <button type="button" class="dropdown-item"
-                                                                data-bs-toggle="modal"
+                                                            <button type="button" class="dropdown-item" data-bs-toggle="modal"
                                                                 data-bs-target="#manage-price-{{ $index }}">
                                                                 <i class="ti ti-currency-dollar fs-lg"></i> Manage Price
                                                             </button>
-                                                            <button type="button" class="dropdown-item"
-                                                                data-bs-toggle="modal"
+                                                            <button type="button" class="dropdown-item" data-bs-toggle="modal"
                                                                 data-bs-target="#manage-status-{{ $index }}">
                                                                 <i class="ti ti-box fs-lg"></i> Manage Status
                                                             </button>
@@ -172,10 +170,21 @@
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"
                                             aria-label="Close"></button>
                                     </div>
+
                                     <div class="modal-body">
-                                        <h4 class="modal-title">
-                                            <span>{{ $pkg->country_name }}</span>
-                                        </h4>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h4 class="modal-title">
+                                                <span id="product-name-title">{{ $pkg->country_name }}</span>
+                                            </h4>
+                                            <x-plan-export-button data-sim-type="roam-esim" />
+                                        </div>
+                                        <div class="country-group d-flex gap-2 mt-2">
+                                            <h5>Coverage: </h5>
+                                            <p id="country-list">
+                                                {{ isset($pkg->roam->support_country) ? implode(', ', $pkg->roam->support_country) : '-' }}
+                                            </p>
+                                        </div>
+
                                         <div class="mt-2">
                                             <form action="{{ route('pricelist.store') }}" method="POST">
                                                 @csrf
@@ -190,6 +199,7 @@
                                                             <th style="width: 150px;">Selling Rate</th>
                                                             <th>Profit</th>
                                                             <th>Total(MMK)</th>
+                                                            <th>Total(USD)</th>
                                                         </tr>
                                                     </thead>
                                                     @if (!empty($plans->packages))
@@ -218,12 +228,14 @@
                                                                 $total = round($portal_price * $selling_rate);
 
                                                                 $profit = round($total - $exchange_rate);
+                                                                $usdTotal = round($total / $userUsdRate, 2);
 
                                                             @endphp
                                                             <tbody id="invoice-items">
                                                                 <tr>
                                                                     <td>{{ $loop->iteration }}</td>
-                                                                    <td class="text-start">{{ $plan['flows'] ?? '' }}
+                                                                    <td class="text-start export-plan-name">
+                                                                        {{ $plan['flows'] ?? '' }}
                                                                         {{ $plan['unit'] ?? '' }} :
                                                                         @php
                                                                             $name = $plan['showName'] ?? '';
@@ -237,14 +249,15 @@
                                                                             DayPass : {{ $plan['days'] }} days
                                                                         @else
                                                                             {{-- Priority 3: Fallback for '1GB/3days', etc. --}}
-                                                                            Fixed : {{ $plan['days'] }} days
+                                                                            Total : {{ $plan['days'] }} days
                                                                         @endif
                                                                     </td>
                                                                     <td><label
                                                                             class="form-label">{{ number_format($exchange_rate, 0) }}</label>
                                                                     </td>
 
-                                                                    <td><label class="form-label">{{ $portal_price }}</label>
+                                                                    <td><label
+                                                                            class="form-label">{{ $portal_price }}</label>
                                                                     </td>
                                                                     <td>
                                                                         <input type="number"
@@ -257,6 +270,9 @@
                                                                     </td>
                                                                     <td><label
                                                                             class="form-label total-label">{{ $total }}</label>
+                                                                    </td>
+                                                                    <td><label
+                                                                            class="form-label usd-total-label">{{ $usdTotal }}</label>
                                                                     </td>
                                                                     <input type="hidden"
                                                                         name="plans[{{ $innerIndex }}][profit]"
@@ -331,7 +347,8 @@
                                                         <tbody id="invoice-items">
                                                             <tr>
                                                                 <td>{{ $loop->iteration }}</td>
-                                                                <td class="text-start">{{ $plan['flows'] ?? '' }}
+                                                                <td class="text-start">
+                                                                    {{ $plan['flows'] ?? '' }}
                                                                     {{ $plan['unit'] ?? '' }} :
                                                                     @php
                                                                         $name = $plan['showName'] ?? '';
@@ -345,7 +362,7 @@
                                                                         DayPass : {{ $plan['days'] }} days
                                                                     @else
                                                                         {{-- Priority 3: Fallback for '1GB/3days', etc. --}}
-                                                                        Fixed : {{ $plan['days'] }} days
+                                                                        Total : {{ $plan['days'] }} days
                                                                     @endif
                                                                 </td>
                                                                 <td>
@@ -362,14 +379,16 @@
                                                                         <input type="hidden"
                                                                             name="plans[{{ $index }}][plan_name]"
                                                                             value="{{ $plan['flows'] ?? '' }} {{ $plan['unit'] ?? '' }}">
-                                                                        <input type="hidden" name="status" value="0">
+                                                                        <input type="hidden" name="status"
+                                                                            value="0">
                                                                         <input type="hidden" name="index"
                                                                             value="{{ $index }}">
 
                                                                         <div
                                                                             class="form-check form-switch form-check-secondary fs-xxl mb-2">
-                                                                            <input type="checkbox" class="form-check-input"
-                                                                                name="status" value="1"
+                                                                            <input type="checkbox"
+                                                                                class="form-check-input" name="status"
+                                                                                value="1"
                                                                                 onchange="this.form.submit()"
                                                                                 {{ ($plan['status'] ?? 0) == 1 ? 'checked' : '' }}>
                                                                             <label
@@ -405,48 +424,48 @@
             </div><!-- end col -->
         </div><!-- end row -->
 
-        </div>
-        <!-- <script>
-            document.addEventListener("input", function(e) {
-                if (e.target.classList.contains("price-input")) {
-                    let row = e.target.closest("tr");
+    </div>
+    <!-- <script>
+        document.addEventListener("input", function(e) {
+            if (e.target.classList.contains("price-input")) {
+                let row = e.target.closest("tr");
 
-                    let userPrice = parseFloat(e.target.value) || 0;
-                    console.log(userPrice);
-
-
-                    let originalPrice = parseFloat(row.querySelector(".original-price")?.value || 0);
-                    console.log(originalPrice);
-
-                    let profit = userPrice - originalPrice;
-                    console.log(profit);
-
-                    let profitInput = row.querySelector(".profit-input");
-                    if (profitInput) {
-                        // profitInput.value = profit.toFixed(2);
-                        profitInput.value = profit;
-                    }
+                let userPrice = parseFloat(e.target.value) || 0;
+                console.log(userPrice);
 
 
+                let originalPrice = parseFloat(row.querySelector(".original-price")?.value || 0);
+                console.log(originalPrice);
+
+                let profit = userPrice - originalPrice;
+                console.log(profit);
+
+                let profitInput = row.querySelector(".profit-input");
+                if (profitInput) {
+                    // profitInput.value = profit.toFixed(2);
+                    profitInput.value = profit;
                 }
-            });
-        </script> -->
 
-        <!-- <script>
-            document.addEventListener("input", function(e) {
-                if (e.target.classList.contains("price-input")) {
-                    let row = e.target.closest("tr");
 
-                    let mmk = parseFloat(row.querySelector(".mmk-price").value) || 0;
-                    let extra = parseFloat(e.target.value) || 0;
-                    let total = mmk + extra;
+            }
+        });
+    </script> -->
 
-                    row.querySelector(".total-input").value = total + 'MMK';
-                }
-            });
-        </script> -->
+    <!-- <script>
+        document.addEventListener("input", function(e) {
+            if (e.target.classList.contains("price-input")) {
+                let row = e.target.closest("tr");
 
-        {{-- <script>
+                let mmk = parseFloat(row.querySelector(".mmk-price").value) || 0;
+                let extra = parseFloat(e.target.value) || 0;
+                let total = mmk + extra;
+
+                row.querySelector(".total-input").value = total + 'MMK';
+            }
+        });
+    </script> -->
+
+    {{-- <script>
         document.addEventListener("input", function(e) {
 
             if (!e.target.classList.contains("exchange-input")) return;
@@ -469,64 +488,71 @@
         });
     </script> --}}
 
-        <script>
-            function formatNumber(num) {
-                return new Intl.NumberFormat().format(num);
-            }
+    <script>
+        window.userUsdRate = {{ $userUsdRate }};
 
-            function updateRowCalculation(row) {
+        function formatNumber(num) {
+            return new Intl.NumberFormat().format(num);
+        }
 
-                let rawValue = row.querySelector(".exchange-input")?.value;
-                let sellingRate = rawValue !== "" ? parseFloat(rawValue) : null;
+        function updateRowCalculation(row) {
 
-                let portalPrice = parseFloat(row.querySelector(".portal-price")?.value) || 0;
-                let exchangeRate = parseFloat(row.querySelector(".base-exchange-rate")?.value) || 0;
+            let rawValue = row.querySelector(".exchange-input")?.value;
+            let sellingRate = rawValue !== "" ? parseFloat(rawValue) : null;
 
-                let total = 0;
-                let profit = 0;
+            let portalPrice = parseFloat(row.querySelector(".portal-price")?.value) || 0;
+            let exchangeRate = parseFloat(row.querySelector(".base-exchange-rate")?.value) || 0;
 
-                // TOTAL
-                let totalLabel = row.querySelector(".total-label");
-                if (totalLabel) {
-                    if (sellingRate !== null && sellingRate > 0) {
-                        total = sellingRate * portalPrice;
-                        totalLabel.textContent = formatNumber(Math.round(total));
-                    } else {
-                        totalLabel.textContent = "-";
-                    }
-                }
+            let total = 0;
+            let profit = 0;
 
-                // PROFIT
-                let profitLabel = row.querySelector(".profit-label");
-                if (profitLabel) {
-                    if (sellingRate !== null && sellingRate > 0 && exchangeRate > 0) {
-                        profit = total - exchangeRate;
-                        profitLabel.textContent = formatNumber(Math.round(profit));
-                    } else {
-                        profitLabel.textContent = "-";
-                    }
-                }
+            // TOTAL
+            let totalLabel = row.querySelector(".total-label");
+            let usdTotalLabel = row.querySelector(".usd-total-label");
+            if (totalLabel && usdTotalLabel) {
+                if (sellingRate !== null && sellingRate > 0) {
+                    total = sellingRate * portalPrice;
 
-                // hidden input
-                let profitInput = row.querySelector(".profit-input");
-                if (profitInput) {
-                    profitInput.value = profit > 0 ? profit : '';
+                    const usdTotal = (Math.round(total) / window.userUsdRate).toFixed(2);
+                    totalLabel.textContent = formatNumber(Math.round(total));
+                    usdTotalLabel.textContent = usdTotal;
+                } else {
+                    totalLabel.textContent = "-";
+                    usdTotalLabel.textContent = "-";
                 }
             }
 
-            document.addEventListener("input", function(e) {
-                if (e.target.classList.contains("exchange-input")) {
-                    let row = e.target.closest("tr");
-                    if (row) {
-                        updateRowCalculation(row);
-                    }
+            // PROFIT
+            let profitLabel = row.querySelector(".profit-label");
+            if (profitLabel) {
+                if (sellingRate !== null && sellingRate > 0 && exchangeRate > 0) {
+                    profit = total - exchangeRate;
+                    profitLabel.textContent = formatNumber(Math.round(profit));
+                } else {
+                    profitLabel.textContent = "-";
                 }
-            });
+            }
 
-            document.addEventListener("DOMContentLoaded", function() {
-                document.querySelectorAll("#invoice-items tr").forEach(function(row) {
+            // hidden input
+            let profitInput = row.querySelector(".profit-input");
+            if (profitInput) {
+                profitInput.value = profit > 0 ? profit : '';
+            }
+        }
+
+        document.addEventListener("input", function(e) {
+            if (e.target.classList.contains("exchange-input")) {
+                let row = e.target.closest("tr");
+                if (row) {
                     updateRowCalculation(row);
-                });
+                }
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", function() {
+            document.querySelectorAll("#invoice-items tr").forEach(function(row) {
+                updateRowCalculation(row);
             });
-        </script>
-    @endsection
+        });
+    </script>
+@endsection

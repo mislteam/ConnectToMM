@@ -14,7 +14,7 @@
                         <div class="banner_content">
                             <h1>E-SIM - {{ $settings['roam_title']->value ?? 'Roam' }}</h1>
                             <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-                                labore et dolore magna aliqua.</p>
+                                labore etasdf dolore magna aliqua.</p>
                         </div>
                     </div>
                 </div>
@@ -119,7 +119,8 @@
                                                     </figure>
                                                     <div class="content">
                                                         <h4>{{ $package->country_name }}</h4>
-                                                        <p class="text-size-16">From {{ number_format($lowestPrice) }} MMK
+                                                        <p class="currency text-size-16">From
+                                                            {{ displayPrice($lowestPrice, 'user_usd_rate') }}
                                                         </p>
                                                         <a href="{{ route('esim.roampackageview', ['id' => $package->sku_id, 'list_view' => 1, 'sim_type' => $orderType]) }}"
                                                             class="more">View Offer</a>

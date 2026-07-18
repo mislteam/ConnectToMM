@@ -31,6 +31,7 @@ use App\Http\Controllers\Frontend\FrontendJoytelController;
 use App\Http\Controllers\Frontend\HomeController;
 use App\Http\Controllers\Frontend\PhysicalSimController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\Backend\CustomerWalletController;
 
 Route::get('/', function () {
     return redirect()->route('Index');
@@ -67,6 +68,7 @@ Route::get('/blog/detail/{blog}', [HomeController::class, 'blogDetail'])->name('
 Route::get('/contact', [HomeController::class, 'contact'])->name('Contact');
 Route::post('/contact', [ContactUsController::class, 'store'])->name('contact.store');
 Route::get('/refunds-policy', [HomeController::class, 'refundsPolicy'])->name('refundsPolicy');
+Route::post('/currency/change', [HomeController::class, 'currencyChange'])->name('currency.change');
 
 // user
 Route::middleware('guest:customers')->group(function () {
@@ -130,6 +132,12 @@ Route::middleware('auth:customers')->group(function () {
     Route::get('/customer/order-detail/{outerOrderId?}', [HomeController::class, 'orderDetail'])->name('customer.order.detail');
     Route::get('/customer/roam-order-detail/{outerOrderId?}', [HomeController::class, 'roamOrderDetail'])->name('customer.roam.order.detail');
     Route::get('/customer/joytel-order-detail/{outerOrderId?}', [HomeController::class, 'joytelOrderDetailPage'])->name('customer.joytel.order.detail');
+
+    Route::get('/user/wallet', [HomeController::class, 'customerWallet'])->name('frontend.user.wallet');
+    Route::post('/user/topup', [HomeController::class, 'customerTopUp'])->name('frontend.user.topup');
+    Route::get('/user/topup/payment/{transaction}', [HomeController::class, 'customerTopUpPayment'])->name('frontend.user.topup-payment');
+    Route::patch('/user/topup/payment-slip/{transaction}', [HomeController::class, 'topupPaymentSlip'])->name('frontend.user.topup-payment-slip');
+    Route::get('/user/topup/detail/{transaction}', [HomeController::class, 'topupDetail'])->name('frontend.user.topup-detail');
 });
 
 // e-sim
@@ -171,10 +179,27 @@ Route::middleware(['auth'])->group(function () { //, 'admin.permission'
 
     // customer
     Route::get('/all-customer', [CustomerController::class, 'index'])->name('customer.index');
-    Route::get('/customer/show/{customer}', [CustomerController::class, 'show'])->name('customer.show');
-    Route::get('/customer/edit/{customer}', [CustomerController::class, 'edit'])->name('customer.edit');
-    Route::post('/customer/update/{id}', [CustomerController::class, 'update'])->name('customer.update');
-    Route::post('/customer/change-password', [CustomerController::class, 'changePassword'])->name('customer.change-password');
+    Route::prefix("customer")->group(function () {
+
+        Route::get('/show/{customer}', [CustomerController::class, 'show'])->name('customer.show');
+        Route::get('/edit/{customer}', [CustomerController::class, 'edit'])->name('customer.edit');
+        Route::post('/update/{id}', [CustomerController::class, 'update'])->name('customer.update');
+        Route::post('/change-password', [CustomerController::class, 'changePassword'])->name('customer.change-password');
+
+        Route::get('/wallet/{customer}', [CustomerWalletController::class, 'index'])->name('customer.wallet.index');
+
+        Route::get('/wallet/show/{transaction}', [CustomerWalletController::class, 'show'])->name('customer.wallet.show');
+
+        Route::get('/wallet/edit', [CustomerWalletController::class, 'edit'])->name('customer.wallet.edit');
+
+        Route::get('/wallet/create/{customer}', [CustomerWalletController::class, 'create'])->name('customer.wallet.create');
+
+        Route::post('/wallet/store', [CustomerWalletController::class, 'store'])->name('customer.wallet.store');
+
+        Route::patch('/wallet/topup-approve/{transaction}', [CustomerWalletController::class, 'update'])->name('customer.wallet.update');
+
+        Route::patch('wallet/{wallet}status', [CustomerWalletController::class, 'updateStatus'])->name('customer.wallet.status');
+    });
 
     // order
     Route::get('/all-orders', [OrderController::class, 'index'])->name('order.index');

@@ -29,20 +29,27 @@
         </div>
     </div>
     <!-- MAIN SECTION -->
-    <!--End Slider Section-->
+
     <section class="blog-posts">
         <div class="container">
             <div class="row wow fadeInUp" style="visibility: visible; animation-name: fadeInUp;">
                 <div id="blog" class="three-column col-xl-12">
                     <div class="row">
                         @foreach ($blogs as $blog)
+                            @php
+                                $cleanDesc = trim(
+                                    preg_replace('/\s+/', ' ', strip_tags(html_entity_decode($blog->desc))),
+                                );
+                            @endphp
                             <div class="col-xl-4 col-lg-4">
                                 <div class="float-left w-100 post-item border mb-4">
                                     <div class="post-item-wrap position-relative">
                                         <div class="post-image">
                                             <a href="#">
                                                 <img alt=""
-                                                    src="{{ $blog->image ? asset('blog/' . $blog->image) : asset('assets/images/standard_post_img01.jpg') }}">
+                                                    src="{{ $blog->image ? asset('blog/' . $blog->image) : asset('assets/images/standard_post_img01.jpg') }}"
+                                                    width="100%" height="210px"
+                                                    style="background-size: cover; object-fit: cover;">
                                             </a>
                                             <span class="post-meta-category">
                                                 <a href="">{{ $blog->category->cat_name }}</a>
@@ -51,9 +58,11 @@
                                         </div>
                                         <div class="post-item-description">
                                             <h2>
-                                                <a href="#">{{ $blog->title }}</a>
+                                                <a href="#">{{ Str::limit($blog->title, 20) }}</a>
                                             </h2>
-                                            <div class="content-description">{!! Str::Limit($blog->desc, 150) !!}</div>
+                                            <div class="content-description">
+                                                {{ Str::limit($cleanDesc, 150) }}
+                                            </div>
                                             <a href="{{ route('blogDetail', $blog->id) }}" class="item-link">Read More <i
                                                     class="fa fa-arrow-right"></i></a>
                                             <!--post-item-description-->

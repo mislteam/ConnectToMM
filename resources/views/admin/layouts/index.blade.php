@@ -119,6 +119,10 @@
             line-height: 1.5;
         }
 
+        [data-bs-theme="dark"] .text-black {
+            color: #e5edf9 !important;
+        }
+
         @keyframes request-loader-spin {
             to {
                 transform: rotate(360deg);
@@ -238,6 +242,8 @@
     <script src="{{ asset('assets/plugins/summernote/summernote-bs5.min.js') }}"></script>
     <!-- Summernote Demo Js -->
     <script src="{{ asset('assets/js/pages/form-summernote.js') }}"></script>
+    <script src="{{ asset('assets/js/plugins/excel/xlsx.full.min.js') }}"></script>
+    <script src="{{ asset('assets/js/backend-custom-js.js') }}"></script>
 
     <script type="text/javascript">
         $(".select2_design").select2({
@@ -266,6 +272,19 @@
                 }
             );
         });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const dashboardUrl = "{{ route('dashboard.index') }}";
+            const linkEls = document.querySelectorAll('.breadcrumb-item a');
+            if (linkEls) {
+                linkEls.forEach((el) => {
+                    if (el.textContent.toLowerCase() === 'home') {
+                        el.href = dashboardUrl ?? '#';
+                    }
+                })
+            }
+        })
     </script>
 </body>
 

@@ -344,3 +344,37 @@ if (!function_exists('getOrderTypes')) {
         return $tabs;
     }
 }
+
+if (!function_exists('getUsdPrice')) {
+    function getUsdPrice(float|int $totalMMK, string $rateName)
+    {
+        $usdRate = \App\Models\Currency::query()->where('name', $rateName)->value('value');
+
+        if (! is_numeric($usdRate) || (float) $usdRate <= 0) {
+            return null;
+        }
+
+        return round((float)$totalMMK / (float)$usdRate, 2);
+    }
+}
+
+if (! function_exists('displayPrice')) {
+    function displayPrice(int|float $mmkPrice, string $rateName = "user_usd_rate"): string
+    {
+        $currency = session('currency', config('currency.default'));
+        if (!in_array($currency, config('currency.supported'))) {
+            $currency = config('currency.default');
+        }
+
+        if ($currency === "USD") {
+            $usdPrice = getUsdPrice($mmkPrice, $rateName);
+            if ($usdPrice == null) {
+                return number_format($mmkPrice) . ' MMK';
+            }
+
+            return '$' . number_format($usdPrice, 2);
+        }
+
+        return number_format($mmkPrice) . ' MMK';
+    }
+}

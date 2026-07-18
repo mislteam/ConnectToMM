@@ -51,10 +51,10 @@ class CustomerAuthController extends Controller
             'email' => ['required', 'email', 'max:255', 'unique:customers,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'terms' => ['accepted'],
-             'cf-turnstile-response' => 'required',
+            'cf-turnstile-response' => 'required',
         ]);
-        
-         $response = Http::asForm()->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
+
+        $response = Http::asForm()->post('https://challenges.cloudflare.com/turnstile/v0/siteverify', [
             'secret' => env('TURNSTILE_SECRET_KEY'),
             'response' => $request->input('cf-turnstile-response'),
             'remoteip' => $request->ip(),
@@ -77,6 +77,8 @@ class CustomerAuthController extends Controller
                 'status' => Customer::STATUS_PENDING,
             ]);
         });
+
+        $this->createCustomerWallet($customer);
 
         try {
             $verificationCode = $this->issueVerificationCode($customer, $request);
@@ -314,6 +316,12 @@ class CustomerAuthController extends Controller
             return back()
                 ->withInput($request->only('email', 'remember'))
                 ->with('error', 'No account found with this email.');
+        }
+
+        if ($customer->auth_provider === 'google' && blank($customer->password)) {
+            return back()
+                ->withInput($request->only('email'))
+                ->with('error', 'This account was created with Google. Please continue with Google to sign in.');
         }
 
         if (! Hash::check($request->password, $customer->password ?? '')) {
@@ -565,7 +573,7 @@ class CustomerAuthController extends Controller
             $customer->status = Customer::STATUS_PENDING;
             $customer->email_verified_at = null;
             $customer->save();
-
+            $this->createCustomerWallet($customer);
             return $customer;
         });
     }
@@ -713,5 +721,10 @@ class CustomerAuthController extends Controller
     private function googleFlowLandingRoute(string $flow): string
     {
         return $flow === 'register' ? 'user.register' : 'user.login';
+    }
+
+    private function createCustomerWallet(Customer $customer): void
+    {
+        $customer->customerWallet()->firstOrCreate([]);
     }
 }

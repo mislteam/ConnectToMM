@@ -62,7 +62,8 @@
                                         </figure>
                                         <div class="content">
                                             <h4>{{ $package->country_name }}</h4>
-                                            <p class="text-size-16">From {{ number_format($lowestPrice) }} MMK</p>
+                                            <p class="text-size-16">From {{ displayPrice($lowestPrice, 'user_usd_rate') }}
+                                                MMK</p>
                                             <a href="{{ route('esim.roampackageview', ['id' => $package->sku_id, 'list_view' => 1, 'sim_type' => session('sim_type', 'new_esim')]) }}"
                                                 data-base-href="{{ route('esim.roampackageview', ['id' => $package->sku_id, 'list_view' => 1]) }}"
                                                 class="more">View Offer</a>
@@ -81,8 +82,8 @@
 
                         @if ($packageCards->count() > 6)
                             <div class="text-center mt-4">
-                                <button id="showMoreBtn-esim" class="btn btn-primary px-4 py-2"
-                                    data-show-more="esim">Show All</button>
+                                <button id="showMoreBtn-esim" class="btn btn-primary px-4 py-2" data-show-more="esim">Show
+                                    All</button>
                             </div>
                         @endif
                     </div>

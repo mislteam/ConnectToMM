@@ -55,19 +55,24 @@
                                         $lowestPrice = null;
 
                                         if ($itemRoam && !empty($itemRoam->packages)) {
-                                $priceMap = App\Models\PriceList::where('plan', $package->sku_id)
-                                    ->where('dp_status', 1)
-                                    ->pluck('exchange_rate', 'product_code');
+                                            $priceMap = App\Models\PriceList::where('plan', $package->sku_id)
+                                                ->where('dp_status', 1)
+                                                ->pluck('exchange_rate', 'product_code');
 
-                                $lowestPrice = collect($itemRoam->packages)
-                                    ->filter(fn($pkg) => ($pkg['status'] ?? 0) == 1)
-                                    ->map(function ($pkg) use ($priceMap) {
-                                        $apiCode = $pkg['apiCode'] ?? $pkg['api_code'] ?? null;
-                                        $legacyCode = $pkg['priceid'] ?? null;
-                                                    $rate = ($apiCode !== null && isset($priceMap[$apiCode]))
-                                                        ? $priceMap[$apiCode]
-                                                        : (($legacyCode !== null && isset($priceMap[$legacyCode])) ? $priceMap[$legacyCode] : null);
-                                                    if ($rate === null) return null;
+                                            $lowestPrice = collect($itemRoam->packages)
+                                                ->filter(fn($pkg) => ($pkg['status'] ?? 0) == 1)
+                                                ->map(function ($pkg) use ($priceMap) {
+                                                    $apiCode = $pkg['apiCode'] ?? ($pkg['api_code'] ?? null);
+                                                    $legacyCode = $pkg['priceid'] ?? null;
+                                                    $rate =
+                                                        $apiCode !== null && isset($priceMap[$apiCode])
+                                                            ? $priceMap[$apiCode]
+                                                            : ($legacyCode !== null && isset($priceMap[$legacyCode])
+                                                                ? $priceMap[$legacyCode]
+                                                                : null);
+                                                    if ($rate === null) {
+                                                        return null;
+                                                    }
                                                     $portalPrice = ($pkg['price'] ?? 0) + ($pkg['openCardFee'] ?? 0);
                                                     return $portalPrice * $rate;
                                                 })
@@ -76,7 +81,8 @@
                                         }
                                     @endphp
                                     @if ($lowestPrice)
-                                        <p class="text-size-16">From {{ number_format($lowestPrice) }} MMK</p>
+                                        <p class="text-size-16">From {{ displayPrice($lowestPrice, 'user_usd_rate') }} MMK
+                                        </p>
                                     @else
                                         <p class="text-size-16 text-danger">Not available</p>
                                     @endif

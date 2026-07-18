@@ -18,9 +18,7 @@
      } else {
          $cartRoute = $isPhysicalFlow ? route('roam.physical.cartpage') : route('roam.esim.cartpage');
      }
-     $canLoadCustomerNotifications = $customer
-         ? \Illuminate\Support\Facades\Schema::hasTable('notifications')
-         : false;
+     $canLoadCustomerNotifications = $customer ? \Illuminate\Support\Facades\Schema::hasTable('notifications') : false;
      $customerNotifications = $canLoadCustomerNotifications
          ? $customer->unreadNotifications()->latest()->limit(8)->get()
          : collect();
@@ -79,8 +77,9 @@
                      </a>
                      @if ($customer)
                          <div class="dropdown">
-                             <a class="mobile-header-action position-relative" href="#" id="customerNotificationsMobile"
-                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                             <a class="mobile-header-action position-relative" href="#"
+                                 id="customerNotificationsMobile" data-toggle="dropdown" aria-haspopup="true"
+                                 aria-expanded="false">
                                  <i class="fa-solid fa-bell"></i>
                                  @if ($customerNotificationCount > 0)
                                      <span class="position-absolute text-white badge badge-square bg-danger"
@@ -142,9 +141,15 @@
                                  <div class="dropdown-header">
                                      <small class="text-muted d-block">Welcome back!</small>
                                  </div>
+                                 <!-- My Profile -->
                                  <a href="{{ route('customer.profile.index') }}" class="dropdown-item">
-                                     <i class="ti ti-user-circle me-2 fs-17 align-middle"></i>
+                                     <i class="fa-solid fa-user"></i>
                                      <span class="dropdown-item-label align-middle">Profile</span>
+                                 </a>
+
+                                 <a href="{{ route('frontend.user.wallet') }}" class="dropdown-item">
+                                     <i class="fa-solid fa-wallet"></i>
+                                     <span class="dropdown-item-label align-middle">Wallet</span>
                                  </a>
                                  <div class="dropdown-divider"></div>
                                  <form method="POST" action="{{ route('customer.logout') }}" class="m-0">
@@ -160,8 +165,8 @@
                      @endif
                  </div>
                  <button class="navbar-toggler collapsed" type="button" data-toggle="collapse"
-                     data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
-                     aria-label="Toggle navigation">
+                     data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                     aria-expanded="false" aria-label="Toggle navigation">
                      <span class="navbar-toggler-icon"></span>
                      <span class="navbar-toggler-icon"></span>
                      <span class="navbar-toggler-icon"></span>
@@ -178,7 +183,10 @@
                              $isServiceActive = request()->routeIs(
                                  'esimIndex',
                                  'esim.search',
-                                 'joytel.packageview',
+
+                                 'joytel.esim.packageview',
+                                 'joytel.physical.packageview',
+
                                  'esim.roam',
                                  'esim.roamsearch',
                                  'esim.roampackageview',
@@ -199,7 +207,7 @@
                                          <h5 class="font-weight-bold">E-SIM</h5>
                                          <ul class="list-unstyled drop-down-pages">
                                              <li
-                                                 class="nav-item {{ request()->routeIs('esimIndex', 'esim.search') || (request()->routeIs('joytel.packageview') && request()->type == 'esim') ? 'active' : '' }}">
+                                                 class="nav-item {{ request()->routeIs('esimIndex', 'esim.search', 'joytel.esim.packageview') ? 'active' : '' }}">
                                                  <a class="nav-link" data-request-loader
                                                      href="{{ route('esimIndex') }}">{{ $settings['joytel_title']->value ?? 'Joytel' }}</a>
                                              </li>
@@ -215,7 +223,7 @@
                                          <h5 class="font-weight-bold">Physical SIM</h5>
                                          <ul class="list-unstyled drop-down-pages">
                                              <li
-                                                 class="nav-item {{ request()->routeIs('physicalIndex', 'physical.search') || (request()->routeIs('joytel.packageview') && request()->type == 'physical') ? 'active' : '' }}">
+                                                 class="nav-item {{ request()->routeIs('physicalIndex', 'physical.search', 'joytel.physical.packageview') ? 'active' : '' }}">
                                                  <a class="nav-link" data-request-loader
                                                      href="{{ route('physicalIndex') }}">{{ $settings['joytel_title']->value ?? 'Joytel' }}</a>
                                              </li>
@@ -232,11 +240,35 @@
                          <li class="nav-item {{ request()->routeIs('Faq') ? 'active' : '' }}">
                              <a class="nav-link" href="{{ route('Faq') }}">FAQ</a>
                          </li>
-                         <li class="nav-item {{ request()->routeIs('Blog') ? 'active' : '' }}">
+                         <li class="nav-item {{ request()->routeIs('Blog', 'blogDetail') ? 'active' : '' }}">
                              <a class="nav-link" href="{{ route('Blog') }}">Blog</a>
                          </li>
                          <li class="nav-item {{ request()->routeIs('Contact') ? 'active' : '' }}">
                              <a class="nav-link" href="{{ route('Contact') }}">Contact Us</a>
+                         </li>
+
+                         @php
+                             $selectedCurrency = session('currency', config('currency.default'));
+                         @endphp
+                         <li class="nav-item">
+                             <div class="dropdown">
+                                 <button class="btn btn-secondary dropdown-toggle" type="button"
+                                     id="currencyDropdown" data-bs-toggle="dropdown" aria-haspopup="true"
+                                     aria-expanded="false">
+                                     {{ $selectedCurrency }}
+                                 </button>
+                                 <div class="dropdown-menu" aria-labelledby="currencyDropdown">
+                                     <form action="{{ route('currency.change') }}" method="POST">
+                                         @csrf
+                                         <button name="currency" value="MMK"
+                                             class="dropdown-item {{ $selectedCurrency === 'MMK' ? 'active' : '' }}"
+                                             href="#" data-currency="MMK">MMK</button>
+                                         <button name="currency" value="USD"
+                                             class="dropdown-item {{ $selectedCurrency === 'USD' ? 'active' : '' }}"
+                                             href="#" data-currency="USD">USD</button>
+                                     </form>
+                                 </div>
+                             </div>
                          </li>
                          <li
                              class="nav-item header-action-item {{ request()->routeIs('roam.esim.*', 'roam.physical.*', 'joytelpackage.*') ? 'active' : '' }}">
@@ -320,8 +352,13 @@
 
                                      <!-- My Profile -->
                                      <a href="{{ route('customer.profile.index') }}" class="dropdown-item">
-                                         <i class="ti ti-user-circle me-2 fs-17 align-middle"></i>
+                                         <i class="fa-solid fa-user"></i>
                                          <span class="dropdown-item-label align-middle">Profile</span>
+                                     </a>
+
+                                     <a href="{{ route('frontend.user.wallet') }}" class="dropdown-item">
+                                         <i class="fa-solid fa-wallet"></i>
+                                         <span class="dropdown-item-label align-middle">Wallet</span>
                                      </a>
 
                                      <!-- Divider -->

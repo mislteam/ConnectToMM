@@ -204,7 +204,8 @@ function calculatePrice() {
     const dataPlan = dataPlanEl ? dataPlanEl.value : null;
     const typePrices = trafficType ? priceMap[trafficType] : null;
 
-    let basePrice = typePrices && typePrices[dataPlan] ? typePrices[dataPlan] : 0;
+    let basePrice =
+        typePrices && typePrices[dataPlan] ? typePrices[dataPlan] : 0;
 
     // For demo: multiply base price by number of service days
     const totalPrice = basePrice * parseInt(serviceDay || 1);

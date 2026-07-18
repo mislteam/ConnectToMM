@@ -167,7 +167,8 @@
                                                                 <div class="content">
                                                                     <h4>{{ $package->country_name }}</h4>
                                                                     <p class="text-size-16">From
-                                                                        {{ number_format($lowestPrice) }} MMK</p>
+                                                                        {{ displayPrice($lowestPrice, 'user_usd_rate') }}
+                                                                    </p>
                                                                     <a href="{{ route('physical.roampackageview', ['id' => $package->sku_id, 'list_view' => '1', 'sim_type' => $orderType, 'dp_id' => $dpId]) }}"
                                                                         class="more">View Offer</a>
                                                                 </div>

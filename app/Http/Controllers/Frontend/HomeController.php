@@ -7,9 +7,7 @@ use App\Models\Banner;
 use App\Models\Blog;
 use App\Models\Customer;
 use App\Models\Faq;
-use App\Models\HelpSection;
 use App\Models\JoytelOrder;
-use App\Models\JoytelOrderItem;
 use App\Models\RoamOrder;
 use App\Services\Joytel\JoytelOrderApiService;
 use App\Models\Section;
@@ -20,7 +18,12 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
-
+use Illuminate\Support\Facades\Auth;
+use App\Models\CustomerWallet;
+use App\Models\WalletTransaction;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 
 class HomeController extends Controller
 {
@@ -43,7 +46,8 @@ class HomeController extends Controller
         $work_section = get_section('how_we_work');
         $faq_section = get_section('frequently_asked_questions');
         $faqs = Faq::latest()->take(3)->get();
-        return view('frontend.about', compact('banner', 'company', 'about_repay', 'work_section', 'faq_section', 'faqs'));
+        $blogs = Blog::latest()->take(3)->get();
+        return view('frontend.about', compact('banner', 'company', 'about_repay', 'work_section', 'faq_section', 'faqs', 'blogs'));
     }
 
     public function faq()
@@ -865,5 +869,89 @@ class HomeController extends Controller
         $content = Section::where('section_key', 'refunds_policy')->first();
         $description = preg_replace('/font-family\s*:[^;"]+;?/i', '', $content->description);
         return view('frontend.refunds-policy', compact('content', 'description'));
+    }
+
+    public function customerWallet()
+    {
+        $customer = auth()->user();
+        return view('frontend.user.wallet', compact('customer'));
+    }
+
+    public function customerTopUp(Request $request)
+    {
+        Auth::shouldUse('customers');
+        $request->validate([
+            'amount' => 'required|integer|min:1000'
+        ]);
+        $customer = auth()->user();
+
+        DB::transaction(function () use ($customer, $request, &$transaction) {
+            $wallet = CustomerWallet::firstOrCreate([
+                'customer_id' => $customer->id,
+            ]);
+
+            $transaction = WalletTransaction::create([
+                'wallet_id' => $wallet->id,
+                'amount' => $request->amount,
+                'type' => 'credit',
+                'reference_type' => 'topup',
+                'balance_after' => 0,
+                'transaction_state' => WalletTransaction::STATUS_PENDING
+            ]);
+        });
+        return redirect()->route('frontend.user.topup-payment', $transaction->id);
+    }
+
+    public function customerTopUpPayment(WalletTransaction $transaction)
+    {
+        $credentials = \App\Models\DirectBankCredential::all();
+        return view('frontend.user.topup-payment', compact('transaction', 'credentials'));
+    }
+
+    public function topupPaymentSlip(Request $request, WalletTransaction $transaction)
+    {
+        Auth::shouldUse('customers');
+
+        if ($transaction->transaction_state !== 'pending') {
+            return back()->with('error', 'This top-up has already been processed.');
+        }
+
+        $request->validate([
+            'payment_slip' => ['required', 'image', 'mimes:jpg,jpeg,png', 'max:5120'],
+        ]);
+
+        if ($transaction->payment_slip) {
+            Storage::disk('public')->delete($transaction->payment_slip);
+        }
+
+        $path = $request->file('payment_slip')->store(
+            'topup-payment-slips',
+            'public'
+        );
+
+        $transaction->update([
+            'payment_slip' => $path,
+        ]);
+
+        return back()->with(
+            'success',
+            'Payment slip sent to the admin successfully!'
+        );
+    }
+
+    public function topupDetail(WalletTransaction $transaction)
+    {
+        return view('frontend.user.topup-detail', compact('transaction'));
+    }
+
+    public function currencyChange(Request $request)
+    {
+        $validated = $request->validate([
+            'currency' => ['required', Rule::in(config('currency.supported'))]
+        ]);
+        session([
+            'currency' => $validated['currency']
+        ]);
+        return back();
     }
 }

@@ -61,7 +61,7 @@ class FrontendJoytelController extends Controller
         $section = Section::where('section_key', 'need_more_help')->first();
 
         $query = JoytelPhysical::whereRaw('LOWER(type) LIKE ?', ['%recharge%']);
-        
+
 
         $query->whereIn('product_name', function ($subquery) {
             $subquery->select('plan')
@@ -70,7 +70,7 @@ class FrontendJoytelController extends Controller
                 ->where('exchange_rate', '>', 0);
         });
 
-        
+
 
         $packages = $query->where('status', 1)
             ->get()
@@ -115,7 +115,7 @@ class FrontendJoytelController extends Controller
         foreach ($validated['locations'] as $location) {
             $query->where(function ($q) use ($location) {
                 $q->whereJsonContains('coverage', $location)
-                ->orWhereRaw("JSON_SEARCH(coverage, 'one', ?) IS NOT NULL", [$location . '%']);
+                    ->orWhereRaw("JSON_SEARCH(coverage, 'one', ?) IS NOT NULL", [$location . '%']);
             });
         }
 
@@ -133,8 +133,15 @@ class FrontendJoytelController extends Controller
         return view('frontend.joytel.esim.packages', compact('packages'));
     }
 
-   private function physicalPackages(Request $request)
+    private function physicalPackages(Request $request)
     {
+        $simType = $this->normalizeSimType($request->input('type', session('sim_type', 'new_physical')));
+        if (!in_array($simType, ['new_physical', 'recharge_physical'], true)) {
+            $simType = 'new_physical';
+        }
+
+        session(['sim_type' => $simType]);
+
         $validated = $request->validate([
             'locations' => 'required|array',
             'locations.*' => 'string'
@@ -145,7 +152,7 @@ class FrontendJoytelController extends Controller
         foreach ($validated['locations'] as $location) {
             $query->where(function ($q) use ($location) {
                 $q->whereJsonContains('coverage', $location)
-                ->orWhereRaw("JSON_SEARCH(coverage, 'one', ?) IS NOT NULL", [$location . '%']);
+                    ->orWhereRaw("JSON_SEARCH(coverage, 'one', ?) IS NOT NULL", [$location . '%']);
             });
         }
 
@@ -162,7 +169,7 @@ class FrontendJoytelController extends Controller
 
         return view('frontend.joytel.physical.packages', compact('packages'));
     }
-        
+
 
     // jotel add to cart
     public function cart($joytel, Request $request)
@@ -227,8 +234,7 @@ class FrontendJoytelController extends Controller
         unset($item);
 
         if (!$found) {
-        $joytelCart[] = $cart;
-        
+            $joytelCart[] = $cart;
         }
 
         session(['joytel_cart' => $joytelCart]);
@@ -320,7 +326,7 @@ class FrontendJoytelController extends Controller
         return view('frontend.joytel.check-out', [
             'cartItems' => $cartItems->values()->all(),
             'selectedCartItems' => $cartItems->values()->all(),
-            'subtotal' => $cartItems->sum(fn ($item) => (float) ($item['price'] ?? 0)),
+            'subtotal' => $cartItems->sum(fn($item) => (float) ($item['price'] ?? 0)),
             'customer' => $customer,
             'is_direct' => $isDirectActive,
             'is_uab' => $isUabActive
@@ -336,7 +342,7 @@ class FrontendJoytelController extends Controller
             'payment_method' => ['required', 'in:direct_bank_transfer,uab_pay,UAB Pay'],
             'phone' => ['required', 'string', 'max:50'],
             'source_sn_codes' => ['nullable', 'array'],
-            'source_sn_codes.*' => ['nullable','string','size:20','regex:/^[0-9]{20}$/'],
+            'source_sn_codes.*' => ['nullable', 'string', 'size:20', 'regex:/^[0-9]{20}$/'],
             'terms' => ['accepted'],
         ]);
 
@@ -381,7 +387,7 @@ class FrontendJoytelController extends Controller
             ->with('items')
             ->where('customer_id', $customer->id)
             ->where('outer_order_id', $outerOrderId)
-            ->latest() 
+            ->latest()
             ->get();
 
         if ($orders->isEmpty()) {
@@ -394,7 +400,7 @@ class FrontendJoytelController extends Controller
             'provider' => 'joytel',
             'outer_order_id' => $outerOrderId,
             'orders' => $orders,
-            'total' => $orders->sum(fn ($order) => (float) $order->billable_total_price),
+            'total' => $orders->sum(fn($order) => (float) $order->billable_total_price),
             'payment_status_view' => $this->buildPaymentStatusView($orders, !empty($slipPath)),
             'payment_detail_route' => route('customer.order.detail', ['outerOrderId' => $outerOrderId]),
             'payment_upload_route' => route('joytel.payment.upload-slip', ['outerOrderId' => $outerOrderId]),
@@ -420,7 +426,7 @@ class FrontendJoytelController extends Controller
             return redirect()->route('customer.order.detail')->with('error', 'Order not found.');
         }
 
-        if ($orders->every(fn (JoytelOrder $order) => (int) $order->our_status !== JoytelOrder::OUR_STATUS_PENDING_PAYMENT)) {
+        if ($orders->every(fn(JoytelOrder $order) => (int) $order->our_status !== JoytelOrder::OUR_STATUS_PENDING_PAYMENT)) {
             return redirect()->route('joytel.payment.show', ['outerOrderId' => $outerOrderId])
                 ->with('error', 'Payment slip can only be updated while the order is pending payment.');
         }
@@ -453,13 +459,13 @@ class FrontendJoytelController extends Controller
             ->with('success', 'Payment slip uploaded successfully. Our admin team can review it now.');
     }
 
- 
-    public function esimPackageView($id,Request $request)
+
+    public function esimPackageView($id, Request $request)
     {
         $simType = $this->normalizeSimType($request->input('sim_type', session('sim_type', 'new_esim')));
 
         session(['sim_type' => $simType]);
-       
+
         $joytel = JoytelEsim::findOrFail($id);
 
         $packages = JoytelEsim::where('product_name', $joytel->product_name)
@@ -541,7 +547,7 @@ class FrontendJoytelController extends Controller
 
         $network_types = $packages->pluck('network')->unique();
 
-        
+
         $price_lists = PriceList::latest()->get();
 
         $joytel_type_label = 'Physical SIM';
@@ -562,7 +568,7 @@ class FrontendJoytelController extends Controller
     }
 
 
-     private function normalizeSimType(?string $simType): string
+    private function normalizeSimType(?string $simType): string
     {
         $simType = strtolower(trim((string) $simType));
 
@@ -590,7 +596,7 @@ class FrontendJoytelController extends Controller
             return [$cart];
         }
 
-        return array_values(array_filter($cart, static fn ($item) => is_array($item)));
+        return array_values(array_filter($cart, static fn($item) => is_array($item)));
     }
 
     private function canAdjustQuantity(array $cartItem): bool
@@ -622,12 +628,12 @@ class FrontendJoytelController extends Controller
 
     private function buildPaymentStatusView($orders, bool $hasUploadedSlip): array
     {
-        $hasPendingPayment = $orders->contains(fn (JoytelOrder $order) => (int) $order->our_status === JoytelOrder::OUR_STATUS_PENDING_PAYMENT);
-        $hasFailed = $orders->contains(fn (JoytelOrder $order) => (int) $order->our_status === JoytelOrder::OUR_STATUS_API_FAILED);
-        $hasAdminCancelled = $orders->contains(fn (JoytelOrder $order) => (int) $order->our_status === JoytelOrder::OUR_STATUS_ADMIN_CANCELLED);
-        $hasCancelled = $orders->contains(fn (JoytelOrder $order) => (int) $order->our_status === JoytelOrder::OUR_STATUS_CANCELLED);
-        $allCompleted = $orders->every(fn (JoytelOrder $order) => (int) $order->our_status === JoytelOrder::OUR_STATUS_COMPLETED);
-        $isOngoing = $orders->contains(fn (JoytelOrder $order) => in_array((int) $order->our_status, [
+        $hasPendingPayment = $orders->contains(fn(JoytelOrder $order) => (int) $order->our_status === JoytelOrder::OUR_STATUS_PENDING_PAYMENT);
+        $hasFailed = $orders->contains(fn(JoytelOrder $order) => (int) $order->our_status === JoytelOrder::OUR_STATUS_API_FAILED);
+        $hasAdminCancelled = $orders->contains(fn(JoytelOrder $order) => (int) $order->our_status === JoytelOrder::OUR_STATUS_ADMIN_CANCELLED);
+        $hasCancelled = $orders->contains(fn(JoytelOrder $order) => (int) $order->our_status === JoytelOrder::OUR_STATUS_CANCELLED);
+        $allCompleted = $orders->every(fn(JoytelOrder $order) => (int) $order->our_status === JoytelOrder::OUR_STATUS_COMPLETED);
+        $isOngoing = $orders->contains(fn(JoytelOrder $order) => in_array((int) $order->our_status, [
             JoytelOrder::OUR_STATUS_PAID,
             JoytelOrder::OUR_STATUS_API_PROCESSING,
             JoytelOrder::OUR_STATUS_API_SUCCESS,
@@ -695,5 +701,4 @@ class FrontendJoytelController extends Controller
             'upload_button_text' => 'Upload Slip',
         ];
     }
-    
 }
