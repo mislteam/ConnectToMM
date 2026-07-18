@@ -29,12 +29,23 @@ class NotificationController extends Controller
 
     private function notificationForCurrentUser(string $notification)
     {
-        $notifiable = auth()->user() ?: Auth::guard('customers')->user();
+        $notifiables = collect([
+            auth()->user(),
+            Auth::guard('customers')->user(),
+        ])->filter();
 
-        abort_unless($notifiable, 403);
+        abort_unless($notifiables->isNotEmpty(), 403);
 
-        return $notifiable->notifications()
-            ->where('id', $notification)
-            ->firstOrFail();
+        foreach ($notifiables as $notifiable) {
+            $matchedNotification = $notifiable->notifications()
+                ->where('id', $notification)
+                ->first();
+
+            if ($matchedNotification) {
+                return $matchedNotification;
+            }
+        }
+
+        abort(404);
     }
 }
