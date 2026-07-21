@@ -58,7 +58,7 @@ if (!function_exists('payment_setting_id_for_method')) {
     {
         return match ($paymentMethod) {
             'direct_bank_transfer' => 1,
-            'uabpay', 'UAB Pay' => 2,
+            'uabpay', 'uab_pay', 'UAB Pay' => 2,
             default => null,
         };
     }
@@ -85,6 +85,10 @@ if (!function_exists('payment_method_label')) {
             if ($paymentSetting?->type) {
                 return $paymentSetting->type;
             }
+        }
+
+        if ($paymentMethod === 'wallet') {
+            return 'Wallet';
         }
 
         return \Illuminate\Support\Str::headline($paymentMethod);
@@ -196,7 +200,7 @@ if (!function_exists('payment_method_display_label')) {
     {
         $baseLabel = payment_method_label($paymentMethod);
 
-        if (in_array($paymentMethod, ['uabpay', 'UAB Pay'], true)) {
+        if (in_array($paymentMethod, ['uabpay', 'uab_pay', 'UAB Pay'], true)) {
             $selectedLabel = uab_transaction_selected_payment_label($outerOrderId);
 
             if ($selectedLabel) {

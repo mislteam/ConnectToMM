@@ -4,7 +4,7 @@
     @include('components.alert')
     <style>
         .order-summary .order-box {
-            /* height: 100%; */
+            height: auto !important;
             position: sticky;
             top: 135px;
         }
@@ -20,6 +20,54 @@
 
         .uab-payment-option label {
             margin-bottom: 0 !important;
+        }
+
+        .wallet-payment-panel {
+            border: 1px solid #e5e9f0;
+            border-radius: 6px;
+            padding: 10px 12px 9px;
+            margin-bottom: 12px;
+            background: #fff;
+        }
+
+        .wallet-payment-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            color: #005eb8;
+            font-size: 13px;
+            line-height: 1.25;
+        }
+
+        .wallet-payment-heading strong {
+            color: #000;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .wallet-payment-divider {
+            border-top: 1px solid #d6dde8;
+            margin: 8px 0;
+        }
+
+        .wallet-payment-choice {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 0 !important;
+            color: #555;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .other-payment-methods {
+            padding-top: 2px;
+            margin-bottom: 18px;
+        }
+
+        .other-payment-methods .form-group {
+            margin-bottom: 10px !important;
         }
     </style>
     <!-- Sub-Banner -->
@@ -166,31 +214,39 @@
                                 );
                             @endphp
                             <h3 class="mb-4">Payment</h3>
-                            @if ($is_direct)
-                                <div class="form-group mb-0">
-                                    <input type="radio" value="direct_bank_transfer" id="paymentDirectBankTransfer"
-                                        name="payment_method" required
-                                        {{ $selectedPaymentMethod === 'direct_bank_transfer' ? 'checked' : '' }}
-                                        {{ $is_direct ? '' : 'disabled' }}>
-                                    <label for="paymentDirectBankTransfer"
-                                        class="{{ $is_direct ? '' : 'text-muted' }}">{{ $direct_payment_name ?? 'Direct Bank Transfer' }}</label>
-                                </div>
-                            @endif
-                            @if ($is_uab)
-                                <div class="form-group mb-0 uab-payment-option">
-                                    <input type="radio" value="uabpay" id="paymentUabPay" name="payment_method"
-                                        {{ $is_uab ? '' : 'disabled' }}
-                                        {{ $selectedPaymentMethod === 'uabpay' ? 'checked' : '' }}>
-                                    <label for="paymentUabPay"
-                                        class="{{ $is_uab ? '' : 'text-muted' }}">{{ $uab_payment_name ?? 'Online Payment' }}
-                                    </label>
-                                    @if (!empty($uab_payment_methods_text))
-                                        <small id="uabPaymentMethodsText"
-                                            class="uab-payment-methods-text d-block text-danger ms-3 {{ $selectedPaymentMethod === 'uabpay' ? '' : 'is-hidden' }}">{{ $uab_payment_methods_text }}</small>
-                                    @endif
-                                </div>
-                            @endif
+                            @include('components.wallet-payment-option')
+                            <div class="other-payment-methods">
+                                @if ($is_direct)
+                                    <div class="form-group mb-0">
+                                        <input type="radio" value="direct_bank_transfer" id="paymentDirectBankTransfer"
+                                            name="payment_method" required
+                                            {{ $selectedPaymentMethod === 'direct_bank_transfer' ? 'checked' : '' }}
+                                            {{ $is_direct ? '' : 'disabled' }}>
+                                        <label for="paymentDirectBankTransfer"
+                                            class="{{ $is_direct ? '' : 'text-muted' }}">{{ $direct_payment_name ?? 'Direct Bank Transfer' }}</label>
+                                    </div>
+                                @endif
+                                @if ($is_uab)
+                                    <div class="form-group mb-0 uab-payment-option">
+                                        <input type="radio" value="uabpay" id="paymentUabPay" name="payment_method"
+                                            {{ $is_uab ? '' : 'disabled' }}
+                                            {{ $selectedPaymentMethod === 'uabpay' ? 'checked' : '' }}>
+                                        <label for="paymentUabPay"
+                                            class="{{ $is_uab ? '' : 'text-muted' }}">{{ $uab_payment_name ?? 'Online Payment' }}
+                                        </label>
+                                        @if (!empty($uab_payment_methods_text))
+                                            <small id="uabPaymentMethodsText"
+                                                class="uab-payment-methods-text d-block text-danger ms-3 {{ $selectedPaymentMethod === 'uabpay' ? '' : 'is-hidden' }}">{{ $uab_payment_methods_text }}</small>
+                                        @endif
+                                    </div>
+                                @endif
+                            </div>
 
+                            <div class="form-group mb-0">
+                                @error('payment_method')
+                                    <small class="text-danger d-block mt-2">{{ $message }}</small>
+                                @enderror
+                            </div>
                             <div class="form-group mb-0">
                                 <input type="checkbox" name="terms" required> Your personal data will be used to process
                                 your order, support your

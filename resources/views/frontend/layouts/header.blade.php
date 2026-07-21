@@ -23,6 +23,7 @@
          ? $customer->unreadNotifications()->latest()->limit(8)->get()
          : collect();
      $customerNotificationCount = $canLoadCustomerNotifications ? $customer->unreadNotifications()->count() : 0;
+     $selectedCurrency = session('currency', config('currency.default'));
  @endphp
  <div class="fixed-top">
      <div class="topbar">
@@ -68,6 +69,24 @@
                              class="img-fluid w-75" alt=""></figure>
                  </a>
                  <div class="mobile-header-actions d-lg-none">
+                     <div class="dropdown header-currency-item mobile-currency-item">
+                         <button class="btn btn-secondary dropdown-toggle" type="button" id="currencyDropdownMobile"
+                             data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                             {{ $selectedCurrency }}
+                         </button>
+                         <div class="dropdown-menu dropdown-menu-right mobile-currency-menu"
+                             aria-labelledby="currencyDropdownMobile">
+                             <form action="{{ route('currency.change') }}" method="POST">
+                                 @csrf
+                                 <button name="currency" value="MMK"
+                                     class="dropdown-item {{ $selectedCurrency === 'MMK' ? 'active' : '' }}"
+                                     data-currency="MMK">MMK</button>
+                                 <button name="currency" value="USD"
+                                     class="dropdown-item {{ $selectedCurrency === 'USD' ? 'active' : '' }}"
+                                     data-currency="USD">USD</button>
+                             </form>
+                         </div>
+                     </div>
                      <a class="mobile-header-action position-relative" href="{{ $cartRoute }}">
                          <i class="fa-solid fa-cart-arrow-down"></i>
                          <span class="position-absolute text-white badge badge-square bg-primary"
@@ -247,13 +266,10 @@
                              <a class="nav-link" href="{{ route('Contact') }}">Contact Us</a>
                          </li>
 
-                         @php
-                             $selectedCurrency = session('currency', config('currency.default'));
-                         @endphp
-                         <li class="nav-item">
+                         <li class="nav-item header-currency-item">
                              <div class="dropdown">
                                  <button class="btn btn-secondary dropdown-toggle" type="button"
-                                     id="currencyDropdown" data-bs-toggle="dropdown" aria-haspopup="true"
+                                     id="currencyDropdown" data-toggle="dropdown" aria-haspopup="true"
                                      aria-expanded="false">
                                      {{ $selectedCurrency }}
                                  </button>
@@ -271,7 +287,7 @@
                              </div>
                          </li>
                          <li
-                             class="nav-item header-action-item {{ request()->routeIs('roam.esim.*', 'roam.physical.*', 'joytelpackage.*') ? 'active' : '' }}">
+                             class="nav-item header-action-item header-cart-item {{ request()->routeIs('roam.esim.*', 'roam.physical.*', 'joytelpackage.*') ? 'active' : '' }}">
                              <a class="nav-link position-relative d-inline-block" href="{{ $cartRoute }}">
                                  <i class="fa-solid fa-cart-arrow-down fs-4"></i>
                                  <span class="position-absolute text-white badge badge-square bg-primary"
@@ -283,7 +299,7 @@
                              </a>
                          </li>
                          @if ($customer)
-                             <li class="nav-item dropdown customer-notification-nav header-action-item">
+                             <li class="nav-item dropdown customer-notification-nav header-action-item header-notification-item">
                                  <a class="nav-link  position-relative d-inline-block" href="#"
                                      id="customerNotifications" data-toggle="dropdown" aria-haspopup="true"
                                      aria-expanded="false">

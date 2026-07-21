@@ -5,11 +5,17 @@ namespace App\Services\Joytel;
 use App\Models\Customer;
 use App\Models\JoytelApi;
 use App\Models\JoytelOrder;
+use App\Models\WalletTransaction;
+use App\Services\Wallet\WalletPackagePaymentService;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
 class JoytelOrderDraftService
 {
+    public function __construct(
+        private readonly WalletPackagePaymentService $walletPaymentService,
+    ) {}
+
     public function createDraftOrdersFromCart(Customer $customer, array $cart, array $billingData = []): array
     {
         $cartItems = $this->normalizeCartItems($cart);
@@ -18,7 +24,7 @@ class JoytelOrderDraftService
         }
 
         $outerOrderId = $this->generateOuterOrderId();
-        $totalAmount = 0.0;
+        $totalAmount = $this->calculateCartTotalAmount($cartItems);
         $billingPhone = trim((string) ($billingData['phone'] ?? ''));
         if ($billingPhone === '') {
             $billingPhone = (string) ($customer->phone ?? '');
@@ -26,8 +32,11 @@ class JoytelOrderDraftService
         $paymentMethod = (string) ($billingData['payment_method'] ?? 'direct_bank_transfer');
         $sourceSnCodes = (array) ($billingData['source_sn_codes'] ?? []);
 
-        $orders = DB::transaction(function () use ($customer, $cartItems, $outerOrderId, $billingPhone, $paymentMethod, $sourceSnCodes, &$totalAmount) {
+        $orders = DB::transaction(function () use ($customer, $cartItems, $outerOrderId, $billingPhone, $paymentMethod, $sourceSnCodes) {
             $created = collect();
+            $walletTransaction = $paymentMethod === 'wallet'
+                ? $this->walletPaymentService->debitPackagePurchase($customer, (int) round($this->calculateCartTotalAmount($cartItems)))
+                : null;
 
             foreach ($cartItems as $index => $item) {
                 $productCode = trim((string) ($item['product_code'] ?? ''));
@@ -94,6 +103,7 @@ class JoytelOrderDraftService
                         ],
                         'payment' => [
                             'method' => $paymentMethod,
+                            ...$this->buildWalletPaymentMetadata($walletTransaction),
                         ],
                     ],
                 ]);
@@ -107,7 +117,6 @@ class JoytelOrderDraftService
                     ],
                 ]);
 
-                $totalAmount += (float) $order->billable_total_price;
                 $created->push($order);
             }
 
@@ -155,6 +164,38 @@ class JoytelOrderDraftService
     private function makeTempJoytelOrderNum(string $outerOrderId, int $index): string
     {
         return 'JTMP-' . substr(sha1($outerOrderId . '|' . $index), 0, 12) . '-' . $index;
+    }
+
+    private function calculateCartTotalAmount(array $cartItems): float
+    {
+        return collect($cartItems)->sum(function (array $item): int {
+            $quantity = max(1, (int) ($item['qty'] ?? 1));
+            $totalPrice = (float) ($item['price'] ?? 0);
+            $unitPrice = (float) ($item['ori_price'] ?? ($quantity > 0 ? round($totalPrice / $quantity, 2) : $totalPrice));
+
+            return (int) round($unitPrice) * $quantity;
+        });
+    }
+
+    private function buildWalletPaymentMetadata(?WalletTransaction $walletTransaction): array
+    {
+        if ($walletTransaction === null) {
+            return [];
+        }
+
+        return [
+            'wallet' => [
+                'transaction_id' => $walletTransaction->id,
+                'amount' => (int) $walletTransaction->amount,
+                'balance_after' => (int) $walletTransaction->balance_after,
+                'transaction_state' => $walletTransaction->transaction_state,
+                'paid_at' => now()->toDateTimeString(),
+            ],
+            'approval' => [
+                'source' => 'wallet_payment',
+                'approved_at' => now()->toDateTimeString(),
+            ],
+        ];
     }
 
     private function buildRemark(array $item): ?string

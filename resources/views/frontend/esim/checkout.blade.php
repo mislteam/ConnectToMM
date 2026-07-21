@@ -24,6 +24,54 @@
             margin-bottom: 0 !important;
         }
 
+        .wallet-payment-panel {
+            border: 1px solid #e5e9f0;
+            border-radius: 6px;
+            padding: 10px 12px 9px;
+            margin-bottom: 12px;
+            background: #fff;
+        }
+
+        .wallet-payment-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            color: #005eb8;
+            font-size: 13px;
+            line-height: 1.25;
+        }
+
+        .wallet-payment-heading strong {
+            color: #000;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .wallet-payment-divider {
+            border-top: 1px solid #d6dde8;
+            margin: 8px 0;
+        }
+
+        .wallet-payment-choice {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 0 !important;
+            color: #555;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .other-payment-methods {
+            padding-top: 2px;
+            margin-bottom: 18px;
+        }
+
+        .other-payment-methods .form-group {
+            margin-bottom: 10px !important;
+        }
+
         @media (min-width: 768px) and (max-width: 991.98px) {
             .order-summary .order-box {
                 padding: 1rem;
@@ -218,6 +266,8 @@
                                 );
                             @endphp
                             <h3 class="mb-4">Payment</h3>
+                            @include('components.wallet-payment-option')
+                            <div class="other-payment-methods">
                             @if ($is_direct)
                                 <div class="form-group mb-0">
                                     <input type="radio" value="direct_bank_transfer" id="paymentDirectBankTransfer"
@@ -241,6 +291,12 @@
                                     @endif
                                 </div>
                             @endif
+                            </div>
+                            <div class="form-group mb-0">
+                                @error('payment_method')
+                                    <small class="text-danger d-block mt-2">{{ $message }}</small>
+                                @enderror
+                            </div>
                             <div class="form-group mb-0">
                                 <input type="checkbox" name="terms" required> Your personal data will be used to process
                                 your

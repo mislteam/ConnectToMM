@@ -472,6 +472,7 @@ class ESimController extends Controller
             'qty' => $primaryItem['qty'] ?? 1,
             'price' => $price,
             'customer' => $customer,
+            'wallet_balance' => (int) optional($customer->customerWallet)->balance,
             'subtotal' => $serviceItems->sum(fn($item) => (float) ($item['price'] ?? 0)),
             'requires_iccid' => $this->requiresIccid($primaryItem),
             'iccid_label' => $this->buildIccidLabel(

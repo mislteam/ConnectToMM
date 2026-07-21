@@ -3,7 +3,9 @@
 namespace App\Payment\Providers\Uab\Services;
 
 use App\Payment\Providers\Uab\Enums\TransactionStatus;
+use App\Models\JoytelOrder;
 use App\Models\RoamOrder;
+use App\Services\Joytel\JoytelProvisioningFlowService;
 use App\Services\Roam\OrderStateMachineService;
 use App\Services\Roam\RoamProvisioningFlowService;
 use Illuminate\Support\Collection;
@@ -12,6 +14,7 @@ class PaymentLifecycleService
 {
     public function __construct(
         private readonly RoamProvisioningFlowService $roamProvisioningFlowService,
+        private readonly JoytelProvisioningFlowService $joytelProvisioningFlowService,
         private readonly OrderStateMachineService $orderStateMachineService,
     ) {
     }
@@ -30,6 +33,8 @@ class PaymentLifecycleService
             ->get();
 
         if ($orders->isEmpty()) {
+            $this->syncJoytelForPaymentResult($outerOrderId, $status);
+
             return;
         }
 
@@ -45,6 +50,37 @@ class PaymentLifecycleService
             TransactionStatus::EXPIRED,
         ], true)) {
             $this->cancelPendingOrders($orders);
+        }
+    }
+
+    private function syncJoytelForPaymentResult(string $outerOrderId, TransactionStatus $status): void
+    {
+        $orders = JoytelOrder::query()
+            ->with(['customer', 'items'])
+            ->where('outer_order_id', $outerOrderId)
+            ->whereIn('payment_method', ['uabpay', 'uab_pay', 'UAB Pay'])
+            ->orderBy('id')
+            ->get();
+
+        if ($orders->isEmpty()) {
+            return;
+        }
+
+        if ($status === TransactionStatus::SUCCESS) {
+            $customer = $orders->first()?->customer;
+            if ($customer !== null) {
+                $this->joytelProvisioningFlowService->provisionAfterPayment($customer, $outerOrderId);
+            }
+
+            return;
+        }
+
+        if (in_array($status, [
+            TransactionStatus::FAILED,
+            TransactionStatus::CANCELLED,
+            TransactionStatus::EXPIRED,
+        ], true)) {
+            $this->joytelProvisioningFlowService->cancelPendingPayment($outerOrderId);
         }
     }
 

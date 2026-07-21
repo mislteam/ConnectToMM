@@ -100,6 +100,7 @@ Route::middleware('auth:customers')->group(function () {
     Route::delete('/joytel-package/remove-cart/{key}', [FrontendJoytelController::class, 'removeCart'])->name('joytelpackage.cart.remove');
     Route::get('/joytel-package/checkout', [FrontendJoytelController::class, 'checkout'])->name('joytelpackage.checkout');
     Route::post('/joytel-package/place-order', [FrontendJoytelController::class, 'placeOrder'])->name('joytel.place-order');
+    Route::get('/joytel-package/payment/{outerOrderId}/uab-pay', [FrontendJoytelController::class, 'startUabPayment'])->name('joytel.uab.pay');
     Route::get('/joytel-package/payment/{outerOrderId}', [FrontendJoytelController::class, 'showPayment'])->name('joytel.payment.show');
     Route::post('/joytel-package/payment/{outerOrderId}/upload-slip', [FrontendJoytelController::class, 'uploadPaymentSlip'])->name('joytel.payment.upload-slip');
 

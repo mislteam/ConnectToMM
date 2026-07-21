@@ -285,9 +285,6 @@ if (managePriceModal) {
                 const profitValue = Math.round(totalValue - exchangeRateAuto);
                 row.querySelector(".total-label").innerText =
                     totalValue.toLocaleString();
-                row.querySelector(".usd-total-label").innerText = (
-                    totalValue / userUsdRate
-                ).toFixed(2);
                 row.querySelector(".profit-label").innerText =
                     profitValue.toLocaleString();
             });
