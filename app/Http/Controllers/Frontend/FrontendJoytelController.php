@@ -327,12 +327,14 @@ class FrontendJoytelController extends Controller
         Auth::shouldUse('customers');
         $customer = auth()->user();
         $paymentSetting = \App\Models\PaymentSetting::orderBy('id')->get()->keyBy('id');
-        $directPayment = $paymentSetting->get(1);
-        $uabPayment = $paymentSetting->get(2);
-        $isDirectActive = $directPayment?->status;
-        $isUabActive = $uabPayment?->status;
+        $directPayment = $paymentSetting->get(\App\Models\PaymentSetting::DIRECT_BANK_TRANSFER_ID);
+        $uabPayment = $paymentSetting->get(\App\Models\PaymentSetting::ONLINE_PAYMENT_ID);
+        $walletPayment = $paymentSetting->get(\App\Models\PaymentSetting::WALLET_ID);
+        $isDirectActive = (bool) $directPayment?->status;
+        $isUabActive = (bool) $uabPayment?->status;
+        $isWalletActive = (bool) $walletPayment?->status;
         $uabCredential = \App\Models\UabCredential::query()
-            ->where('payment_setting_id', 2)
+            ->where('payment_setting_id', \App\Models\PaymentSetting::ONLINE_PAYMENT_ID)
             ->orderByDesc('is_active')
             ->latest('id')
             ->first();
@@ -347,6 +349,7 @@ class FrontendJoytelController extends Controller
             'wallet_balance' => (int) optional($customer->customerWallet)->balance,
             'is_direct' => $isDirectActive,
             'is_uab' => $isUabActive,
+            'is_wallet' => $isWalletActive,
             'direct_payment_name' => $directPayment?->type ?? 'Direct Bank Transfer',
             'uab_payment_name' => $uabPayment?->type ?? 'Online Payment',
             'uab_payment_methods_text' => !empty($uabPaymentMethodLabels)
@@ -388,6 +391,18 @@ class FrontendJoytelController extends Controller
         Auth::shouldUse('customers');
         $customer = auth()->user();
         $paymentMethod = $this->normalizePaymentMethod((string) $request->input('payment_method'));
+        $paymentSetting = \App\Models\PaymentSetting::orderBy('id')->get()->keyBy('id');
+        $activePaymentMethods = [
+            'direct_bank_transfer' => (bool) $paymentSetting->get(\App\Models\PaymentSetting::DIRECT_BANK_TRANSFER_ID)?->status,
+            'uabpay' => (bool) $paymentSetting->get(\App\Models\PaymentSetting::ONLINE_PAYMENT_ID)?->status,
+            'wallet' => (bool) $paymentSetting->get(\App\Models\PaymentSetting::WALLET_ID)?->status,
+        ];
+
+        if (empty($activePaymentMethods[$paymentMethod])) {
+            return back()
+                ->withInput()
+                ->withErrors(['payment_method' => 'Selected payment method is currently unavailable.']);
+        }
 
         try {
             $result = $draftService->createDraftOrdersFromCart($customer, $cart, [
@@ -481,12 +496,12 @@ class FrontendJoytelController extends Controller
         $credentials = null;
 
         if ($paymentMethod === 'direct_bank_transfer') {
-            $directPayment = $paymentSetting->get(1);
+            $directPayment = $paymentSetting->get(\App\Models\PaymentSetting::DIRECT_BANK_TRANSFER_ID);
             $credentials = $directPayment?->directBankCredentials;
             $paymentMethodLabel = $directPayment?->type ?? payment_method_label($paymentMethod);
         } elseif (in_array(strtolower((string) $paymentMethod), ['uabpay', 'uab_pay'], true)) {
             $paymentMethodLabel = payment_method_display_label($paymentMethod, $outerOrderId)
-                ?? $paymentSetting->get(2)?->type
+                ?? $paymentSetting->get(\App\Models\PaymentSetting::ONLINE_PAYMENT_ID)?->type
                 ?? payment_method_label($paymentMethod);
             $paymentActionUrl = data_get($orders->first()?->raw_response, 'payment.uab.payment_url');
             $paymentStatusView = $this->buildUabPaymentStatusView(

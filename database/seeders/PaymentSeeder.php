@@ -10,14 +10,16 @@ class PaymentSeeder extends Seeder
     public function run(): void
     {
         $paymentTypes = [
-            ['type' => 'Direct Bank Transfer', 'status' => 1],
-            ['type' => 'UAB Pay', 'status' => 0],
+            ['id' => PaymentSetting::DIRECT_BANK_TRANSFER_ID, 'type' => 'Direct Bank Transfer', 'status' => 1],
+            ['id' => PaymentSetting::ONLINE_PAYMENT_ID, 'type' => 'Online Payment', 'status' => 1],
+            ['id' => PaymentSetting::WALLET_ID, 'type' => 'Wallet', 'status' => 1],
         ];
 
         foreach ($paymentTypes as $payment) {
             PaymentSetting::firstOrCreate([
-                'type' => $payment['type'],
+                'id' => $payment['id'],
             ], [
+                'type' => $payment['type'],
                 'status' => $payment['status'],
             ]);
         }

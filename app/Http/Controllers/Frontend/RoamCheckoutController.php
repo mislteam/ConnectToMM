@@ -36,6 +36,19 @@ class RoamCheckoutController extends Controller
             'terms' => ['accepted'],
         ]);
         $paymentMethod = $this->normalizePaymentMethod($validated['payment_method']);
+        $paymentSetting = \App\Models\PaymentSetting::orderBy('id')->get()->keyBy('id');
+        $activePaymentMethods = [
+            'direct_bank_transfer' => (bool) $paymentSetting->get(\App\Models\PaymentSetting::DIRECT_BANK_TRANSFER_ID)?->status,
+            'uabpay' => (bool) $paymentSetting->get(\App\Models\PaymentSetting::ONLINE_PAYMENT_ID)?->status,
+            'wallet' => (bool) $paymentSetting->get(\App\Models\PaymentSetting::WALLET_ID)?->status,
+        ];
+
+        if (empty($activePaymentMethods[$paymentMethod])) {
+            return back()
+                ->withInput()
+                ->withErrors(['payment_method' => 'Selected payment method is currently unavailable.']);
+        }
+
         $billingPhone = preg_replace('/\D+/', '', (string) $validated['customer_phone']);
         if (strlen($billingPhone) < 8) {
             return back()
@@ -232,12 +245,12 @@ class RoamCheckoutController extends Controller
         $paymentActionUrl = null;
         $paymentSetting = \App\Models\PaymentSetting::orderBy('id')->get()->keyBy('id');
         if ($paymentMethod === 'direct_bank_transfer') {
-            $directPayment = $paymentSetting->get(1);
+            $directPayment = $paymentSetting->get(\App\Models\PaymentSetting::DIRECT_BANK_TRANSFER_ID);
             $credentials = $directPayment?->directBankCredentials;
             $payment_method = $directPayment?->type ?? payment_method_label($paymentMethod);
         } elseif ($paymentMethod === 'uabpay' || $paymentMethod === 'UAB Pay') {
             $payment_method = payment_method_display_label($paymentMethod, $outerOrderId)
-                ?? $paymentSetting->get(2)?->type
+                ?? $paymentSetting->get(\App\Models\PaymentSetting::ONLINE_PAYMENT_ID)?->type
                 ?? payment_method_label($paymentMethod);
             $paymentActionUrl = data_get($orders->first()?->raw_response, 'payment.uab.payment_url');
         }

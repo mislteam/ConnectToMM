@@ -599,18 +599,18 @@ class PhysicalSimController extends Controller
         ]);
 
         $paymentSetting = \App\Models\PaymentSetting::orderBy('id')->get()->keyBy('id');
-        $directPayment = $paymentSetting->get(1);
-        $uabPayment = $paymentSetting->get(2);
-        $isDirectActive = $directPayment?->status;
-        $isUabActive = $uabPayment?->status;
+        $directPayment = $paymentSetting->get(\App\Models\PaymentSetting::DIRECT_BANK_TRANSFER_ID);
+        $uabPayment = $paymentSetting->get(\App\Models\PaymentSetting::ONLINE_PAYMENT_ID);
+        $walletPayment = $paymentSetting->get(\App\Models\PaymentSetting::WALLET_ID);
+        $isDirectActive = (bool) $directPayment?->status;
+        $isUabActive = (bool) $uabPayment?->status;
+        $isWalletActive = (bool) $walletPayment?->status;
         $uabCredential = \App\Models\UabCredential::query()
-            ->where('payment_setting_id', 2)
+            ->where('payment_setting_id', \App\Models\PaymentSetting::ONLINE_PAYMENT_ID)
             ->orderByDesc('is_active')
             ->latest('id')
             ->first();
         $uabPaymentMethodLabels = uab_payment_method_labels($uabCredential?->payment_methods);
-        $isDirectActive = $paymentSetting->first()?->status;
-        $isUabActive = $paymentSetting->last()?->status;
 
         return view('frontend.physical.checkout', [
             'sku' => $sku,
@@ -634,6 +634,7 @@ class PhysicalSimController extends Controller
             'iccid_numbers' => $iccidNumbers,
             'is_direct' => (bool) $isDirectActive,
             'is_uab' => (bool) $isUabActive,
+            'is_wallet' => $isWalletActive,
             'direct_payment_name' => $directPayment?->type ?? 'Direct Bank Transfer',
             'uab_payment_name' => $uabPayment?->type ?? 'Online Payment',
             'uab_payment_methods_text' => !empty($uabPaymentMethodLabels)

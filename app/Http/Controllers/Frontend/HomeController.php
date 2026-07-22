@@ -531,7 +531,11 @@ class HomeController extends Controller
             'created_at' => optional($orders->sortByDesc('created_at')->first())->created_at,
             'product_name' => $productName !== '' ? $productName : '-',
             'amount' => $orders->sum(fn(JoytelOrder $order) => (float) $order->billable_total_price),
-            'payment_method' => 'Online Payment',
+            'payment_method' => $orders
+                ->map(fn(JoytelOrder $order) => payment_method_display_label($order->payment_method, $outerOrderId))
+                ->filter()
+                ->unique()
+                ->implode(', '),
             'service_type' => Str::headline((string) optional($orders->first())->service_type),
             'order_type' => $orders->first()->order_type,
             'usage_check_items' => $usageCheckItems,

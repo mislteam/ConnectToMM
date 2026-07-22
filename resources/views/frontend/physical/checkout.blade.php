@@ -208,10 +208,25 @@
                                 </tbody>
                             </table>
                             @php
+                                $defaultPaymentMethod = $is_direct
+                                    ? 'direct_bank_transfer'
+                                    : ($is_uab
+                                        ? 'uabpay'
+                                        : (($is_wallet ?? false)
+                                            ? 'wallet'
+                                            : null));
                                 $selectedPaymentMethod = old(
                                     'payment_method',
-                                    $is_direct ? 'direct_bank_transfer' : ($is_uab ? 'uabpay' : null),
+                                    $defaultPaymentMethod,
                                 );
+
+                                if (
+                                    ($selectedPaymentMethod === 'direct_bank_transfer' && !$is_direct) ||
+                                    ($selectedPaymentMethod === 'uabpay' && !$is_uab) ||
+                                    ($selectedPaymentMethod === 'wallet' && !($is_wallet ?? false))
+                                ) {
+                                    $selectedPaymentMethod = $defaultPaymentMethod;
+                                }
                             @endphp
                             <h3 class="mb-4">Payment</h3>
                             @include('components.wallet-payment-option')
