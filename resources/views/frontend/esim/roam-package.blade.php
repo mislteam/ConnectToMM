@@ -11,8 +11,7 @@
                     <div class="col-lg-12 col-md-12 col-sm-12 col-12">
                         <div class="banner_content">
                             <h1>E-SIM - {{ $settings['roam_title']->value ?? 'Roam' }}</h1>
-                            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-                                labore et dolore magna aliqua.</p>
+                            <p>{{ banner('rom_esim')?->subtitle ?? '-' }}</p>
                         </div>
                     </div>
                 </div>

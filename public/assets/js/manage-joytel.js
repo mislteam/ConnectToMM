@@ -212,6 +212,8 @@ if (managePriceModal) {
             currentPriceTrigger?.getAttribute("data-product-name") || "";
         const usageLocations =
             currentPriceTrigger?.getAttribute("data-usage-locations") || "";
+        const userUsdRate =
+            currentPriceTrigger?.getAttribute("data-usd-rate") || 1;
 
         const usageLocationArray = JSON.parse(usageLocations || []);
 
@@ -261,6 +263,7 @@ if (managePriceModal) {
                 </td>
                 <td class="profit-label">${sellingRate > 0 ? profitValue.toLocaleString() : "-"}</td>
                 <td><span class="total-label">${sellingRate > 0 ? totalValue.toLocaleString() : "-"}</span></td>
+                <td><span class="usd-total-label">${sellingRate > 0 ? (totalValue / userUsdRate).toFixed(2) : "-"}</span></td>
             `;
             tbody.appendChild(tr);
         });
@@ -277,6 +280,7 @@ if (managePriceModal) {
 
                 if (sellingRate <= 0) {
                     row.querySelector(".total-label").innerText = "-";
+                    row.querySelector(".usd-total-label").innerText = "-";
                     row.querySelector(".profit-label").innerText = "-";
                     return;
                 }

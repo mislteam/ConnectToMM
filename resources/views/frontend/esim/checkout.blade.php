@@ -4,7 +4,9 @@
     @include('components.alert')
     <style>
         .order-summary .order-box {
-            height: 100%;
+            height: auto !important;
+            position: sticky;
+            top: 135px;
         }
 
         .order-summary .button_text {

@@ -30,7 +30,9 @@ class GeneralServiceProvider extends ServiceProvider
                 'joytel_logo',
                 'roam_logo',
                 'joytel_order_types',
-                'roam_order_types'
+                'roam_order_types',
+                'joytel_sim_types',
+                'roam_sim_types'
             ])->get()->keyBy('name');
 
             $view->with('settings', $settings);

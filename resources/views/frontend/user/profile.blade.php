@@ -614,7 +614,7 @@
     <div class="sub-banner" style="background-image: url({{ asset($image) }})">
         <section class="banner-section">
             <figure class="mb-0 bgshape">
-                <img src="./assets/images/homebanner-bgshape.png" alt="" class="img-fluid">
+                <img src="{{ asset('assets/images/homebanner-bgshape.png') }}" alt="" class="img-fluid">
             </figure>
             <div class="container">
                 <div class="row">
@@ -1260,7 +1260,8 @@
                                         record.salePlanName || record.sale_plan_name ||
                                         ('Usage ' + (index + 1));
 
-                                    return '<div class="mt-2"><strong>' + escapeHtml(recordLabel) + '</strong>' +
+                                    return '<div class="mt-2"><strong>' + escapeHtml(recordLabel) +
+                                        '</strong>' +
                                         renderJoytelUsageValue(record) + '</div>';
                                 }).join('') + '</div>';
                         }

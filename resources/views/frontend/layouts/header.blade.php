@@ -196,7 +196,10 @@
                                  'physical.roamsearch',
                                  'physical.roampackageview',
                              );
+                             $joytel_sim_types = json_decode($settings['joytel_sim_types']?->value, true) ?? [];
+                             $roam_sim_types = json_decode($settings['roam_sim_types']?->value, true) ?? [];
                          @endphp
+
                          <li class="nav-item dropdown megamenu {{ $isServiceActive ? 'active' : '' }}">
                              <a class="nav-link dropdown-toggle" href="#" id="megamenu"
                                  data-toggle="dropdown">Our Services</a>
@@ -206,32 +209,40 @@
                                      <div class="col-md-6">
                                          <h5 class="font-weight-bold">E-SIM</h5>
                                          <ul class="list-unstyled drop-down-pages">
-                                             <li
-                                                 class="nav-item {{ request()->routeIs('esimIndex', 'esim.search', 'joytel.esim.packageview') ? 'active' : '' }}">
-                                                 <a class="nav-link" data-request-loader
-                                                     href="{{ route('esimIndex') }}">{{ $settings['joytel_title']->value ?? 'Joytel' }}</a>
-                                             </li>
-                                             <li
-                                                 class="nav-item {{ request()->routeIs('esim.roam', 'esim.roamsearch', 'esim.roampackageview') ? 'active' : '' }}">
-                                                 <a class="nav-link" data-request-loader
-                                                     href="{{ route('esim.roam') }}">{{ $settings['roam_title']->value ?? 'Joytel' }}</a>
-                                             </li>
+                                             @if ($joytel_sim_types['esim'] == 1)
+                                                 <li
+                                                     class="nav-item {{ request()->routeIs('esimIndex', 'esim.search', 'joytel.esim.packageview') ? 'active' : '' }}">
+                                                     <a class="nav-link" data-request-loader
+                                                         href="{{ route('esimIndex') }}">{{ $settings['joytel_title']->value ?? 'Joytel' }}</a>
+                                                 </li>
+                                             @endif
+                                             @if ($roam_sim_types['esim'] == 1)
+                                                 <li
+                                                     class="nav-item {{ request()->routeIs('esim.roam', 'esim.roamsearch', 'esim.roampackageview') ? 'active' : '' }}">
+                                                     <a class="nav-link" data-request-loader
+                                                         href="{{ route('esim.roam') }}">{{ $settings['roam_title']->value ?? 'Joytel' }}</a>
+                                                 </li>
+                                             @endif
                                          </ul>
                                      </div>
                                      <!-- Column 2 with submenu -->
                                      <div class="col-md-6">
-                                         <h5 class="font-weight-bold">Physical SIM</h5>
+                                         <h5 class="font-weight-bold">Physical SIM Recharge</h5>
                                          <ul class="list-unstyled drop-down-pages">
-                                             <li
-                                                 class="nav-item {{ request()->routeIs('physicalIndex', 'physical.search', 'joytel.physical.packageview') ? 'active' : '' }}">
-                                                 <a class="nav-link" data-request-loader
-                                                     href="{{ route('physicalIndex') }}">{{ $settings['joytel_title']->value ?? 'Joytel' }}</a>
-                                             </li>
-                                             <li
-                                                 class="nav-item {{ request()->routeIs('physical.roam', 'physical.roamsearch', 'physical.roampackageview') ? 'active' : '' }}">
-                                                 <a class="nav-link" data-request-loader
-                                                     href="{{ route('physical.roam') }}">{{ $settings['roam_title']->value ?? 'Joytel' }}</a>
-                                             </li>
+                                             @if ($joytel_sim_types['physical'] === 1)
+                                                 <li
+                                                     class="nav-item {{ request()->routeIs('physicalIndex', 'physical.search', 'joytel.physical.packageview') ? 'active' : '' }}">
+                                                     <a class="nav-link" data-request-loader
+                                                         href="{{ route('physicalIndex') }}">{{ $settings['joytel_title']->value ?? 'Joytel' }}</a>
+                                                 </li>
+                                             @endif
+                                             @if ($roam_sim_types['physical'] === 1)
+                                                 <li
+                                                     class="nav-item {{ request()->routeIs('physical.roam', 'physical.roamsearch', 'physical.roampackageview') ? 'active' : '' }}">
+                                                     <a class="nav-link" data-request-loader
+                                                         href="{{ route('physical.roam') }}">{{ $settings['roam_title']->value ?? 'Joytel' }}</a>
+                                                 </li>
+                                             @endif
                                          </ul>
                                      </div>
                                  </div>
