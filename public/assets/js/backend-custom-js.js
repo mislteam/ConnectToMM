@@ -57,13 +57,18 @@ function exportPlanDataToExcel(button) {
             const totalPriceText = cleanText(
                 row.querySelector(".total-label").innerText,
             );
+            const totalUsdText = cleanText(
+                row.querySelector(".usd-total-label").innerText,
+            );
             const totalPrice = parseNumber(totalPriceText);
+            const usdPrice = parseNumber(totalUsdText);
 
             // why double code and not
             return {
                 Plan: plan,
                 Country: usageLocations,
-                "Total Price": totalPrice,
+                "Total Price (MMK)": totalPrice,
+                "Total Price (USD)": usdPrice,
             };
         })
         .filter((row) => row.Plan !== "" && row["Total Price"] !== "");
@@ -75,7 +80,7 @@ function exportPlanDataToExcel(button) {
 
     const worksheet = XLSX.utils.json_to_sheet(exportRows);
 
-    worksheet["!cols"] = [{ wch: 45 }, { wch: 45 }, { wch: 18 }];
+    worksheet["!cols"] = [{ wch: 45 }, { wch: 45 }, { wch: 18 }, { wch: 18 }];
     const workbook = XLSX.utils.book_new();
 
     XLSX.utils.book_append_sheet(workbook, worksheet, config.sheetName);
@@ -97,6 +102,10 @@ function parseNumber(value) {
         .replace(/,/g, "")
         .replace(/[^\d.-]/g, "")
         .trim();
+
+    if (cleaned === "" || cleaned === "-") {
+        return "-";
+    }
 
     if (cleaned === "") return "";
 

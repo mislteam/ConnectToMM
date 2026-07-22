@@ -261,7 +261,7 @@
             }
         }
     </style>
-    <x-banner key="order_detail" />
+    <x-banner key="topup_payment_detail" />
     @php
         $isCredit = $transaction->type === 'credit';
 
@@ -346,10 +346,6 @@
                                     <div class="detail-value">
                                         {{ $transactionTitle }}
                                     </div>
-                                </div>
-                                <div class="detail-item">
-                                    <div class="detail-label">Reference</div>
-                                    <div class="detail-value">{{ $referenceLabel }}</div>
                                 </div>
 
                             </div>

@@ -45,6 +45,38 @@
 <div class="row mb-2">
     <div class="col-lg-3">
         <div class="mb-3">
+            <label class="col-form-label">Our Services</label>
+        </div>
+    </div>
+
+    <div class="col-lg-9">
+        <div class="mb-3">
+            <div class="d-flex justify-content-between col-lg-6">
+                <div class="d-flex justify-contents-center align-items-center">
+                    <div class="form-check form-switch form-check-secondary fs-xxl mb-2">
+                        <input name="{{ $type . '_esim' }}" type="checkbox" value="1"
+                            class="form-check-input mt-1 code-status-toggle"
+                            {{ $simTypes['esim'] === 1 ? 'checked' : '' }}>
+                    </div>
+                    <label>ESIM</label>
+                </div>
+
+                <div class="d-flex justify-contents-center align-items-center w-25">
+                    <div class="form-check form-switch form-check-secondary fs-xxl mb-2">
+                        <input name="{{ $type . '_physical' }}" type="checkbox"
+                            class="form-check-input mt-1 code-status-toggle" value="1"
+                            {{ $simTypes['physical'] ? 'checked' : '' }}>
+                    </div>
+                    <label>Physical SIM Recharge</label>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-2">
+    <div class="col-lg-3">
+        <div class="mb-3">
             <label class="col-form-label">eSIM Order Type</label>
         </div>
     </div>
@@ -60,7 +92,7 @@
                     <label>New eSIM</label>
                 </div>
 
-                <div class="d-flex justify-contents-center align-items-center">
+                <div class="d-flex justify-contents-center align-items-center w-25">
                     <div class="form-check form-switch form-check-secondary fs-xxl mb-2">
                         <input name="{{ $type . '_esim_recharge' }}" type="checkbox"
                             class="form-check-input mt-1 code-status-toggle" value="esim_recharge"
@@ -91,7 +123,7 @@
                     <label>New eSIM</label>
                 </div>
 
-                <div class="d-flex justify-contents-center align-items-center">
+                <div class="d-flex justify-contents-center align-items-center w-25">
                     <div class="form-check form-switch form-check-secondary fs-xxl mb-2">
                         <input name="{{ $type . '_physical_recharge' }}" type="checkbox"
                             class="form-check-input mt-1 code-status-toggle" value="physical_recharge"

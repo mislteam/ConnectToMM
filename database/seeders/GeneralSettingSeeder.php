@@ -55,6 +55,20 @@ class GeneralSettingSeeder extends Seeder
                 ]),
                 'type' => 'string',
             ],
+            'joytel_sim_types' => [
+                'value' => json_encode([
+                    'esim' => 1,
+                    'physical' => 1
+                ]),
+                'type' => 'json'
+            ],
+            'roam_sim_types' => [
+                'value' => json_encode([
+                    'esim' => 1,
+                    'physical' => 1
+                ]),
+                'type' => 'json'
+            ]
         ];
         foreach ($settings as $name => $data) {
             GeneralSetting::updateOrCreate(

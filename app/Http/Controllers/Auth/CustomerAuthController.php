@@ -343,12 +343,24 @@ class CustomerAuthController extends Controller
             ]);
         }
 
-        if (! $customer->isActive() && $customer->hasVerifiedEmail()) {
-            $customer->markActive()->save();
+        if ($customer->isActive() && $customer->hasVerifiedEmail()) {
+            Auth::guard('customers')->login(
+                $customer,
+                $request->boolean('remember')
+            );
+
+            $request->session()->regenerate();
+
+            return redirect()->intended(route('Index'))
+                ->with('success', 'Welcome back!');
         }
 
         try {
-            $verificationCode = $this->issueVerificationCode($customer, $request, self::OTP_PURPOSE_LOGIN);
+            $verificationCode = $this->issueVerificationCode(
+                $customer,
+                $request,
+                self::OTP_PURPOSE_LOGIN
+            );
         } catch (Throwable $e) {
             report($e);
 
@@ -360,7 +372,10 @@ class CustomerAuthController extends Controller
         $request->session()->put('verification_customer_id', $customer->id);
         $request->session()->put('verification_email', $customer->email);
         $request->session()->put('verification_purpose', self::OTP_PURPOSE_LOGIN);
-        $request->session()->put('verification_remember', $request->boolean('remember', true));
+        $request->session()->put(
+            'verification_remember',
+            $request->boolean('remember', true)
+        );
 
         return redirect()
             ->route('verification.notice')
@@ -506,6 +521,21 @@ class CustomerAuthController extends Controller
                 ->with('error', 'Google did not return a verified email address.');
         }
 
+        if ($customer->isActive() && $customer->hasVerifiedEmail()) {
+
+            Auth::guard('customers')
+                ->login($customer, true);
+
+            $request->session()->regenerate();
+
+            return redirect()
+                ->to($this->customerRedirectUrl($request))
+                ->with(
+                    'success',
+                    'Welcome back!'
+                );
+        }
+
         try {
             $verificationCode = $this->issueVerificationCode($customer, $request);
         } catch (Throwable $e) {
@@ -554,8 +584,10 @@ class CustomerAuthController extends Controller
                     ->first();
             }
 
+            $isNewCustomer = false;
             if (! $customer) {
                 $customer = new Customer();
+                $isNewCustomer = true;
             }
 
             $customer->name = $googleUser['name'] ?? $email ?? 'Google Customer';
@@ -570,8 +602,10 @@ class CustomerAuthController extends Controller
                 'picture' => $googleUser['picture'] ?? null,
             ]);
             $customer->role = 'customer';
-            $customer->status = Customer::STATUS_PENDING;
-            $customer->email_verified_at = null;
+            if ($isNewCustomer) {
+                $customer->status = Customer::STATUS_PENDING;
+                $customer->email_verified_at = null;
+            }
             $customer->save();
             $this->createCustomerWallet($customer);
             return $customer;

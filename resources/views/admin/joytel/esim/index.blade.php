@@ -171,7 +171,8 @@
                                                                     data-joytel-id="{{ $esim->id }}"
                                                                     data-joytel-type="esim"
                                                                     data-product-name="{{ $esim->product_name }}"
-                                                                    data-usage-locations='@json($esim->coverage)'>
+                                                                    data-usage-locations='@json($esim->coverage)'
+                                                                    data-usd-rate="{{ $userUsdRate ?? 1 }}">
                                                                     <i class="ti ti-currency-dollar fs-lg"></i> Manage Price
                                                                 </button>
                                                                 <button type="button" class="dropdown-item"
@@ -238,6 +239,7 @@
                                                     <th style="width: 150px;">Selling Rate</th>
                                                     <th>Profit</th>
                                                     <th>Total (MMK)</th>
+                                                    <th>Total (USD)</th>
                                                 </tr>
                                             </thead>
                                             <tbody id="price-invoice-items">

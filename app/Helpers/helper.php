@@ -382,3 +382,10 @@ if (! function_exists('displayPrice')) {
         return number_format($mmkPrice) . ' MMK';
     }
 }
+
+if (!function_exists('banner')) {
+    function banner(string $key)
+    {
+        return \App\Models\Banner::where('banner_type', $key)->first();
+    }
+}

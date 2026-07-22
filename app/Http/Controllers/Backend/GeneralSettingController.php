@@ -19,9 +19,14 @@ class GeneralSettingController extends Controller
     public function edit($type)
     {
         $orderTypes = null;
+        $simTypes = null;
         if ($type === "roam") {
             $orderTypes = json_decode(
                 GeneralSetting::where('name', 'roam_order_types')->value('value'),
+                true
+            ) ?? [];
+            $simTypes = json_decode(
+                GeneralSetting::where('name', 'roam_sim_types')->value('value'),
                 true
             ) ?? [];
         } else if ($type === "joytel") {
@@ -29,12 +34,16 @@ class GeneralSettingController extends Controller
                 GeneralSetting::where('name', 'joytel_order_types')->value('value'),
                 true
             ) ?? [];
+            $simTypes = json_decode(
+                GeneralSetting::where('name', 'joytel_sim_types')->value('value'),
+                true
+            ) ?? [];
         }
 
         $data = GeneralSetting::where('name', 'like', $type . '%')->get()->keyBy('name');
         $logo = GeneralSetting::where('type', 'file')->first();
         $title = GeneralSetting::where('type', 'string')->first();
-        return view('admin.setting.general.edit', compact('data', 'type', 'logo', 'title', 'orderTypes'));
+        return view('admin.setting.general.edit', compact('data', 'type', 'logo', 'title', 'orderTypes', 'simTypes'));
     }
 
     public function update($type, Request $request)
@@ -67,7 +76,9 @@ class GeneralSettingController extends Controller
         } elseif (in_array($type, ['joytel', 'roam'])) {
             $request->validate([
                 $type . '_title' => 'required|string|max:255',
-                $type . '_image' => 'nullable|file|mimes:png,jpg,svg|max:2048'
+                $type . '_image' => 'nullable|file|mimes:png,jpg,svg|max:2048',
+                $type . '_esim' => 'nullable|in:0,1',
+                $type . '_physical' => 'nullable|in:0,1',
             ]);
 
             $title = GeneralSetting::where('name', $type . '_title')->first();
@@ -87,6 +98,21 @@ class GeneralSettingController extends Controller
                 $image->value = $value ?? $image->value;
                 $image->save();
             }
+
+            $simTypes = [
+                'esim' => $request->has($type . '_esim') ? 1 : 0,
+                'physical' => $request->has($type . '_physical') ? 1 : 0,
+            ];
+
+            GeneralSetting::updateOrCreate(
+                [
+                    'name' => $type . '_sim_types'
+                ],
+                [
+                    'value' => json_encode($simTypes),
+                    'type' => 'json'
+                ]
+            );
 
             $orderTypes = [];
             if ($request->has($type . '_esim_new')) {

@@ -92,7 +92,7 @@
                                     </div>
                                 @elseif (in_array($type, ['joytel', 'roam']))
                                     <x-general-sim-edit :value="$data[$type . '_title']->value" :type="$type" :image="$data[$type . '_logo']"
-                                        :order-types="$orderTypes" />
+                                        :order-types="$orderTypes" :sim-types="$simTypes" />
                                 @endif
                             </div>
                             <div class="mt-2 mb-4 d-flex gap-2 justify-content-end">
