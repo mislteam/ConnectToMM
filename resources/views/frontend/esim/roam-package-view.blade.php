@@ -40,7 +40,7 @@
             margin-bottom: 1rem;
         }
 
-        .form-design .form-group > label {
+        .form-design .form-group>label {
             margin-bottom: 0.55rem;
         }
 
@@ -168,9 +168,9 @@
                 width: 100%;
             }
 
-            .row.mb-5 > .col-lg-6.mb-5,
-            .row.mb-5 > .col-lg-6.col-md-6,
-            .row.mb-5 > .col-lg-6.col-md-6.mb-5 {
+            .row.mb-5>.col-lg-6.mb-5,
+            .row.mb-5>.col-lg-6.col-md-6,
+            .row.mb-5>.col-lg-6.col-md-6.mb-5 {
                 margin-bottom: 1.5rem !important;
             }
         }
@@ -209,16 +209,16 @@
                     <!-- <div id="productGlleryIndicators" class="carousel slide" data-ride="carousel"> -->
                     <div id="productGlleryIndicators" class="" data-ride="carousel">
                         <!-- <ol class="carousel-indicators">
-                                                                                                                                                                                                                                                                                                                                                                                    <li data-target="#productGlleryIndicators" data-slide-to="0" class="active">
-                                                                                                                                                                                                                                                                                                                                                                                        <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
-                                                                                                                                                                                                                                                                                                                                                                                    </li>
-                                                                                                                                                                                                                                                                                                                                                                                    <li data-target="#productGlleryIndicators" data-slide-to="1">
-                                                                                                                                                                                                                                                                                                                                                                                        <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
-                                                                                                                                                                                                                                                                                                                                                                                    </li>
-                                                                                                                                                                                                                                                                                                                                                                                    <li data-target="#productGlleryIndicators" data-slide-to="2">
-                                                                                                                                                                                                                                                                                                                                                                                        <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
-                                                                                                                                                                                                                                                                                                                                                                                    </li>
-                                                                                                                                                                                                                                                                                                                                                                                  </ol> -->
+                                                                                                                                                                                                                                                                                                                                                                                                        <li data-target="#productGlleryIndicators" data-slide-to="0" class="active">
+                                                                                                                                                                                                                                                                                                                                                                                                            <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
+                                                                                                                                                                                                                                                                                                                                                                                                        </li>
+                                                                                                                                                                                                                                                                                                                                                                                                        <li data-target="#productGlleryIndicators" data-slide-to="1">
+                                                                                                                                                                                                                                                                                                                                                                                                            <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
+                                                                                                                                                                                                                                                                                                                                                                                                        </li>
+                                                                                                                                                                                                                                                                                                                                                                                                        <li data-target="#productGlleryIndicators" data-slide-to="2">
+                                                                                                                                                                                                                                                                                                                                                                                                            <img class="d-block w-100 border" src="{{ file_exists(public_path('storage/upload/roam/' . $pkg->image)) ? asset('storage/upload/roam/' . $pkg->image) : asset($pkg->image ?? 'assets/images/package.jpg') }}">
+                                                                                                                                                                                                                                                                                                                                                                                                        </li>
+                                                                                                                                                                                                                                                                                                                                                                                                      </ol> -->
                         <div class="carousel-inner">
                             <div class="carousel-item active">
                                 <img class="d-block w-100"
@@ -234,13 +234,13 @@
                             </div>
                         </div>
                         <!-- <a class="carousel-control-prev" href="#productGlleryIndicators" role="button" data-slide="prev">
-                                                                                                                                                                                                                                                                                                                                                                                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                                                                                                                                                                                                                                                                                                                                                                                    <span class="sr-only">Previous</span>
-                                                                                                                                                                                                                                                                                                                                                                                  </a>
-                                                                                                                                                                                                                                                                                                                                                                                  <a class="carousel-control-next" href="#productGlleryIndicators" role="button" data-slide="next">
-                                                                                                                                                                                                                                                                                                                                                                                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                                                                                                                                                                                                                                                                                                                                                                                    <span class="sr-only">Next</span>
-                                                                                                                                                                                                                                                                                                                                                                                  </a> -->
+                                                                                                                                                                                                                                                                                                                                                                                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                                                                                                                                                                                                                                                                                                                                                                                        <span class="sr-only">Previous</span>
+                                                                                                                                                                                                                                                                                                                                                                                                      </a>
+                                                                                                                                                                                                                                                                                                                                                                                                      <a class="carousel-control-next" href="#productGlleryIndicators" role="button" data-slide="next">
+                                                                                                                                                                                                                                                                                                                                                                                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                                                                                                                                                                                                                                                                                                                                                                                        <span class="sr-only">Next</span>
+                                                                                                                                                                                                                                                                                                                                                                                                      </a> -->
                     </div>
                 </div>
                 <div class="col-lg-6 col-md-6">
@@ -347,7 +347,8 @@
                         <form class="form-design" action="{{ route('roam.esim.cart') }}" method="POST">
                             @csrf
                             <input type="hidden" name="skuid" value="{{ $sku->sku_id }}">
-                            <input type="hidden" name="sim_type" value="{{ $simType ?? session('sim_type', 'new_esim') }}">
+                            <input type="hidden" name="sim_type"
+                                value="{{ $simType ?? session('sim_type', 'new_esim') }}">
                             <div class="form-group">
                                 <label class="font-weight-bold">Type of Plan</label>
                                 <div id="trafficType" class="btn-group btn-group-toggle d-flex flex-wrap"
@@ -436,9 +437,9 @@
 
                             <!-- Price Display -->
                             <!-- <div class="form-group">
-                                                                                                                                                                                                                                                                                                                                                                                        <label class="font-weight-bold">Price</label>
-                                                                                                                                                                                                                                                                                                                                                                                        <p id="priceDisplay" class="h5 text-success mb-0">Select a plan</p>
-                                                                                                                                                                                                                                                                                                                                                                                    </div> -->
+                                                                                                                                                                                                                                                                                                                                                                                                            <label class="font-weight-bold">Price</label>
+                                                                                                                                                                                                                                                                                                                                                                                                            <p id="priceDisplay" class="h5 text-success mb-0">Select a plan</p>
+                                                                                                                                                                                                                                                                                                                                                                                                        </div> -->
                             <!-- Add to Cart -->
                             <input type="hidden" name="display_price" id="display_price" value>
                             <input type="hidden" name="unit_price" id="unit_price" value>
@@ -504,7 +505,7 @@
 
                                     <h4>{{ $package->country_name ?? 'Unnamed Package' }}</h4>
                                     @if ($lowestPrice)
-                                        <p class="text-size-16">From {{ number_format($lowestPrice) }} MMK</p>
+                                        <p class="text-size-16">From {{ displayPrice($lowestPrice, 'user_usd_rate') }}</p>
                                     @else
                                         <p class="text-size-16 text-danger">Not available</p>
                                     @endif
@@ -525,6 +526,9 @@
     </section>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const selectedCurrency = "{{ session('currency', config('currency.default')) }}";
+            const userUsdRate = Number(@json($userUsdRate));
+
             const hasValidPlans = @json($hasValidPlans);
             const canAdjustQuantity = @json($canAdjustQuantity);
             const currentSimType = @json($simType ?? session('sim_type', 'new_esim'));
@@ -915,8 +919,24 @@
                     }
 
                     oriSelectedPrice.value = selectedData.dataset.price;
-                    const total = parseFloat(selectedData.dataset.price || 0) * qty;
-                    total_price.innerText = `Total Price: ${total.toLocaleString()} MMK`;
+                    const unitPrice = parseFloat(selectedData.dataset.price) || 0;
+
+                    const total = unitPrice * qty;
+
+                    const validUsdRate =
+                        Number.isFinite(userUsdRate) &&
+                        userUsdRate > 0;
+
+                    const usdTotal = validUsdRate ? total / userUsdRate : null;
+
+                    if (selectedCurrency === 'USD') {
+                        total_price.innerText = usdTotal !== null ?
+                            `Total Price: $${usdTotal.toFixed(2)}` :
+                            'Total Price: USD rate unavailable';
+                    } else {
+                        total_price.innerText =
+                            `Total Price: ${total.toLocaleString('en-US')} MMK`;
+                    }
                     if (displayPriceInput) displayPriceInput.value = total;
                     syncHiddenFields(selectedData);
                     return;

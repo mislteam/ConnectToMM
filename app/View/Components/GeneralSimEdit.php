@@ -15,7 +15,8 @@ class GeneralSimEdit extends Component
         public $value,
         public $type,
         public $image,
-        public $orderTypes = null
+        public $orderTypes = null,
+        public $simTypes = null,
     ) {
         //
     }

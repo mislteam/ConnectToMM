@@ -174,14 +174,14 @@
                                                                     data-existing-rates='@json($exchangeRates)'
                                                                     data-joytel-id="{{ $recharge->id }}"
                                                                     data-joytel-type="physical"
-                                                                    data-product-name="{{ $recharge->product_name }}">
+                                                                    data-product-name="{{ $recharge->product_name }}"
+                                                                    data-usage-locations='@json($recharge->coverage)'>
                                                                     <i class="ti ti-currency-dollar fs-lg"></i> Manage Price
                                                                 </button>
                                                                 <button type="button" class="dropdown-item"
                                                                     data-bs-toggle="modal" data-bs-target="#manage-status"
                                                                     data-plan='@json($plans)'
-                                                                    data-id="{{ $recharge->id }}"
-                                                                    data-joytel-type="physical"
+                                                                    data-id="{{ $recharge->id }}" data-joytel-type="physical"
                                                                     data-product-name="{{ $recharge->product_name }}">
                                                                     <i class="ti ti-box fs-lg"></i> Manage Status
                                                                 </button>
@@ -261,9 +261,16 @@
                                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                 </div>
                                 <div class="modal-body">
-                                    <h4 class="modal-title">
-                                        <span id="product-name-title"></span>
-                                    </h4>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <h4 class="modal-title">
+                                            <span id="product-name-title"></span>
+                                        </h4>
+                                        <x-plan-export-button data-sim-type="joytel-physical" />
+                                    </div>
+                                    <div class="country-group d-flex gap-2">
+                                        <h5>Coverage: </h5>
+                                        <p id="country-list"></p>
+                                    </div>
                                     <div class="mt-2">
                                         <table class="table table-bordered text-center align-middle"
                                             style="white-space: nowrap; min-width: 800px;">
@@ -296,8 +303,8 @@
                     </div>
 
                     <!-- manage status -->
-                    <div class="modal fade" id="manage-status" tabindex="-1" role="dialog" aria-labelledby="manageStatus"
-                        aria-hidden="true">
+                    <div class="modal fade" id="manage-status" tabindex="-1" role="dialog"
+                        aria-labelledby="manageStatus" aria-hidden="true">
                         <div class="modal-dialog modal-lg modal-dialog-scrollable">
                             <div class="modal-content">
                                 <div class="modal-header">
@@ -349,7 +356,8 @@
                                 </div>
                                 <div class="modal-footer justify-content-center">
                                     <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Cancel</button>
                                 </div>
                             </div>
                         </div>
@@ -358,12 +366,12 @@
                 </div>
             </div>
         </div>
-        </div>
-        <script>
-            window.simLists = @json($sim_lists);
-            window.additionalPrices = @json($additional_prices);
-            window.cnyRate = {{ \App\Models\Currency::where('name', 'cny')->value('value') ?? 0 }};
-        </script>
-        {{-- @vite('resources/js/manage-joytel.js') --}}
-        <script src="{{ asset('assets/js/manage-joytel.js') }}"></script>
-    @endsection
+    </div>
+    <script>
+        window.simLists = @json($sim_lists);
+        window.additionalPrices = @json($additional_prices);
+        window.cnyRate = {{ \App\Models\Currency::where('name', 'cny')->value('value') ?? 0 }};
+    </script>
+    {{-- @vite('resources/js/manage-joytel.js') --}}
+    <script src="{{ asset('assets/js/manage-joytel.js') }}"></script>
+@endsection

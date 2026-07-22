@@ -54,9 +54,18 @@
 @if ($errors->any() && !session('error_popup_html'))
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const validationErrors = @json($errors->all());
+            const validationHtml = validationErrors
+                .map(function(message) {
+                    const item = document.createElement('div');
+                    item.textContent = message;
+                    return item.innerHTML;
+                })
+                .join('<br>');
+
             Swal.fire({
                 title: 'Validation Error',
-                html: @json(implode('<br>', $errors->all())),
+                html: validationHtml,
                 icon: 'error',
                 confirmButtonText: 'OK',
                 confirmButtonColor: '#0049ad',

@@ -4,11 +4,74 @@
     @include('components.alert')
     <style>
         .order-summary .order-box {
-            height: 100%;
+            height: auto !important;
+            position: sticky;
+            top: 135px;
         }
 
         .order-summary .button_text {
             min-width: 0;
+        }
+
+        .uab-payment-methods-text.is-hidden {
+            display: none !important;
+        }
+
+        .uab-payment-methods-text {
+            margin-top: 0 !important;
+            line-height: 1.25;
+        }
+
+        .uab-payment-option label {
+            margin-bottom: 0 !important;
+        }
+
+        .wallet-payment-panel {
+            border: 1px solid #e5e9f0;
+            border-radius: 6px;
+            padding: 10px 12px 9px;
+            margin-bottom: 12px;
+            background: #fff;
+        }
+
+        .wallet-payment-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            color: #005eb8;
+            font-size: 13px;
+            line-height: 1.25;
+        }
+
+        .wallet-payment-heading strong {
+            color: #000;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .wallet-payment-divider {
+            border-top: 1px solid #d6dde8;
+            margin: 8px 0;
+        }
+
+        .wallet-payment-choice {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 0 !important;
+            color: #555;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .other-payment-methods {
+            padding-top: 2px;
+            margin-bottom: 18px;
+        }
+
+        .other-payment-methods .form-group {
+            margin-bottom: 10px !important;
         }
     </style>
     <x-banner key="checkout" />
@@ -20,12 +83,12 @@
                     ->values();
                 $subtotal = $subtotal ?? $checkoutItems->sum(fn($item) => (float) ($item['price'] ?? 0));
                 $requiresSnCode = function ($item) {
-                    $serviceType = strtolower((string) ($item['joytel_type'] ?? $item['service_type'] ?? ''));
+                    $serviceType = strtolower((string) ($item['joytel_type'] ?? ($item['service_type'] ?? '')));
                     $simType = strtolower((string) ($item['sim_type'] ?? ''));
                     $orderType = strtolower((string) ($item['order_type'] ?? ''));
 
-                    return $serviceType === 'physical'
-                        && ($orderType === 'recharge' || str_contains($simType, 'recharge'));
+                    return $serviceType === 'physical' &&
+                        ($orderType === 'recharge' || str_contains($simType, 'recharge'));
                 };
             @endphp
             <div class="row mb-3">
@@ -117,41 +180,55 @@
                                     </tr>
                                 </tbody>
                             </table>
+                            @php
+                                $defaultPaymentMethod = $is_direct
+                                    ? 'direct_bank_transfer'
+                                    : ($is_uab
+                                        ? 'uabpay'
+                                        : (($is_wallet ?? false)
+                                            ? 'wallet'
+                                            : null));
+                                $selectedPaymentMethod = old(
+                                    'payment_method',
+                                    $defaultPaymentMethod,
+                                );
+
+                                if (
+                                    ($selectedPaymentMethod === 'direct_bank_transfer' && !$is_direct) ||
+                                    ($selectedPaymentMethod === 'uabpay' && !$is_uab) ||
+                                    ($selectedPaymentMethod === 'wallet' && !($is_wallet ?? false))
+                                ) {
+                                    $selectedPaymentMethod = $defaultPaymentMethod;
+                                }
+                            @endphp
                             <h3 class="mb-4">Payment</h3>
-                            @if ($is_direct)
-                                <div class="form-group mb-0">
-                                    <input type="radio" value="direct_bank_transfer" id="paymentDirectBankTransfer"
-                                        name="payment_method" required {{ $is_direct ? '' : 'disabled' }}
-                                        {{ old('payment_method') === 'direct_bank_transfer' ? 'checked' : '' }}>
-                                    <label for="paymentDirectBankTransfer"
-                                        class="{{ $is_direct ? '' : 'text-muted' }}">Direct
-                                        Bank
-                                        Transfer</label>
-                                </div>
-                            @endif
-                            @if ($is_uab)
-                                <div class="form-group mb-0">
-                                    <input type="radio" value="UAB Pay" id="paymentUabPay" name="payment_method"
-                                        {{ $is_uab ? '' : 'disabled' }}>
-                                    <label for="paymentUabPay" class="{{ $is_uab ? '' : 'text-muted' }}">UAB Pay
-                                    </label>
-                                </div>
-                            @endif
-                            {{-- <div class="form-group mb-0">
-                                <input type="radio" value="direct_bank_transfer" id="paymentDirectBankTransfer"
-                                    name="payment_method" required
-                                    {{ old('payment_method', 'direct_bank_transfer') === 'direct_bank_transfer' ? 'checked' : '' }}>
-                                <label for="paymentDirectBankTransfer">Direct Bank Transfer</label>
+                            @include('components.wallet-payment-option')
+                            <div class="other-payment-methods">
+                                @if ($is_direct)
+                                    <div class="form-group mb-0">
+                                        <input type="radio" value="direct_bank_transfer" id="paymentDirectBankTransfer"
+                                            name="payment_method" required {{ $is_direct ? '' : 'disabled' }}
+                                            {{ $selectedPaymentMethod === 'direct_bank_transfer' ? 'checked' : '' }}>
+                                        <label for="paymentDirectBankTransfer"
+                                            class="{{ $is_direct ? '' : 'text-muted' }}">{{ $direct_payment_name ?? 'Direct Bank Transfer' }}</label>
+                                    </div>
+                                @endif
+                                @if ($is_uab)
+                                    <div class="form-group mb-0 uab-payment-option">
+                                        <input type="radio" value="uabpay" id="paymentUabPay" name="payment_method"
+                                            {{ $is_uab ? '' : 'disabled' }}
+                                            {{ $selectedPaymentMethod === 'uabpay' ? 'checked' : '' }}>
+                                        <label for="paymentUabPay"
+                                            class="{{ $is_uab ? '' : 'text-muted' }}">{{ $uab_payment_name ?? 'Online Payment' }}
+                                        </label>
+                                        @if (!empty($uab_payment_methods_text))
+                                            <small id="uabPaymentMethodsText"
+                                                class="uab-payment-methods-text d-block mt-2 {{ $selectedPaymentMethod === 'uabpay' ? '' : 'is-hidden' }}">{{ $uab_payment_methods_text }}</small>
+                                        @endif
+                                    </div>
+                                @endif
                             </div>
                             <div class="form-group mb-0">
-                                <input type="radio" value="uab_pay" id="paymentUabPay" name="payment_method"
-                                    {{ old('payment_method') === 'uab_pay' ? 'checked' : '' }}>
-                                <label for="paymentUabPay">UAB Pay</label>
-                            </div> --}}
-                            <div class="form-group mb-0">
-                                <small class="text-muted d-block">
-                                    Choose Direct Bank Transfer or UAB Pay for this order.
-                                </small>
                                 @error('payment_method')
                                     <small class="text-danger d-block mt-2">{{ $message }}</small>
                                 @enderror
@@ -173,4 +250,27 @@
             </form>
         </div>
     </section>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const uabPaymentMethodsText = document.getElementById('uabPaymentMethodsText');
+
+            if (!uabPaymentMethodsText) {
+                return;
+            }
+
+            const toggleUabPaymentMethodsText = function() {
+                const selectedPaymentMethod = document.querySelector('input[name="payment_method"]:checked');
+                uabPaymentMethodsText.classList.toggle(
+                    'is-hidden',
+                    !selectedPaymentMethod || selectedPaymentMethod.value !== 'uabpay'
+                );
+            };
+
+            document.querySelectorAll('input[name="payment_method"]').forEach(function(paymentMethod) {
+                paymentMethod.addEventListener('change', toggleUabPaymentMethodsText);
+            });
+
+            toggleUabPaymentMethodsText();
+        });
+    </script>
 @endsection

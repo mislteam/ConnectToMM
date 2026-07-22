@@ -12,6 +12,7 @@ use App\Models\RoamOrder;
 use App\Services\OrderNotificationService;
 use App\Services\Roam\RoamIccidSupportService;
 use App\Services\Roam\RoamOrderDraftService;
+use App\Services\Roam\RoamProvisioningFlowService;
 use App\Payment\Providers\Uab\Services\UabCredentialService;
 use Illuminate\Support\Collection;
 use Illuminate\Http\Request;
@@ -23,17 +24,31 @@ class RoamCheckoutController extends Controller
     public function placeOrder(
         Request $request,
         RoamOrderDraftService $draftService,
-        RoamIccidSupportService $iccidSupportService
+        RoamIccidSupportService $iccidSupportService,
+        RoamProvisioningFlowService $provisioning
     ) {
         $validated = $request->validate([
             'customer_name' => ['required', 'string', 'max:255'],
             'customer_email' => ['required', 'email', 'max:255'],
             'customer_phone' => ['required', 'string', 'max:50'],
             'iccid_numbers' => ['nullable', 'array'],
-            'payment_method' => ['required', 'in:direct_bank_transfer,uabpay,uab_pay,UAB Pay'],
+            'payment_method' => ['required', 'in:direct_bank_transfer,uabpay,uab_pay,UAB Pay,wallet'],
             'terms' => ['accepted'],
         ]);
         $paymentMethod = $this->normalizePaymentMethod($validated['payment_method']);
+        $paymentSetting = \App\Models\PaymentSetting::orderBy('id')->get()->keyBy('id');
+        $activePaymentMethods = [
+            'direct_bank_transfer' => (bool) $paymentSetting->get(\App\Models\PaymentSetting::DIRECT_BANK_TRANSFER_ID)?->status,
+            'uabpay' => (bool) $paymentSetting->get(\App\Models\PaymentSetting::ONLINE_PAYMENT_ID)?->status,
+            'wallet' => (bool) $paymentSetting->get(\App\Models\PaymentSetting::WALLET_ID)?->status,
+        ];
+
+        if (empty($activePaymentMethods[$paymentMethod])) {
+            return back()
+                ->withInput()
+                ->withErrors(['payment_method' => 'Selected payment method is currently unavailable.']);
+        }
+
         $billingPhone = preg_replace('/\D+/', '', (string) $validated['customer_phone']);
         if (strlen($billingPhone) < 8) {
             return back()
@@ -145,13 +160,30 @@ class RoamCheckoutController extends Controller
             );
         }
 
-        $result = $draftService->createDraftOrdersFromCart(
-            $customer,
-            $cart,
-            $iccidNumbersByIndex,
-            $paymentMethod
-        );
-        $this->persistUabCheckoutCustomerMetadata($result['orders'], $checkoutCustomerData);
+        try {
+            $result = $draftService->createDraftOrdersFromCart(
+                $customer,
+                $cart,
+                $iccidNumbersByIndex,
+                $paymentMethod
+            );
+
+            if ($paymentMethod === 'uabpay') {
+                $this->persistUabCheckoutCustomerMetadata($result['orders'], $checkoutCustomerData);
+            }
+
+            if ($paymentMethod === 'wallet') {
+                $provisioning->provisionAfterPayment($customer, $result['outer_order_id']);
+            }
+        } catch (\Throwable $e) {
+            $response = back()->withInput();
+
+            if ($paymentMethod === 'wallet' && $this->shouldShowWalletTopupLink($e->getMessage())) {
+                return $response->with('error_popup_html', $this->buildWalletTopupPopup($e->getMessage()));
+            }
+
+            return $response->with('error', $e->getMessage());
+        }
 
         session()->forget([
             'roam_order_cart',
@@ -209,16 +241,16 @@ class RoamCheckoutController extends Controller
 
         $paymentMethod = $orders->first()?->payment_method;
         $credentials = null;
-        $payment_method = null;
+        $payment_method = payment_method_label($paymentMethod);
         $paymentActionUrl = null;
         $paymentSetting = \App\Models\PaymentSetting::orderBy('id')->get()->keyBy('id');
         if ($paymentMethod === 'direct_bank_transfer') {
-            $directPayment = $paymentSetting->get(1);
+            $directPayment = $paymentSetting->get(\App\Models\PaymentSetting::DIRECT_BANK_TRANSFER_ID);
             $credentials = $directPayment?->directBankCredentials;
             $payment_method = $directPayment?->type ?? payment_method_label($paymentMethod);
         } elseif ($paymentMethod === 'uabpay' || $paymentMethod === 'UAB Pay') {
             $payment_method = payment_method_display_label($paymentMethod, $outerOrderId)
-                ?? $paymentSetting->get(2)?->type
+                ?? $paymentSetting->get(\App\Models\PaymentSetting::ONLINE_PAYMENT_ID)?->type
                 ?? payment_method_label($paymentMethod);
             $paymentActionUrl = data_get($orders->first()?->raw_response, 'payment.uab.payment_url');
         }
@@ -319,6 +351,18 @@ class RoamCheckoutController extends Controller
         return in_array($paymentMethod, ['uabpay', 'uab_pay', 'UAB Pay'], true)
             ? 'uabpay'
             : $paymentMethod;
+    }
+
+    private function buildWalletTopupPopup(string $message): string
+    {
+        return e($message) . '<br><br><a href="' . e(route('frontend.user.wallet')) . '">Top Up Wallet</a>';
+    }
+
+    private function shouldShowWalletTopupLink(string $message): bool
+    {
+        $message = strtolower($message);
+
+        return str_contains($message, 'wallet') || str_contains($message, 'balance') || str_contains($message, 'top up');
     }
 
     private function buildPaymentStatusView($orders, bool $hasUploadedSlip): array

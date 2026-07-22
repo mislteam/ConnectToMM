@@ -13,48 +13,62 @@ class GeneralSettingSeeder extends Seeder
     public function run(): void
     {
         $settings = [
-            'logo' => [
-                'value' => 'logo.png',
-                'type' => 'file',
-            ],
-            'title' => [
-                'value' => 'Connect to Myanmar',
-                'type' => 'string',
-            ],
-            'joytel_title' => [
-                'value' => 'Joytel',
-                'type' => 'string',
-            ],
-            'joytel_logo' => [
-                'value' => 'joy_logo.png',
-                'type' => 'file',
-            ],
-            'roam_title' => [
-                'value' => 'Roam',
-                'type' => 'string',
-            ],
-            'roam_logo' => [
-                'value' => 'roam_logo.png',
-                'type' => 'file',
-            ],
-            'roam_order_types' => [
+            // 'logo' => [
+            //     'value' => 'logo.png',
+            //     'type' => 'file',
+            // ],
+            // 'title' => [
+            //     'value' => 'Connect to Myanmar',
+            //     'type' => 'string',
+            // ],
+            // 'joytel_title' => [
+            //     'value' => 'Joytel',
+            //     'type' => 'string',
+            // ],
+            // 'joytel_logo' => [
+            //     'value' => 'joy_logo.png',
+            //     'type' => 'file',
+            // ],
+            // 'roam_title' => [
+            //     'value' => 'Roam',
+            //     'type' => 'string',
+            // ],
+            // 'roam_logo' => [
+            //     'value' => 'roam_logo.png',
+            //     'type' => 'file',
+            // ],
+            // 'roam_order_types' => [
+            //     'value' => json_encode([
+            //         'esim_new',
+            //         'esim_recharge',
+            //         'physical_new',
+            //         'physical_recharge'
+            //     ]),
+            //     'type' => 'string',
+            // ],
+            // 'joytel_order_types' => [
+            //     'value' => json_encode([
+            //         'esim_new',
+            //         'esim_recharge',
+            //         'physical_new',
+            //         'physical_recharge'
+            //     ]),
+            //     'type' => 'string',
+            // ],
+            'joytel_sim_types' => [
                 'value' => json_encode([
-                    'esim_new',
-                    'esim_recharge',
-                    'physical_new',
-                    'physical_recharge'
+                    'esim' => 1,
+                    'physical' => 1
                 ]),
-                'type' => 'string',
+                'type' => 'json'
             ],
-            'joytel_order_types' => [
+            'roam_sim_types' => [
                 'value' => json_encode([
-                    'esim_new',
-                    'esim_recharge',
-                    'physical_new',
-                    'physical_recharge'
+                    'esim' => 1,
+                    'physical' => 1
                 ]),
-                'type' => 'string',
-            ],
+                'type' => 'json'
+            ]
         ];
         foreach ($settings as $name => $data) {
             GeneralSetting::updateOrCreate(

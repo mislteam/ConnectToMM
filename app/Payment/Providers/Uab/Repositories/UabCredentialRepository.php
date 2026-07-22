@@ -2,6 +2,7 @@
 
 namespace App\Payment\Providers\Uab\Repositories;
 
+use App\Models\PaymentSetting;
 use App\Models\UabCredential;
 
 class UabCredentialRepository
@@ -14,7 +15,7 @@ class UabCredentialRepository
     public function active(): ?UabCredential
     {
         $query = $this->model->newQuery()
-            ->where('payment_setting_id', 2)
+            ->where('payment_setting_id', PaymentSetting::ONLINE_PAYMENT_ID)
             ->orderByDesc('is_active')
             ->latest('id');
 

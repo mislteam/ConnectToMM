@@ -169,6 +169,7 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         App\Providers\GeneralServiceProvider::class,
+        App\Providers\GlobalVariableProvider::class,
     ])->toArray(),
 
     /*

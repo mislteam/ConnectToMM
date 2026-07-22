@@ -130,7 +130,7 @@ class PageController extends Controller
         $request->validate([
             'page'        => 'required|string|max:255',
             'title'       => 'required|string|max:255',
-            'subtitle'    => 'required|string',
+            'subtitle'    => 'required|string|max:255',
             'banner_type' => 'required|string',
             'image'       => 'nullable|image|mimes:png,jpg,jpeg|max:2048',
         ]);

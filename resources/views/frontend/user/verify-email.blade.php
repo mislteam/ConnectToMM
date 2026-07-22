@@ -1,7 +1,6 @@
 @extends('frontend.layouts.index')
-@section('title', ($purpose ?? 'email_verification') === 'login'
-    ? 'Verify Login'
-    : (($purpose ?? 'email_verification') === 'reset_password' ? 'Reset Password' : 'Verify Email'))
+@section('title', ($purpose ?? 'email_verification') === 'login' ? 'Verify Login' : (($purpose ?? 'email_verification')
+    === 'reset_password' ? 'Reset Password' : 'Verify Email'))
 @section('content')
     @include('components.alert')
     <section class="login-form sign-up-form d-flex align-items-center">
@@ -29,12 +28,14 @@
                 <div class="login-card">
                     <form method="POST" action="{{ route('verification.verify.otp') }}">
                         @csrf
-                        <input type="hidden" name="customer_id" value="{{ $customer->id ?? session('verification_customer_id') }}">
-                        <input type="hidden" name="purpose" value="{{ $purpose ?? session('verification_purpose', 'email_verification') }}">
+                        <input type="hidden" name="customer_id"
+                            value="{{ $customer->id ?? session('verification_customer_id') }}">
+                        <input type="hidden" name="purpose"
+                            value="{{ $purpose ?? session('verification_purpose', 'email_verification') }}">
 
                         <div class="form-group">
                             <label for="otp">Verification code</label>
-                            <input class="input-field form-control" type="text" id="otp" name="otp"
+                            <input class="input-field form-control otp_box" type="text" id="otp" name="otp"
                                 inputmode="numeric" autocomplete="one-time-code" maxlength="6"
                                 placeholder="Enter 6-digit code" value="{{ old('otp') }}">
                             @error('otp')
@@ -70,17 +71,33 @@
                     @if (($purpose ?? session('verification_purpose', 'email_verification')) !== 'reset_password')
                         <form method="POST" action="{{ route('verification.resend.otp') }}" class="mt-3">
                             @csrf
-                            <input type="hidden" name="customer_id" value="{{ $customer->id ?? session('verification_customer_id') }}">
-                            <input type="hidden" name="purpose" value="{{ $purpose ?? session('verification_purpose', 'email_verification') }}">
+                            <input type="hidden" name="customer_id"
+                                value="{{ $customer->id ?? session('verification_customer_id') }}">
+                            <input type="hidden" name="purpose"
+                                value="{{ $purpose ?? session('verification_purpose', 'email_verification') }}">
                             <button type="submit" class="btn btn-outline-dark w-100">Resend code</button>
                         </form>
                     @endif
 
                     <div class="text-center mt-3">
-                        <a href="{{ route('user.login') }}">Back to login</a>
+                        <a class="back_to_login" href="{{ route('user.login') }}">Back to login</a>
                     </div>
                 </div>
             </div>
         </div>
     </section>
+    <style>
+        .back_to_login {
+            color: #343a40;
+        }
+
+        .back_to_login:hover {
+            color: #3171b1;
+            text-decoration: underline;
+        }
+
+        input.otp_box {
+            caret-color: #000;
+        }
+    </style>
 @endsection

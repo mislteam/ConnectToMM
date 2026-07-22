@@ -38,7 +38,7 @@
         <div class="middle-portion">
             <div class="row">
                 <div class="col-lg-4 col-md-5 col-sm-6 col-12">
-                    <a href="./index.html">
+                    <a href="{{ route('Index') }}">
                         <figure class="footer-logo">
                             <img src="{{ asset('general/logo/' . $logo->value) }}" class="img-fluid w-75"
                                 alt="">
@@ -92,7 +92,8 @@
                                     class="mb-0 text text-decoration-none text-size-16">{{ $contactInfo->email }}</a>
                             </li>
                             <li class="text-size-16 text">Phone:
-                                <a href="#" class="mb-0 text text-decoration-none text-size-16">
+                                <a href="tel:{{ $contactInfo->phone }}"
+                                    class="mb-0 text text-decoration-none text-size-16">
                                     {{ $contactInfo->phone }}
                                 </a>
                             </li>

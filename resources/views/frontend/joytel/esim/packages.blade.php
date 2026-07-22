@@ -5,15 +5,14 @@
     <div class="sub-banner">
         <section class="banner-section">
             <figure class="mb-0 bgshape">
-                <img src="./assets/images/homebanner-bgshape.png" alt="" class="img-fluid">
+                <img src="{{ asset('assets/images/homebanner-bgshape.png') }}" alt="" class="img-fluid">
             </figure>
             <div class="container">
                 <div class="row">
                     <div class="col-lg-12 col-md-12 col-sm-12 col-12">
                         <div class="banner_content">
                             <h1>E-SIM - {{ $settings['joytel_title']->value ?? 'Joytel' }}</h1>
-                            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-                                labore et dolore magna aliqua.</p>
+                            <p>{{ banner('joytel_esim')?->subtitle ?? '-' }}</p>
                         </div>
                     </div>
                 </div>

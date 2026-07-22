@@ -4,11 +4,17 @@ namespace App\Services\Roam;
 
 use App\Models\Customer;
 use App\Models\RoamOrder;
+use App\Models\WalletTransaction;
+use App\Services\Wallet\WalletPackagePaymentService;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
 class RoamOrderDraftService
 {
+    public function __construct(
+        private readonly WalletPackagePaymentService $walletPaymentService,
+    ) {}
+
     /**
      * Create local Roam orders (one per cart item) BEFORE payment, without calling Roam API.
      *
@@ -30,10 +36,13 @@ class RoamOrderDraftService
         }
 
         $outerOrderId = $this->generateOuterOrderId();
-        $totalAmount = 0.0;
+        $totalAmount = $this->calculateCartTotalAmount($cartItems);
 
-        $orders = DB::transaction(function () use ($customer, $cartItems, $iccidNumbersByIndex, $outerOrderId, $paymentMethod, &$totalAmount) {
+        $orders = DB::transaction(function () use ($customer, $cartItems, $iccidNumbersByIndex, $outerOrderId, $paymentMethod, $totalAmount) {
             $created = collect();
+            $walletTransaction = $paymentMethod === 'wallet'
+                ? $this->walletPaymentService->debitPackagePurchase($customer, (int) round($totalAmount))
+                : null;
 
             foreach ($cartItems as $index => $item) {
                 $skuId = $item['sku_id'] ?? $item['sku'] ?? null;
@@ -93,10 +102,10 @@ class RoamOrderDraftService
                         'draft' => true,
                         'iccid_numbers' => $iccids,
                         'cart_item' => $item,
+                        'payment' => $this->buildWalletPaymentMetadata($walletTransaction),
                     ],
                 ]);
 
-                $totalAmount += (float) $order->billable_total_price;
                 $created->push($order);
             }
 
@@ -154,6 +163,43 @@ class RoamOrderDraftService
         // Must be <= 100 chars, unique, and clearly temporary.
         $hash = substr(sha1($outerOrderId . '|' . $index), 0, 10);
         return "TMP-{$hash}-{$index}";
+    }
+
+    private function calculateCartTotalAmount(array $cartItems): float
+    {
+        return collect($cartItems)->sum(function (array $item): int {
+            $quantity = max(1, (int) ($item['qty'] ?? $item['quantity'] ?? 1));
+            $unitPrice = (float) ($item['ori_price'] ?? $item['unit_price'] ?? 0);
+
+            if ($unitPrice <= 0) {
+                $submittedTotalPrice = (float) ($item['total_price'] ?? $item['price'] ?? 0);
+                $unitPrice = $quantity > 0 ? round($submittedTotalPrice / $quantity, 2) : $submittedTotalPrice;
+            }
+
+            return (int) round($unitPrice) * $quantity;
+        });
+    }
+
+    private function buildWalletPaymentMetadata(?WalletTransaction $walletTransaction): array
+    {
+        if ($walletTransaction === null) {
+            return [];
+        }
+
+        return [
+            'method' => 'wallet',
+            'wallet' => [
+                'transaction_id' => $walletTransaction->id,
+                'amount' => (int) $walletTransaction->amount,
+                'balance_after' => (int) $walletTransaction->balance_after,
+                'transaction_state' => $walletTransaction->transaction_state,
+                'paid_at' => now()->toDateTimeString(),
+            ],
+            'approval' => [
+                'source' => 'wallet_payment',
+                'approved_at' => now()->toDateTimeString(),
+            ],
+        ];
     }
 
     private function buildRemark(array $item): ?string

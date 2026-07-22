@@ -9,6 +9,10 @@ class PaymentSetting extends Model
 {
     use HasFactory;
 
+    public const DIRECT_BANK_TRANSFER_ID = 1;
+    public const ONLINE_PAYMENT_ID = 2;
+    public const WALLET_ID = 3;
+
     protected $table = 'payment_setting';
 
     protected $fillable = [

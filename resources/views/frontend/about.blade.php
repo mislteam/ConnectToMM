@@ -9,7 +9,7 @@
     <div class="sub-banner" style="background-image: url({{ asset($image) }})">
         <section class="banner-section">
             <figure class="mb-0 bgshape">
-                <img src="./assets/images/homebanner-bgshape.png" alt="" class="img-fluid">
+                <img src="{{ asset('assets/images/homebanner-bgshape.png') }}" alt="" class="img-fluid">
             </figure>
             <div class="container">
                 <div class="row">
@@ -50,42 +50,24 @@
                 </div>
             </div>
             <div class="row" data-aos="fade-up">
-                <div class="col-lg-4 col-md-4 col-sm-12 col-12">
-                    <div class="blog-box">
-                        <figure>
-                            <img src="./assets/images/firstblog.png" alt="" class="img-fluid">
-                        </figure>
-                        <div class="content content1">
-                            <a class="button">Bank</a>
-                            <p class="h4">The Impact Of Online Payments Will Make All Banks Use ATMs</p>
-                            <a href="single-post.html" class="text-size-16 text-decoration-none">Read More</a>
+                @forelse ($blogs as $blog)
+                    <div class="col-lg-4 col-md-4 col-sm-12 col-12">
+                        <div class="blog-box">
+                            <figure>
+                                <img src="{{ $blog->image ? asset('blog/' . $blog->image) : asset('assets/images/firstblog.png') }}"
+                                    width="100%" height="210px" style="background-size: cover; object-fit: cover;">
+                            </figure>
+                            <div class="content content1">
+                                <a class="button">{{ $blog->category->cat_name }}</a>
+                                <p class="h4">{{ $blog->title }}</p>
+                                <a href="{{ route('blogDetail', $blog->id) }}"
+                                    class="text-size-16 text-decoration-none">Read
+                                    More</a>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="col-lg-4 col-md-4 col-sm-12 col-12">
-                    <div class="blog-box">
-                        <figure>
-                            <img src="./assets/images/secondblog.png" alt="" class="img-fluid">
-                        </figure>
-                        <div class="content">
-                            <a class="button button1">Inflation</a>
-                            <p class="h4">Is Now A Good Time To Worry More About Financial Inflation</p>
-                            <a href="single-post.html" class="text-size-16 text-decoration-none">Read More</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-4 col-sm-12 col-12">
-                    <div class="blog-box">
-                        <figure class="blogimage">
-                            <img src="./assets/images/thirdblog.png" alt="">
-                        </figure>
-                        <div class="content">
-                            <a class="button button1">Economy</a>
-                            <p class="h4">New SaaS Online Payment Platform Raises $15 Million Per Year</p>
-                            <a href="single-post.html" class="text-size-16 text-decoration-none">Read More</a>
-                        </div>
-                    </div>
-                </div>
+                @empty
+                @endforelse
             </div>
             <figure class="element2 mb-0">
                 <img src="./assets/images/what-we-do-icon-2.png" class="img-fluid" alt="">

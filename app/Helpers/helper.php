@@ -58,7 +58,7 @@ if (!function_exists('payment_setting_id_for_method')) {
     {
         return match ($paymentMethod) {
             'direct_bank_transfer' => 1,
-            'uabpay', 'UAB Pay' => 2,
+            'uabpay', 'uab_pay', 'UAB Pay' => 2,
             default => null,
         };
     }
@@ -85,6 +85,10 @@ if (!function_exists('payment_method_label')) {
             if ($paymentSetting?->type) {
                 return $paymentSetting->type;
             }
+        }
+
+        if ($paymentMethod === 'wallet') {
+            return 'Wallet';
         }
 
         return \Illuminate\Support\Str::headline($paymentMethod);
@@ -196,7 +200,7 @@ if (!function_exists('payment_method_display_label')) {
     {
         $baseLabel = payment_method_label($paymentMethod);
 
-        if (in_array($paymentMethod, ['uabpay', 'UAB Pay'], true)) {
+        if (in_array($paymentMethod, ['uabpay', 'uab_pay', 'UAB Pay'], true)) {
             $selectedLabel = uab_transaction_selected_payment_label($outerOrderId);
 
             if ($selectedLabel) {
@@ -342,5 +346,46 @@ if (!function_exists('getOrderTypes')) {
         }
 
         return $tabs;
+    }
+}
+
+if (!function_exists('getUsdPrice')) {
+    function getUsdPrice(float|int $totalMMK, string $rateName)
+    {
+        $usdRate = \App\Models\Currency::query()->where('name', $rateName)->value('value');
+
+        if (! is_numeric($usdRate) || (float) $usdRate <= 0) {
+            return null;
+        }
+
+        return round((float)$totalMMK / (float)$usdRate, 2);
+    }
+}
+
+if (! function_exists('displayPrice')) {
+    function displayPrice(int|float $mmkPrice, string $rateName = "user_usd_rate"): string
+    {
+        $currency = session('currency', config('currency.default'));
+        if (!in_array($currency, config('currency.supported'))) {
+            $currency = config('currency.default');
+        }
+
+        if ($currency === "USD") {
+            $usdPrice = getUsdPrice($mmkPrice, $rateName);
+            if ($usdPrice == null) {
+                return number_format($mmkPrice) . ' MMK';
+            }
+
+            return '$' . number_format($usdPrice, 2);
+        }
+
+        return number_format($mmkPrice) . ' MMK';
+    }
+}
+
+if (!function_exists('banner')) {
+    function banner(string $key)
+    {
+        return \App\Models\Banner::where('banner_type', $key)->first();
     }
 }

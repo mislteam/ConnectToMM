@@ -72,4 +72,9 @@ class Customer extends Authenticatable implements MustVerifyEmail
 
         return $this;
     }
+
+    public function customerWallet()
+    {
+        return $this->hasOne(CustomerWallet::class);
+    }
 }

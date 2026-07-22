@@ -39,7 +39,7 @@ class JoytelController extends Controller
     // physical Index
     public function physical()
     {
-       return $this->renderIndex('admin.joytel.physical.index', 'recharge', JoytelPhysical::class);
+        return $this->renderIndex('admin.joytel.physical.index', 'recharge', JoytelPhysical::class);
     }
 
     // // esim create
@@ -53,7 +53,7 @@ class JoytelController extends Controller
     {
         return $this->renderCreate('admin.joytel.physical.create');
     }
-    
+
     // esim Store
     public function esimStore(JoyCreateFormRequest $request)
     {
@@ -187,7 +187,7 @@ class JoytelController extends Controller
         );
     }
 
-    
+
 
     public function updateCodeStatus(Request $request)
     {
@@ -216,10 +216,10 @@ class JoytelController extends Controller
         ]);
     }
 
-   
+
     public function updateExchangeRate(Request $request)
     {
-       
+
         $validated = $request->validate([
             'joytel_type' => 'required|in:esim,physical',
             'updates' => 'required|array',
@@ -303,7 +303,7 @@ class JoytelController extends Controller
     }
 
     // render index pages function
-     private function renderIndex($route, $keyword, string $modelClass = JoytelEsim::class)
+    private function renderIndex($route, $keyword, string $modelClass = JoytelEsim::class)
     {
         $latestIds = $modelClass::query()
             ->selectRaw('MAX(id) as id')
@@ -327,8 +327,9 @@ class JoytelController extends Controller
             ->get();
 
         $exchangeRates = PriceList::query()->pluck('exchange_rate', 'product_code');
+        $userUsdRate = \App\Models\Currency::where('name', 'user_usd_rate')?->value('value');
 
-        return view($route, compact('sim_lists', 'plansByProductName', 'additional_prices', 'exchangeRates'));
+        return view($route, compact('sim_lists', 'plansByProductName', 'additional_prices', 'exchangeRates', 'userUsdRate'));
     }
 
 
@@ -507,7 +508,7 @@ class JoytelController extends Controller
         $api = JoytelApi::first();
 
         if (!$api) {
-           
+
             $api = new JoytelApi();
 
             $api->rsp_appid = '';
@@ -537,7 +538,7 @@ class JoytelController extends Controller
         if (!$api) {
             $api = new JoytelApi();
 
-           
+
             $api->customer_code = '';
             $api->customer_auth = '';
             $api->api_url = '';

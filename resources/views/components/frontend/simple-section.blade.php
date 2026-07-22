@@ -1,7 +1,7 @@
 @props(['section'])
 <section class="bannermain position-relative">
     <figure class="mb-0 bgshape">
-        <img src="./assets/images/homebanner-bgshape.png" alt="" class="img-fluid">
+        <img src="{{ asset('assets/images/homebanner-bgshape.png') }}" alt="" class="img-fluid">
     </figure>
     <div class="container">
         <div class="row">
@@ -21,7 +21,7 @@
             <div class=" col-lg-7 col-md-7 col-sm-12">
                 <div class="banner-wrapper">
                     <figure class="mb-0 homeelement1">
-                        <img src="./assets/images/homeelement1.png" class="img-fluid" alt="">
+                        <img src="{{ asset('assets/images/homeelement1.png') }}" class="img-fluid" alt="">
                     </figure>
                     <figure class="mb-0 banner-image">
                         @if ($section->image)
@@ -32,10 +32,10 @@
                         @endif
                     </figure>
                     <figure class="mb-0 content img-bg">
-                        <img src="./assets/images/homebanner-img-bg.png" alt="banner-image-bg">
+                        <img src="{{ asset('assets/images/homebanner-img-bg.png') }}" alt="banner-image-bg">
                     </figure>
                     <figure class="mb-0 homeelement">
-                        <img src="./assets/images/homeelement.png" class="img-fluid" alt="">
+                        <img src="{{ asset('assets/images/homeelement.png') }}" class="img-fluid" alt="">
                     </figure>
                 </div>
             </div>

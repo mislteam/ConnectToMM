@@ -137,6 +137,9 @@
                                             <div class="d-flex justify-content-center gap-1">
                                                 <x-action-button :url="route('customer.show', $customer->id)" permission="customer.view"
                                                     icon="ti-eye" />
+
+                                                <x-action-button :url="route('customer.wallet.index', $customer->id)" icon="ti-wallet" />
+
                                             </div>
                                         </td>
                                     </tr>
