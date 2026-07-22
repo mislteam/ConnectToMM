@@ -3,6 +3,7 @@
 namespace App\Payment\Providers\Uab\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\JoytelOrder;
 use App\Payment\Providers\Uab\DTO\CallbackData;
 use App\Payment\Providers\Uab\Http\Requests\CallbackNotifyRequest;
 use App\Payment\Providers\Uab\Http\Requests\CallbackRedirectRequest;
@@ -91,6 +92,12 @@ class CallbackController extends Controller
         $outerOrderId = trim((string) ($result['outer_order_id'] ?? ''));
 
         if ($outerOrderId !== '') {
+            if (JoytelOrder::query()->where('outer_order_id', $outerOrderId)->exists()) {
+                return redirect()
+                    ->route('joytel.payment.show', ['outerOrderId' => $outerOrderId])
+                    ->with($flashKey, $flashMessage);
+            }
+
             return redirect()
                 ->route('roam.payment.show', ['outerOrderId' => $outerOrderId])
                 ->with($flashKey, $flashMessage);
