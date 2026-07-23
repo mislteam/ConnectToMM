@@ -76,7 +76,7 @@
                          </button>
                          <div class="dropdown-menu dropdown-menu-right mobile-currency-menu"
                              aria-labelledby="currencyDropdownMobile">
-                             <form action="{{ route('currency.change') }}" method="POST">
+                             <form action="{{ route('currency.change') }}" method="POST" data-request-loader data-currency-form>
                                  @csrf
                                  <button type="submit" name="currency" value="MMK"
                                      class="dropdown-item {{ $selectedCurrency === 'MMK' ? 'active' : '' }}"
@@ -285,7 +285,7 @@
                                      {{ $selectedCurrency }}
                                  </button>
                                  <div class="dropdown-menu" aria-labelledby="currencyDropdown">
-                                     <form action="{{ route('currency.change') }}" method="POST">
+                                     <form action="{{ route('currency.change') }}" method="POST" data-request-loader data-currency-form>
                                          @csrf
                                          <button type="submit" name="currency" value="MMK"
                                              class="dropdown-item {{ $selectedCurrency === 'MMK' ? 'active' : '' }}"
@@ -424,4 +424,54 @@
              $('.navbar-collapse').collapse('hide');
          }
      });
+
+     document.addEventListener('click', function(e) {
+         const button = e.target.closest('[data-currency-form] button[name="currency"]');
+
+         if (!button) {
+             return;
+         }
+
+         const form = button.form;
+
+         if (!form) {
+             return;
+         }
+
+         if (form.dataset.submitting === 'true') {
+             e.preventDefault();
+             return;
+         }
+
+         form.dataset.submitting = 'true';
+
+         const dropdown = button.closest('.dropdown');
+         const dropdownMenu = button.closest('.dropdown-menu');
+         const dropdownToggle = dropdown ? dropdown.querySelector('[data-toggle="dropdown"]') : null;
+
+         if (dropdownToggle) {
+             dropdownToggle.textContent = button.value;
+             dropdownToggle.setAttribute('aria-expanded', 'false');
+         }
+
+         if (dropdownMenu) {
+             dropdownMenu.classList.remove('show');
+         }
+
+         if (dropdown) {
+             dropdown.classList.remove('show');
+         }
+
+         if (window.requestLoader) {
+             window.requestLoader.show();
+         }
+
+         window.setTimeout(function() {
+             document
+                 .querySelectorAll('[data-currency-form] button[name="currency"]')
+                 .forEach(function(currencyButton) {
+                     currencyButton.disabled = true;
+                 });
+         }, 0);
+     }, true);
  </script>
