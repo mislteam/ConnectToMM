@@ -69,7 +69,9 @@ class PhysicalSimController extends Controller
         $title = GeneralSetting::where('type', 'string')->first();
 
         $orderTabs = getOrderTypes('roam_order_types', 'physical');
-        $selectedOrderType = collect($orderTabs)->keys()->first();
+        if (!array_key_exists($selectedOrderType, $orderTabs)) {
+            $selectedOrderType = collect($orderTabs)->keys()->first();
+        }
 
         return view(
             'frontend.physical.roam-physical',
@@ -82,7 +84,8 @@ class PhysicalSimController extends Controller
                 'globalPackageCards',
                 'asiaPackageCards',
                 'selectedDpId',
-                'selectedOrderType'
+                'selectedOrderType',
+                'orderTabs'
             )
         );
     }

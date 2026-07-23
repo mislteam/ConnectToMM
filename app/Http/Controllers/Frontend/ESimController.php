@@ -19,10 +19,10 @@ class ESimController extends Controller
             $selectedSimType = 'new_esim';
         }
 
-        $orderTabs = [
-            'new_esim' => ['label' => 'New eSIM'],
-            'recharge_esim' => ['label' => 'Recharge'],
-        ];
+        $orderTabs = getOrderTypes('roam_order_types', 'esim');
+        if (!array_key_exists($selectedSimType, $orderTabs)) {
+            $selectedSimType = collect($orderTabs)->keys()->first();
+        }
 
         $countrys = Roam::pluck('support_country')
             ->flatten()
@@ -79,7 +79,8 @@ class ESimController extends Controller
             'selectedSimType',
             'skupackages',
             'packageCards',
-            'priceList'
+            'priceList',
+            'orderTabs'
         ));
     }
 
