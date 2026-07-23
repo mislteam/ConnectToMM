@@ -141,6 +141,7 @@
 
                 <form action="{{ route('customer.wallet.store', ['customer_id' => $customer->id]) }}" method="POST">
                     @csrf
+                    <input type="hidden" name="customer_id" value="{{ $customer->id }}">
 
                     <div class="card-body">
                         <div class="row g-4">
@@ -188,51 +189,103 @@
 
                             {{-- Top Up Box --}}
                             <div class="col-lg-7">
-                                <div class="topup-box h-100">
+                                <div class="d-flex flex-column gap-3">
+                                    <div class="topup-box">
 
-                                    <div class="mb-4">
-                                        <h5 class="mb-1">Enter Top Up Amount</h5>
+                                        <div class="mb-4">
+                                            <h5 class="mb-1">Enter Top Up Amount</h5>
 
-                                        <p class="text-muted mb-0">
-                                            Enter the amount to add to the customer's wallet.
-                                        </p>
-                                    </div>
-
-                                    <div class="mb-4">
-                                        <label for="topupAmount" class="form-label fw-semibold">
-
-                                            Top Up Balance
-                                            <span class="text-danger">*</span>
-                                        </label>
-
-                                        <div class="input-group topup-input-group">
-                                            <span class="input-group-text">
-                                                MMK
-                                            </span>
-
-                                            <input type="number" id="topupAmount" name="balance" class="form-control"
-                                                value="{{ old('balance') }}" min="1" step="1"
-                                                placeholder="Enter amount" required>
+                                            <p class="text-muted mb-0">
+                                                Enter the amount to add to the customer's wallet.
+                                            </p>
                                         </div>
 
-                                        @error('balance')
-                                            <small class="text-danger">
-                                                {{ $message }}
-                                            </small>
-                                        @enderror
+                                        <div class="mb-4">
+                                            <label for="topupAmount" class="form-label fw-semibold">
+
+                                                Top Up Balance
+                                                <span class="text-danger">*</span>
+                                            </label>
+
+                                            <div class="input-group topup-input-group">
+                                                <span class="input-group-text">
+                                                    MMK
+                                                </span>
+
+                                                <input type="number" id="topupAmount" name="balance" class="form-control"
+                                                    value="{{ old('balance') }}" min="1000" step="1"
+                                                    placeholder="Enter amount">
+                                            </div>
+
+                                            @error('balance')
+                                                <small class="text-danger">
+                                                    {{ $message }}
+                                                </small>
+                                            @enderror
+                                        </div>
+
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <a href="{{ route('customer.wallet.index', $customer->id) }}"
+                                                class="btn btn-light px-4">
+                                                Cancel
+                                            </a>
+
+                                            <button type="submit" name="transaction_action" value="topup"
+                                                class="btn btn-primary px-4">
+
+                                                <i class="ti ti-wallet me-1"></i>
+                                                Top Up
+                                            </button>
+                                        </div>
                                     </div>
 
-                                    <div class="d-flex justify-content-end gap-2">
-                                        <a href="{{ route('customer.wallet.index', $customer->id) }}"
-                                            class="btn btn-light px-4">
-                                            Cancel
-                                        </a>
+                                    <div class="topup-box">
 
-                                        <button type="submit" class="btn btn-primary px-4">
+                                        <div class="mb-4">
+                                            <h5 class="mb-1">Enter Return Amount</h5>
 
-                                            <i class="ti ti-wallet me-1"></i>
-                                            Top Up
-                                        </button>
+                                            <p class="text-muted mb-0">
+                                                Enter the amount to return from the customer's wallet.
+                                            </p>
+                                        </div>
+
+                                        <div class="mb-4">
+                                            <label for="returnAmount" class="form-label fw-semibold">
+
+                                                Return Balance
+                                                <span class="text-danger">*</span>
+                                            </label>
+
+                                            <div class="input-group topup-input-group">
+                                                <span class="input-group-text">
+                                                    MMK
+                                                </span>
+
+                                                <input type="number" id="returnAmount" name="return_balance"
+                                                    class="form-control" value="{{ old('return_balance') }}" min="1"
+                                                    step="1" placeholder="Enter amount">
+                                            </div>
+
+                                            @error('return_balance')
+                                                <small class="text-danger">
+                                                    {{ $message }}
+                                                </small>
+                                            @enderror
+                                        </div>
+
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <a href="{{ route('customer.wallet.index', $customer->id) }}"
+                                                class="btn btn-light px-4">
+                                                Cancel
+                                            </a>
+
+                                            <button type="submit" name="transaction_action" value="return"
+                                                class="btn btn-primary px-4">
+
+                                                <i class="ti ti-arrow-back-up me-1"></i>
+                                                Return
+                                            </button>
+                                        </div>
                                     </div>
 
                                 </div>

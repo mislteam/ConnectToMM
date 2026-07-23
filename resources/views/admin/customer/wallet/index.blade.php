@@ -253,7 +253,7 @@
                                 </div>
                                 <span class="wallet-divider"></span>
                             @endif
-                            <x-create-action :url="route('customer.wallet.create', $customer->id)" menu-text="Top Up" icon="ti-plus" />
+                            <x-create-action :url="route('customer.wallet.create', $customer->id)" menu-text="Wallet" icon="ti-plus" />
                         </div>
                     </div>
                     <div class="card-body">
@@ -531,12 +531,14 @@
                                         $transactionTitle = match ($transaction->reference_type) {
                                             'topup' => 'Wallet Top-up',
                                             'package_purchase' => 'Package Purchase',
+                                            'return' => 'Wallet Return',
                                             default => ucwords(str_replace('_', ' ', $transaction->reference_type)),
                                         };
 
                                         $referenceLabel = match ($transaction->reference_type) {
                                             'topup' => 'Top Up',
                                             'package_purchase' => 'Package Purchase',
+                                            'return' => 'Return',
                                             default => ucwords(str_replace('_', ' ', $transaction->reference_type)),
                                         };
 
@@ -567,7 +569,7 @@
                                                 </strong>
 
                                                 <small class="badge badge-soft-secondary">
-                                                    {{ $isCredit ? 'Balance credited' : 'Wallet payment' }}
+                                                    {{ $isCredit ? 'Balance credited' : ($transaction->reference_type === 'return' ? 'Balance returned' : 'Wallet payment') }}
                                                 </small>
                                             </div>
                                         </td>

@@ -79,36 +79,75 @@ class CustomerWalletController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'balance' => 'required|integer|min:1000',
-            'customer_id' => 'required|integer'
+            'transaction_action' => ['required', 'in:topup,return'],
+            'balance' => ['exclude_unless:transaction_action,topup', 'required', 'integer', 'min:1000'],
+            'return_balance' => ['exclude_unless:transaction_action,return', 'required', 'integer', 'min:1'],
+            'customer_id' => ['required', 'integer']
         ]);
         $customer = Customer::findOrFail($data['customer_id']);
 
-        DB::transaction(function () use ($customer, $data) {
-            $wallet = CustomerWallet::firstOrCreate(
-                ['customer_id' => $customer->id],
-                [
-                    'balance' => 0
-                ]
-            );
+        $message = DB::transaction(function () use ($customer, $data) {
+            $wallet = CustomerWallet::query()
+                ->where('customer_id', $customer->id)
+                ->lockForUpdate()
+                ->first();
 
-            $newBalance = $wallet->balance + $data['balance'];
+            if (!$wallet) {
+                $wallet = CustomerWallet::create([
+                    'customer_id' => $customer->id,
+                    'balance' => 0,
+                ]);
+            }
+
+            $currentBalance = (int) $wallet->balance;
+
+            if ($data['transaction_action'] === 'return') {
+                $amount = (int) $data['return_balance'];
+
+                if ($currentBalance < $amount) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'return_balance' => 'Return balance cannot be greater than the current wallet balance.',
+                    ]);
+                }
+
+                $newBalance = $currentBalance - $amount;
+
+                WalletTransaction::create([
+                    'wallet_id' => $wallet->id,
+                    'amount' => $amount,
+                    'type' => 'debit',
+                    'reference_type' => 'return',
+                    'balance_after' => $newBalance,
+                    'transaction_state' => WalletTransaction::STATUS_APPROVED
+                ]);
+
+                $wallet->update([
+                    'balance' => $newBalance,
+                ]);
+
+                return 'Return Balance Successfully!';
+            }
+
+            $amount = (int) $data['balance'];
+            $newBalance = $currentBalance + $amount;
+
+            WalletTransaction::create([
+                'wallet_id' => $wallet->id,
+                'amount' => $amount,
+                'type' => 'credit',
+                'reference_type' => 'topup',
+                'balance_after' => $newBalance,
+                'transaction_state' => WalletTransaction::STATUS_APPROVED
+            ]);
 
             $wallet->update([
                 'balance' => $newBalance,
             ]);
 
-            WalletTransaction::create([
-                'wallet_id' => $wallet->id,
-                'amount' => $data['balance'],
-                'type' => 'credit',
-                'reference_type' => 'topup',
-                'balance_after' => $newBalance,
-                'transaction_state' => 'approved'
-            ]);
+            return 'Top Up Successfully!';
         });
 
-        return back()->with('success', 'Top Up Successfully!');
+        return back()->with('success', $message);
     }
 
     public function updateStatus(Request $request, \App\Models\CustomerWallet $wallet)

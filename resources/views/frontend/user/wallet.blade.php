@@ -279,6 +279,7 @@
                                             $transactionTitle = match ($transaction->reference_type) {
                                                 'topup' => 'Wallet Top-up',
                                                 'package_purchase' => 'Package Purchase',
+                                                'return' => 'Wallet Return',
                                                 default => ucwords(
                                                     str_replace('_', ' ', $transaction->reference_type),
                                                 ),
@@ -287,6 +288,7 @@
                                             $referenceLabel = match ($transaction->reference_type) {
                                                 'topup' => 'Top Up',
                                                 'package_purchase' => 'Package Purchase',
+                                                'return' => 'Return',
                                                 default => ucwords(
                                                     str_replace('_', ' ', $transaction->reference_type),
                                                 ),
@@ -302,7 +304,7 @@
                                                 <div class="d-flex flex-column gap-1">
                                                     <strong>{{ $transactionTitle }}</strong>
                                                     <small>
-                                                        {{ $isCredit ? 'Balance credited' : 'Wallet payment' }}
+                                                        {{ $isCredit ? 'Balance credited' : ($transaction->reference_type === 'return' ? 'Balance returned' : 'Wallet payment') }}
                                                     </small>
                                                 </div>
                                             </td>
