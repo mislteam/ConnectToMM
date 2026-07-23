@@ -425,12 +425,55 @@
          }
      });
 
-     document.addEventListener('click', function(e) {
+     function updateCurrencyPrices(currency, usdRate) {
+         const numericUsdRate = parseFloat(usdRate);
+         const mmkFormatter = new Intl.NumberFormat('en-US', {
+             maximumFractionDigits: 0
+         });
+         const usdFormatter = new Intl.NumberFormat('en-US', {
+             minimumFractionDigits: 2,
+             maximumFractionDigits: 2
+         });
+
+         document.querySelectorAll('[data-price-mmk]').forEach(function(priceElement) {
+             const mmkPrice = parseFloat(priceElement.dataset.priceMmk);
+
+             if (!Number.isFinite(mmkPrice)) {
+                 return;
+             }
+
+             if (currency === 'USD' && Number.isFinite(numericUsdRate) && numericUsdRate > 0) {
+                 priceElement.textContent = '$' + usdFormatter.format(mmkPrice / numericUsdRate);
+             } else {
+                 priceElement.textContent = mmkFormatter.format(mmkPrice) + ' MMK';
+             }
+         });
+     }
+
+     function syncCurrencyControls(currency) {
+         document.querySelectorAll('[data-currency-form]').forEach(function(form) {
+             const dropdown = form.closest('.dropdown');
+             const dropdownToggle = dropdown ? dropdown.querySelector('[data-toggle="dropdown"]') : null;
+
+             if (dropdownToggle) {
+                 dropdownToggle.textContent = currency;
+                 dropdownToggle.setAttribute('aria-expanded', 'false');
+             }
+
+             form.querySelectorAll('button[name="currency"]').forEach(function(currencyButton) {
+                 currencyButton.classList.toggle('active', currencyButton.value === currency);
+             });
+         });
+     }
+
+     document.addEventListener('click', async function(e) {
          const button = e.target.closest('[data-currency-form] button[name="currency"]');
 
          if (!button) {
              return;
          }
+
+         e.preventDefault();
 
          const form = button.form;
 
@@ -447,12 +490,6 @@
 
          const dropdown = button.closest('.dropdown');
          const dropdownMenu = button.closest('.dropdown-menu');
-         const dropdownToggle = dropdown ? dropdown.querySelector('[data-toggle="dropdown"]') : null;
-
-         if (dropdownToggle) {
-             dropdownToggle.textContent = button.value;
-             dropdownToggle.setAttribute('aria-expanded', 'false');
-         }
 
          if (dropdownMenu) {
              dropdownMenu.classList.remove('show');
@@ -466,12 +503,56 @@
              window.requestLoader.show();
          }
 
-         window.setTimeout(function() {
+         syncCurrencyControls(button.value);
+
+         document
+             .querySelectorAll('[data-currency-form] button[name="currency"]')
+             .forEach(function(currencyButton) {
+                 currencyButton.disabled = true;
+             });
+
+         const formData = new FormData(form);
+         formData.set(button.name, button.value);
+
+         try {
+             const response = await fetch(form.action, {
+                 method: form.method || 'POST',
+                 body: formData,
+                 headers: {
+                     'Accept': 'application/json',
+                     'X-Requested-With': 'XMLHttpRequest'
+                 }
+             });
+
+             if (!response.ok) {
+                 throw new Error('Currency change failed.');
+             }
+
+             const data = await response.json();
+             const currency = data.currency || button.value;
+
+             syncCurrencyControls(currency);
+             updateCurrencyPrices(currency, data.usd_rate);
+         } catch (error) {
+             const hiddenCurrency = document.createElement('input');
+             hiddenCurrency.type = 'hidden';
+             hiddenCurrency.name = button.name;
+             hiddenCurrency.value = button.value;
+             form.appendChild(hiddenCurrency);
+             form.submit();
+             return;
+         } finally {
+             form.dataset.submitting = 'false';
+
              document
                  .querySelectorAll('[data-currency-form] button[name="currency"]')
                  .forEach(function(currencyButton) {
-                     currencyButton.disabled = true;
+                     currencyButton.disabled = false;
                  });
-         }, 0);
+
+             if (window.requestLoader) {
+                 window.requestLoader.hide();
+             }
+         }
      }, true);
  </script>

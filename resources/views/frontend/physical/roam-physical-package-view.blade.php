@@ -449,7 +449,7 @@
                                 <div class="content">
                                     <h4>{{ $package->country_name ?? 'Unnamed Package' }}</h4>
                                     @if ($lowestPrice)
-                                        <p class="text-size-16">From {{ displayPrice($lowestPrice, 'user_usd_rate') }}</p>
+                                        <p class="text-size-16">From <span data-price-mmk="{{ (float) $lowestPrice }}">{{ displayPrice($lowestPrice, 'user_usd_rate') }}</span></p>
                                     @else
                                         <p class="text-size-16 text-danger">Not available</p>
                                     @endif
