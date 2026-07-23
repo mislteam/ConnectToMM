@@ -61,8 +61,7 @@
                                         </figure>
                                         <div class="content">
                                             <h4>{{ $package->country_name }}</h4>
-                                            <p class="text-size-16">From {{ displayPrice($lowestPrice, 'user_usd_rate') }}
-                                                MMK</p>
+                                            <p class="text-size-16">From {{ displayPrice($lowestPrice, 'user_usd_rate') }}</p>
                                             <a href="{{ route('esim.roampackageview', ['id' => $package->sku_id, 'list_view' => 1, 'sim_type' => session('sim_type', 'new_esim')]) }}"
                                                 data-base-href="{{ route('esim.roampackageview', ['id' => $package->sku_id, 'list_view' => 1]) }}"
                                                 class="more">View Offer</a>

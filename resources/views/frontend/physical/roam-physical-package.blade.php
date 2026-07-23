@@ -80,8 +80,7 @@
                                         }
                                     @endphp
                                     @if ($lowestPrice)
-                                        <p class="text-size-16">From {{ displayPrice($lowestPrice, 'user_usd_rate') }} MMK
-                                        </p>
+                                        <p class="text-size-16">From {{ displayPrice($lowestPrice, 'user_usd_rate') }}</p>
                                     @else
                                         <p class="text-size-16 text-danger">Not available</p>
                                     @endif
