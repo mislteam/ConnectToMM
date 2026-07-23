@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
 use App\Models\CustomerWallet;
+use App\Models\Currency;
 use App\Models\WalletTransaction;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -956,6 +957,14 @@ class HomeController extends Controller
         session([
             'currency' => $validated['currency']
         ]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'currency' => $validated['currency'],
+                'usd_rate' => Currency::where('name', 'user_usd_rate')->value('value'),
+            ]);
+        }
+
         return back();
     }
 }
