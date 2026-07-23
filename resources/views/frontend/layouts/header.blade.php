@@ -78,10 +78,10 @@
                              aria-labelledby="currencyDropdownMobile">
                              <form action="{{ route('currency.change') }}" method="POST">
                                  @csrf
-                                 <button name="currency" value="MMK"
+                                 <button type="submit" name="currency" value="MMK"
                                      class="dropdown-item {{ $selectedCurrency === 'MMK' ? 'active' : '' }}"
                                      data-currency="MMK">MMK</button>
-                                 <button name="currency" value="USD"
+                                 <button type="submit" name="currency" value="USD"
                                      class="dropdown-item {{ $selectedCurrency === 'USD' ? 'active' : '' }}"
                                      data-currency="USD">USD</button>
                              </form>
@@ -287,12 +287,12 @@
                                  <div class="dropdown-menu" aria-labelledby="currencyDropdown">
                                      <form action="{{ route('currency.change') }}" method="POST">
                                          @csrf
-                                         <button name="currency" value="MMK"
+                                         <button type="submit" name="currency" value="MMK"
                                              class="dropdown-item {{ $selectedCurrency === 'MMK' ? 'active' : '' }}"
-                                             href="#" data-currency="MMK">MMK</button>
-                                         <button name="currency" value="USD"
+                                             data-currency="MMK">MMK</button>
+                                         <button type="submit" name="currency" value="USD"
                                              class="dropdown-item {{ $selectedCurrency === 'USD' ? 'active' : '' }}"
-                                             href="#" data-currency="USD">USD</button>
+                                             data-currency="USD">USD</button>
                                      </form>
                                  </div>
                              </div>
