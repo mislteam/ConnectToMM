@@ -261,7 +261,7 @@
             }
         }
     </style>
-    <x-banner key="topup_payment_detail" />
+    <x-banner key="topup_payment_detail" title="Transaction Detail" page="Transaction Detail" />
     @php
         $isCredit = $transaction->type === 'credit';
 
@@ -280,6 +280,7 @@
         };
 
         $isApproved = strtolower($transaction->transaction_state ?? 'pending') == 'approved';
+        $paymentMethod = payment_method_label('wallet') ?? 'Wallet';
     @endphp
     <section class="py-5">
         <div class="container">
@@ -326,7 +327,7 @@
                             <div class="summary-line">
                                 <div class="summary-line-label">Payment Method</div>
                                 <div class="summary-line-value">
-                                    Direct Bank Transfer
+                                    {{ $paymentMethod }}
                                 </div>
                             </div>
                         </div>
