@@ -132,6 +132,7 @@
     <!-- select 2 -->
     <link rel="stylesheet" href="{{ asset('assets/css/select2/select2.min.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/select2/select2-bootstrap4.min.css') }}">
+    @yield('styles')
 </head>
 
 <body>
@@ -192,6 +193,7 @@
 
         });
     </script>
+    @yield('scripts')
 
 </body>
 

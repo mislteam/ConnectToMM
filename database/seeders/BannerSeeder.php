@@ -105,9 +105,9 @@ class BannerSeeder extends Seeder
             //     'status' => 0
             // ],
             [
-                'page' => 'Top Up Payment Detail',
-                'title' => 'Top Up Payment Detail',
-                'subtitle' => 'Top Up Payment Detail Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+                'page' => 'Transaction Detail',
+                'title' => 'Transaction Detail',
+                'subtitle' => 'Transaction Detail Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
                 'banner_type' => 'topup_payment_detail',
                 'status' => 0
             ],

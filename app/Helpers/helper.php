@@ -59,6 +59,7 @@ if (!function_exists('payment_setting_id_for_method')) {
         return match ($paymentMethod) {
             'direct_bank_transfer' => 1,
             'uabpay', 'uab_pay', 'UAB Pay' => 2,
+            'wallet' => 3,
             default => null,
         };
     }

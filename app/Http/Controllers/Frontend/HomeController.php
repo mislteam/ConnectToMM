@@ -87,7 +87,7 @@ class HomeController extends Controller
         $activeOrderTab = request('orders_tab');
 
         if (!in_array($activeOrderTab, ['roam', 'joytel'], true)) {
-            $activeOrderTab = request()->has('joytel_page') ? 'joytel' : 'roam';
+            $activeOrderTab = request()->has('joytel_page') || request()->has('joytel_search') ? 'joytel' : 'roam';
         }
 
         return view('frontend.user.profile', compact('banner', 'roamOrderGroups', 'joytelOrderGroups', 'activeOrderTab'));
@@ -389,8 +389,16 @@ class HomeController extends Controller
 
     private function customerRoamOrderGroups(Customer $customer): Collection
     {
+        $search = trim((string) request('search'));
+
         return RoamOrder::query()
             ->where('customer_id', $customer->id)
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($orderQuery) use ($search) {
+                    $orderQuery->where('outer_order_id', 'like', "%{$search}%")
+                        ->orWhere('roam_order_num', 'like', "%{$search}%");
+                });
+            })
             ->latest()
             ->get()
             ->groupBy(fn(RoamOrder $order) => $order->outer_order_id ?: $order->roam_order_num)
@@ -477,9 +485,17 @@ class HomeController extends Controller
             return collect();
         }
 
+        $search = trim((string) request('joytel_search'));
+
         return JoytelOrder::query()
             ->with('items')
             ->where('customer_id', $customer->id)
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($orderQuery) use ($search) {
+                    $orderQuery->where('outer_order_id', 'like', "%{$search}%")
+                        ->orWhere('joytel_order_num', 'like', "%{$search}%");
+                });
+            })
             ->latest()
             ->get()
             ->groupBy(fn(JoytelOrder $order) => $order->outer_order_id ?: $order->joytel_order_num)
@@ -876,34 +892,58 @@ class HomeController extends Controller
         return view('frontend.refunds-policy', compact('content', 'description'));
     }
 
-    public function customerWallet()
+    public function customerWallet(Request $request)
     {
+        $request->validate([
+            'transaction_date' => ['nullable', 'date'],
+        ]);
+
         $customer = auth()->user();
-        return view('frontend.user.wallet', compact('customer'));
+        $wallet = $customer?->customerWallet;
+
+        $transactions = $wallet
+            ? $wallet
+                ->walletTransactions()
+                ->when($request->filled('transaction_date'), function ($query) use ($request) {
+                    $query->whereDate('created_at', $request->input('transaction_date'));
+                })
+                ->latest()
+                ->paginate(10, ['*'], 'transaction_page')
+                ->withQueryString()
+            : new LengthAwarePaginator(
+                [],
+                0,
+                10,
+                $request->integer('transaction_page', 1),
+                ['path' => $request->url()]
+            );
+
+        return view('frontend.user.wallet', compact('customer', 'transactions'));
     }
 
     public function customerTopUp(Request $request)
     {
         Auth::shouldUse('customers');
-        $request->validate([
+        $validated = $request->validate([
             'amount' => 'required|integer|min:1000'
         ]);
         $customer = auth()->user();
 
-        DB::transaction(function () use ($customer, $request, &$transaction) {
+        $transaction = DB::transaction(function () use ($customer, $validated) {
             $wallet = CustomerWallet::firstOrCreate([
                 'customer_id' => $customer->id,
             ]);
 
-            $transaction = WalletTransaction::create([
+            return WalletTransaction::create([
                 'wallet_id' => $wallet->id,
-                'amount' => $request->amount,
+                'amount' => $validated['amount'],
                 'type' => 'credit',
                 'reference_type' => 'topup',
                 'balance_after' => 0,
                 'transaction_state' => WalletTransaction::STATUS_PENDING
             ]);
         });
+
         return redirect()->route('frontend.user.topup-payment', $transaction->id);
     }
 

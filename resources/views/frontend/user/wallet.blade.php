@@ -2,6 +2,10 @@
 
 @section('title', 'My Wallet')
 
+@section('styles')
+    <link href="{{ asset('assets/css/vendors.min.css') }}" rel="stylesheet" type="text/css">
+@endsection
+
 @section('content')
     @include('components.alert')
 
@@ -20,8 +24,7 @@
             ->map(fn($word) => mb_strtoupper(mb_substr($word, 0, 1)))
             ->implode('');
 
-        $transactions =
-            $transactions ?? ($wallet && $wallet->relationLoaded('transactions') ? $wallet->transactions : collect());
+        $transactions = $transactions ?? collect();
     @endphp
 
     <section class="wallet-section py-5" style="margin-top: 150px;">
@@ -254,9 +257,22 @@
                                 <span>Transaction History</span>
                             </h5>
 
-                            <div class="transaction-heading-icon">
-                                <i class="fa-solid fa-clock-rotate-left"></i>
-                            </div>
+                            <form id="transaction-date-filter-form" action="{{ url()->current() }}" method="GET"
+                                class="transaction-date-filter-form">
+                                <span class="transaction-filter-label">Filter By:</span>
+
+                                <input type="text" id="transaction-filter-date" name="transaction_date"
+                                    value="{{ request('transaction_date') }}" class="form-control transaction-filter-input"
+                                    data-provider="flatpickr" data-date-format="Y-m-d" placeholder="Select date"
+                                    autocomplete="off">
+
+                                @if (request()->filled('transaction_date'))
+                                    <a href="{{ url()->current() }}" class="transaction-filter-clear"
+                                        title="Clear transaction date filter" aria-label="Clear transaction date filter">
+                                        <i class="fa-solid fa-xmark"></i>
+                                    </a>
+                                @endif
+                            </form>
 
                         </div>
                         <div class="table-responsive">
@@ -265,14 +281,14 @@
                                     <tr>
                                         <th>Transaction Type</th>
                                         <th>Reference</th>
-                                        <th>Pending Date</th>
+                                        <th>Date</th>
                                         <th>Status</th>
                                         <th>Amount</th>
                                         <th class="text-center">ACTIONS</th>
                                     </tr>
                                 </thead>
                                 <tbody data-transaction-table="roam-only">
-                                    @forelse (optional($customer->customerWallet)->walletTransactions ?? [] as $transaction)
+                                    @forelse ($transactions as $transaction)
                                         @php
                                             $isCredit = $transaction->type === 'credit';
 
@@ -353,9 +369,16 @@
                                         <tr class="transaction-empty-row">
                                             <td colspan="6">
                                                 <div class="transaction-empty-state">
-                                                    <h6>No Transactions yet</h6>
-                                                    <p>Your transaction history will appear here after you top up your
-                                                        wallet or purchase a package.</p>
+                                                    @if (request()->filled('transaction_date'))
+                                                        <h6>No transactions found</h6>
+                                                        <p>No wallet transactions were found for
+                                                            {{ \Carbon\Carbon::parse(request('transaction_date'))->format('d M Y') }}.
+                                                        </p>
+                                                    @else
+                                                        <h6>No Transactions yet</h6>
+                                                        <p>Your transaction history will appear here after you top up your
+                                                            wallet or purchase a package.</p>
+                                                    @endif
                                                 </div>
                                             </td>
                                         </tr>
@@ -363,23 +386,17 @@
                                 </tbody>
                             </table>
                         </div>
-                        @php
-                            $transactions = optional($customer->customerWallet)
-                                ?->walletTransactions()
-                                ?->latest()
-                                ->paginate(10, ['*'], 'transaction_page');
-                        @endphp
 
                         @if ($transactions && $transactions->count() > 0)
                             <div class="transaction-pagination-wrap">
                                 <div>
                                     Showing {{ $transactions->firstItem() ?? 0 }} to
                                     {{ $transactions->lastItem() ?? 0 }} of
-                                    {{ $transactions->count() }} wallet transactions
+                                    {{ $transactions->total() }} wallet transactions
                                 </div>
 
                                 <div>
-                                    {{ $transactions->appends(request()->except('transaction_page'))->links('pagination::bootstrap-5') }}
+                                    {{ $transactions->links('pagination::bootstrap-5') }}
                                 </div>
                             </div>
                         @endif
@@ -1119,29 +1136,81 @@
             align-items: center;
             justify-content: space-between;
             gap: 16px;
-            margin-bottom: 16px;
+            margin-bottom: 0;
+            padding: 0 0 16px;
+        }
+
+        .transaction-date-filter-form {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+        }
+
+        .transaction-filter-label {
+            color: #313749;
+            font-size: 14px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .transaction-filter-input {
+            width: 280px;
+            height: 40px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            color: #313749;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 8px 12px;
+            pointer-events: auto;
+        }
+
+        .transaction-filter-input::placeholder {
+            color: #9aa6c1;
+        }
+
+        .transaction-filter-input:focus {
+            border-color: #dee2e6;
+            box-shadow: none;
+        }
+
+        .transaction-filter-clear {
+            width: 40px;
+            height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #d8dfef;
+            border-radius: 4px;
+            color: #6c768f;
+            text-decoration: none;
+            background: #fff;
+        }
+
+        .transaction-filter-clear:hover,
+        .transaction-filter-clear:focus {
+            color: #173f93;
+            border-color: #173f93;
         }
 
         .transaction-provider-title {
             display: flex;
             align-items: center;
-            gap: 12px;
             margin: 0;
             font-size: 1rem;
             font-weight: 700;
+            color: #313749;
         }
 
         .transaction-provider-title::before {
-            content: "";
-            width: 4px;
-            height: 24px;
-            border-radius: 0;
-            background: currentColor;
+            display: none;
         }
 
         .provider-roam,
         .provider-joytel {
-            color: #173f93;
+            color: #313749;
         }
 
         .transaction-history-table {
@@ -1361,6 +1430,15 @@
                 align-items: flex-start;
             }
 
+            .transaction-date-filter-form {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+
+            .transaction-filter-input {
+                width: min(100%, 280px);
+            }
+
             .transaction-provider-title {
                 flex-wrap: wrap;
             }
@@ -1447,9 +1525,14 @@
         }
     </style>
 
+@endsection
+
+@section('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const counters = document.querySelectorAll('[data-counter-target]');
+            const transactionFilterDate = document.getElementById('transaction-filter-date');
+            const transactionFilterForm = document.getElementById('transaction-date-filter-form');
 
             const observer = new IntersectionObserver(
                 function(entries, currentObserver) {
@@ -1496,6 +1579,65 @@
             counters.forEach(function(counter) {
                 observer.observe(counter);
             });
+
+            function initTransactionDateFilter() {
+                if (!transactionFilterDate || !transactionFilterForm || !window.flatpickr) {
+                    return false;
+                }
+
+                if (transactionFilterDate._flatpickr) {
+                    return true;
+                }
+
+                let lastValue = transactionFilterDate.value;
+                let submitting = false;
+
+                function submitTransactionFilter() {
+                    if (submitting || transactionFilterDate.value === lastValue) {
+                        return;
+                    }
+
+                    submitting = true;
+                    lastValue = transactionFilterDate.value;
+
+                    if (transactionFilterForm.requestSubmit) {
+                        transactionFilterForm.requestSubmit();
+                        return;
+                    }
+
+                    transactionFilterForm.submit();
+                }
+
+                const picker = flatpickr(transactionFilterDate, {
+                    dateFormat: 'Y-m-d',
+                    defaultDate: transactionFilterDate.value || null,
+                    disableMobile: true,
+                    allowInput: false,
+                    clickOpens: true,
+                    onChange: submitTransactionFilter,
+                    onValueUpdate: submitTransactionFilter,
+                });
+
+                transactionFilterDate.addEventListener('click', function() {
+                    picker.open();
+                });
+
+                transactionFilterDate.addEventListener('focus', function() {
+                    picker.open();
+                });
+
+                return true;
+            }
+
+            if (!initTransactionDateFilter()) {
+                window.addEventListener('load', function() {
+                    if (initTransactionDateFilter()) {
+                        return;
+                    }
+
+                    setTimeout(initTransactionDateFilter, 250);
+                });
+            }
 
             function formatCounterNumber(value) {
                 return Number.isInteger(value) ?

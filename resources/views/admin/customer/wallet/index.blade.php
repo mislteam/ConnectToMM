@@ -359,6 +359,10 @@
                             <form id="topup-date-filter-form" action="{{ url()->current() }}" method="GET"
                                 class="d-flex align-items-center gap-2">
 
+                                @if (request()->filled('transaction_date'))
+                                    <input type="hidden" name="transaction_date" value="{{ request('transaction_date') }}">
+                                @endif
+
                                 <span class="fw-semibold text-nowrap">
                                     Filter By:
                                 </span>
@@ -369,6 +373,14 @@
                                         data-date-format="Y-m-d" data-default-date="{{ $request->topup_date ?? '' }}"
                                         placeholder="Select date" autocomplete="off" readonly>
                                 </div>
+
+                                @if (request()->filled('topup_date'))
+                                    <a href="{{ url()->current() }}{{ request()->filled('transaction_date') ? '?transaction_date=' . urlencode(request('transaction_date')) : '' }}"
+                                        class="btn btn-light" title="Clear top-up date filter">
+
+                                        <i class="ti ti-x"></i>
+                                    </a>
+                                @endif
                             </form>
 
                             <div>
@@ -649,4 +661,45 @@
             </div>
         </div>
     </div>
+    <script>
+        window.addEventListener('load', function() {
+            function submitDateFilter(inputId, formId) {
+                var input = document.getElementById(inputId);
+                var form = document.getElementById(formId);
+
+                if (!input || !form) {
+                    return;
+                }
+
+                var lastValue = input.value;
+                var submitting = false;
+
+                function submitIfChanged() {
+                    if (submitting || input.value === lastValue) {
+                        return;
+                    }
+
+                    submitting = true;
+                    lastValue = input.value;
+
+                    if (form.requestSubmit) {
+                        form.requestSubmit();
+                        return;
+                    }
+
+                    form.submit();
+                }
+
+                input.addEventListener('change', submitIfChanged);
+
+                if (input._flatpickr) {
+                    input._flatpickr.config.onChange.push(submitIfChanged);
+                    input._flatpickr.config.onValueUpdate.push(submitIfChanged);
+                }
+            }
+
+            submitDateFilter('topup-filter-date', 'topup-date-filter-form');
+            submitDateFilter('transaction-filter-date', 'transaction-date-filter-form');
+        });
+    </script>
 @endsection

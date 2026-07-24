@@ -152,6 +152,8 @@
             color: #5f6b89;
             font-size: 16px;
             text-align: right;
+            flex-shrink: 0;
+            white-space: nowrap;
         }
 
         .order-provider-link a {
@@ -165,29 +167,56 @@
             text-decoration: underline;
         }
 
+        .order-provider-tools {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+            flex-wrap: nowrap;
+            min-width: 0;
+        }
+
+        .order-provider-tools form {
+            flex: 0 1 270px;
+            min-width: 230px;
+        }
+
         .order-search {
             position: relative;
-            width: min(100%, 270px);
+            width: 100%;
         }
 
         .order-search input {
             width: 100%;
             height: 42px;
-            border-radius: 10px;
+            border-radius: 4px;
             border: 1px solid #e3e5ef;
             background: #fff;
-            padding: 10px 42px 10px 14px;
+            padding: 10px 14px 10px 42px;
             color: #636b80;
             font-size: 14px;
+            outline: none;
+            box-shadow: none;
+            transition: border-color .15s ease, box-shadow .15s ease;
         }
 
-        .order-search i {
+        .order-search input:focus,
+        .order-search input:focus-visible {
+            border-color: #cfd7e6;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(207, 215, 230, 0.18);
+        }
+
+        .order-search-icon {
             position: absolute;
-            right: 14px;
+            left: 14px;
             top: 50%;
+            width: 18px;
+            height: 18px;
+            color: #8f9bb3;
             transform: translateY(-50%);
-            color: #bcc3d4;
-            font-size: 15px;
+            z-index: 2;
+            pointer-events: none;
         }
 
         .order-history-table {
@@ -500,13 +529,20 @@
             }
 
             .order-provider-head,
+            .order-provider-tools,
             .provider-footer {
                 flex-direction: column;
                 align-items: flex-start;
             }
 
+            .order-provider-tools,
+            .order-provider-tools form,
             .order-search {
                 width: 100%;
+            }
+
+            .order-provider-tools form {
+                min-width: 0;
             }
 
             .order-provider-title {
@@ -704,9 +740,26 @@
                                     <h5 class="order-provider-title provider-roam">
                                         <span>Roam Orders</span>
                                     </h5>
-                                    <div class="order-provider-link">
-                                        <a href="https://globalesimstore.com/E" target="_blank"
-                                            rel="noopener noreferrer">Check Roam Orders</a>
+                                    <div class="order-provider-tools">
+                                        <form method="GET" action="{{ route('customer.profile.index') }}">
+                                            <input type="hidden" name="orders_tab" value="roam">
+                                            <div class="order-search">
+                                                <svg class="order-search-icon" xmlns="http://www.w3.org/2000/svg"
+                                                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                    aria-hidden="true">
+                                                    <circle cx="11" cy="11" r="8"></circle>
+                                                    <path d="m21 21-4.35-4.35"></path>
+                                                </svg>
+                                                <input name="search" type="search" value="{{ request('search') }}"
+                                                    placeholder="Search Roam Order ID..."
+                                                    aria-label="Search Roam Order ID">
+                                            </div>
+                                        </form>
+                                        <div class="order-provider-link">
+                                            <a href="https://globalesimstore.com/E" target="_blank"
+                                                rel="noopener noreferrer">Check Roam Orders</a>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="table-responsive">
@@ -762,10 +815,15 @@
                                                 </tr>
                                             @empty
                                                 <tr class="order-empty-row">
-                                                    <td colspan="4">
+                                                    <td colspan="5">
                                                         <div class="order-empty-state">
-                                                            <h6>No Roam orders yet</h6>
-                                                            <p>Your Roam order history will appear here after checkout.</p>
+                                                            @if (request()->filled('search'))
+                                                                <h6>No Roam orders found</h6>
+                                                                <p>Your matching Roam order history will appear here.</p>
+                                                            @else
+                                                                <h6>No Roam orders yet</h6>
+                                                                <p>Your Roam order history will appear here after checkout.</p>
+                                                            @endif
                                                         </div>
                                                     </td>
                                                 </tr>
@@ -795,12 +853,30 @@
                                     <h5 class="order-provider-title provider-joytel">
                                         <span>Joytel Orders</span>
                                     </h5>
-                                    <div class="order-provider-link">
-                                        <a href="#" class="joytel-usage-check-btn" data-bs-toggle="modal"
-                                            data-bs-target="#joytelUsageModal" data-manual="1" data-service-type="esim"
-                                            data-outer-order-id="" data-items="[]">
-                                            Check Joytel Orders
-                                        </a>
+                                    <div class="order-provider-tools">
+                                        <form method="GET" action="{{ route('customer.profile.index') }}">
+                                            <input type="hidden" name="orders_tab" value="joytel">
+                                            <div class="order-search">
+                                                <svg class="order-search-icon" xmlns="http://www.w3.org/2000/svg"
+                                                    viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                                    aria-hidden="true">
+                                                    <circle cx="11" cy="11" r="8"></circle>
+                                                    <path d="m21 21-4.35-4.35"></path>
+                                                </svg>
+                                                <input name="joytel_search" type="search"
+                                                    value="{{ request('joytel_search') }}"
+                                                    placeholder="Search Joytel Order ID..."
+                                                    aria-label="Search Joytel Order ID">
+                                            </div>
+                                        </form>
+                                        <div class="order-provider-link">
+                                            <a href="#" class="joytel-usage-check-btn" data-bs-toggle="modal"
+                                                data-bs-target="#joytelUsageModal" data-manual="1"
+                                                data-service-type="esim" data-outer-order-id="" data-items="[]">
+                                                Check Joytel Orders
+                                            </a>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="table-responsive">
@@ -854,11 +930,15 @@
                                                 </tr>
                                             @empty
                                                 <tr class="order-empty-row">
-                                                    <td colspan="7">
+                                                    <td colspan="5">
                                                         <div class="order-empty-state">
-                                                            <h6>No Joytel orders yet</h6>
-                                                            <p>Your Joytel order history will appear here after checkout.
-                                                            </p>
+                                                            @if (request()->filled('joytel_search'))
+                                                                <h6>No Joytel orders found</h6>
+                                                                <p>Your matching Joytel order history will appear here.</p>
+                                                            @else
+                                                                <h6>No Joytel orders yet</h6>
+                                                                <p>Your Joytel order history will appear here after checkout.</p>
+                                                            @endif
                                                         </div>
                                                     </td>
                                                 </tr>

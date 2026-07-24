@@ -1,5 +1,6 @@
-@props(['key'])
+@props(['key', 'title' => null, 'subtitle' => null, 'page' => null])
 @php
+    $banner = banner($key);
     $file = get_banner($key);
     $image = $file !== null ? 'banner/' . $file : 'assets/images/default-banner.png';
 @endphp
@@ -12,8 +13,8 @@
             <div class="row">
                 <div class="col-lg-12 col-md-12 col-sm-12 col-12">
                     <div class="banner_content">
-                        <h1>{{ banner($key)?->title ?? '' }}</h1>
-                        <p>{{ banner($key)?->subtitle ?? '' }}</p>
+                        <h1>{{ $title ?? $banner?->title ?? '' }}</h1>
+                        <p>{{ $subtitle ?? $banner?->subtitle ?? '' }}</p>
                     </div>
                 </div>
             </div>
@@ -22,6 +23,6 @@
     <div class="box">
         <span class="mb-0 text-size-16">Home</span><span class="mb-0 text-size-16 dash">-</span>
         <span class="mb-0 text-size-16">Service</span><span class="mb-0 text-size-16 dash">-</span>
-        <span class="mb-0 text-size-16 box_span">{{ banner($key)?->page ?? '' }}</span>
+        <span class="mb-0 text-size-16 box_span">{{ $page ?? $banner?->page ?? '' }}</span>
     </div>
 </div>
